@@ -8,7 +8,7 @@ it('renders the supplied catalog and emits a selection without persisting consum
   const selection = { model: 'vendor:model', reasoningEffort: 'low', serviceTier: null };
   const wrapper = mount(ModelPicker, { props: { selection, models: [{
     id: 'catalog-id', model: 'vendor:model', supportedReasoningEfforts: [{ reasoningEffort: 'high', description: '' }],
-    serviceTiers: [{ id: 'custom-speed', name: 'Custom speed' }],
+    serviceTiers: [{ id: 'custom-speed', name: 'Custom speed', description: '' }],
   }] } });
   try {
     expect(wrapper.text()).toContain('vendor:model');

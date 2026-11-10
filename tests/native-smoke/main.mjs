@@ -1,9 +1,13 @@
 import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron';
 import { registerElectronMain } from '@korus-dev/agent-ui-sdk/electron.js';
+import * as browser from '@korus-dev/agent-ui-sdk/electron/browser.js';
+import assert from 'node:assert/strict';
 import path from 'node:path';
 
 app.setPath('userData', path.join(import.meta.dirname, 'profile'));
 app.whenReady().then(async () => {
+  assert.equal(typeof browser, 'object');
+  assert(Object.keys(browser).length > 0, 'Electron browser entry must load.');
   const window = new BrowserWindow({
     show: false,
     webPreferences: {

@@ -1,5 +1,14 @@
-name: Deploy documentation
+name: Documentation
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.npmrc'
+      - '.node-version'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -10,8 +19,12 @@ jobs:
   build:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      SDK_LOCAL_SOURCE: '0'
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -23,6 +36,7 @@ jobs:
         with:
           path: docs/.vitepress/dist
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:

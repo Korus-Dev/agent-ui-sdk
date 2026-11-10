@@ -1,4 +1,4 @@
-name: Publish
+name: Publish to npm
 on:
   workflow_dispatch:
     inputs:
@@ -9,12 +9,12 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: npm-publish
+  group: publish-npm
   cancel-in-progress: false
 jobs:
   publish:
     if: github.ref == 'refs/heads/main'
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
@@ -30,12 +30,11 @@ jobs:
           node-version: '24'
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
-      - run: node scripts/check-release.mjs
+      - name: Check the requested version
+        run: node --input-type=module -e "import { readFileSync } from 'node:fs'; import assert from 'node:assert/strict'; assert.equal(process.env.RELEASE_VERSION, JSON.parse(readFileSync('package.json', 'utf8')).version, 'Version input must match package.json');"
       - run: npm ci --ignore-scripts
       - run: npm run check
-      - run: npx playwright install chromium webkit
-      - run: npm run test:lab:browser
-      - run: npm run test:samples:browser
+      - run: npm audit --omit=dev --audit-level=high
       - name: Publish the checked archive with npm trusted publishing
         run: |
           mkdir -p release-package

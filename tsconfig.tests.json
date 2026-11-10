@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node", "vite/client", "vitest/globals"]
+  },
+  "include": [
+    "src/**/*.ts", "src/**/*.vue",
+    "tests/**/*.ts", "tests/**/*.vue",
+    "lab/**/*.ts", "lab/**/*.vue",
+    "samples/**/*.ts", "samples/**/*.vue",
+    "examples/**/*.ts", "*.config.ts", "source-aliases.ts"
+  ]
+}

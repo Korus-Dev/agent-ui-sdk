@@ -90,7 +90,7 @@ describe('MarkdownPanel', () => {
   it('keeps the full label available when a long outline row is truncated', async () => {
     const wrapper = await mountDocument('# Guide\n\n## A long section title');
     await wrapper.get('button[aria-expanded]').trigger('click');
-    const row = wrapper.findAll('nav button')[1];
+    const row = wrapper.findAll('nav button')[1]!;
     expect(row.attributes('title')).toBe('A long section title');
     expect(row.attributes('aria-label')).toBe('A long section title (heading level 2)');
     expect(getComputedStyle(row.element).textOverflow).toBe('ellipsis');
@@ -105,15 +105,15 @@ describe('MarkdownPanel', () => {
       await wrapper.get('button[aria-expanded]').trigger('click');
       const rows = wrapper.findAll('nav button');
       Object.defineProperty(wrapper.get('.markdown-panel__document').element, 'scrollTo', { configurable: true, value: vi.fn() });
-      await rows[0].trigger('click');
-      expect(getComputedStyle(rows[0].element).fontWeight).toBe('var(--font-weight-bold)');
-      expect(getComputedStyle(rows[1].element).fontWeight).toBe('var(--font-weight-semibold)');
-      expect(getComputedStyle(rows[2].element).fontWeight).toBe('var(--font-weight-regular)');
-      await rows[1].trigger('click');
-      expect(rows[1].attributes('aria-current')).toBe('location');
-      expect(getComputedStyle(rows[1].element).fontWeight).toBe('var(--font-weight-semibold)');
-      expect(getComputedStyle(rows[0].element).fontWeight).toBe('var(--font-weight-bold)');
-      expect(getComputedStyle(rows[2].element).fontWeight).toBe('var(--font-weight-regular)');
+      await rows[0]!.trigger('click');
+      expect(getComputedStyle(rows[0]!.element).fontWeight).toBe('var(--font-weight-bold)');
+      expect(getComputedStyle(rows[1]!.element).fontWeight).toBe('var(--font-weight-semibold)');
+      expect(getComputedStyle(rows[2]!.element).fontWeight).toBe('var(--font-weight-regular)');
+      await rows[1]!.trigger('click');
+      expect(rows[1]!.attributes('aria-current')).toBe('location');
+      expect(getComputedStyle(rows[1]!.element).fontWeight).toBe('var(--font-weight-semibold)');
+      expect(getComputedStyle(rows[0]!.element).fontWeight).toBe('var(--font-weight-bold)');
+      expect(getComputedStyle(rows[2]!.element).fontWeight).toBe('var(--font-weight-regular)');
     } finally {
       host.remove();
     }
@@ -138,6 +138,7 @@ describe('MarkdownPanel', () => {
     });
     await nextTick();
     const [wrapper, other] = pair.findAllComponents(MarkdownPanel);
+    if (!wrapper || !other) throw new Error('Expected two markdown panels.');
     await wrapper.get('button[aria-expanded]').trigger('click');
     const viewport = wrapper.get('.markdown-panel__document').element as HTMLElement;
     Object.defineProperties(viewport, {
@@ -152,20 +153,20 @@ describe('MarkdownPanel', () => {
     Object.defineProperty(viewport, 'scrollTo', { configurable: true, value: scrollTo });
     await wrapper.get('.markdown-panel__document').trigger('scroll');
     const rows = wrapper.findAll('nav button');
-    expect(rows[0].attributes('aria-current')).toBe('location');
-    await rows[2].trigger('click');
+    expect(rows[0]!.attributes('aria-current')).toBe('location');
+    await rows[2]!.trigger('click');
     expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 600, behavior: 'auto' });
-    expect(rows[2].attributes('aria-current')).toBe('location');
+    expect(rows[2]!.attributes('aria-current')).toBe('location');
     expect((other.get('.markdown-panel__document').element as HTMLElement).scrollTop).toBe(0);
     expect(other.get('h1').attributes('id')).not.toBe(wrapper.get('h1').attributes('id'));
 
     viewport.scrollTop = 320;
     await wrapper.get('.markdown-panel__document').trigger('scroll');
-    expect(rows[1].attributes('aria-current')).toBe('location');
-    expect(rows[2].attributes('aria-current')).toBeUndefined();
+    expect(rows[1]!.attributes('aria-current')).toBe('location');
+    expect(rows[2]!.attributes('aria-current')).toBeUndefined();
     viewport.scrollTop = 550;
     await wrapper.get('.markdown-panel__document').trigger('scroll');
-    expect(rows[2].attributes('aria-current')).toBe('location');
+    expect(rows[2]!.attributes('aria-current')).toBe('location');
   });
 
   it('replaces outline targets and removes controls for empty, loading and error documents', async () => {
@@ -177,7 +178,7 @@ describe('MarkdownPanel', () => {
     const scrollTo = vi.fn();
     Object.defineProperty(wrapper.get('.markdown-panel__document').element, 'scrollTo', { configurable: true, value: scrollTo });
     vi.spyOn(wrapper.get('h3').element, 'getBoundingClientRect').mockReturnValue({ top: 200 } as DOMRect);
-    await wrapper.findAll('nav button')[1].trigger('click');
+    await wrapper.findAll('nav button')[1]!.trigger('click');
     expect(scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 192, behavior: 'auto' });
     for (const props of [{ content: '#\n\n##' }, { content: 'No headings' }, { content: ' ' }, { content: '# Hidden', state: 'loading' as const }, { state: 'error' as const }]) {
       await wrapper.setProps(props);
@@ -201,13 +202,13 @@ describe('MarkdownPanel', () => {
     vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({ top: 10 } as DOMRect);
     vi.spyOn(wrapper.get('h1').element, 'getBoundingClientRect').mockReturnValue({ top: -200 } as DOMRect);
     vi.spyOn(wrapper.get('h2').element, 'getBoundingClientRect').mockReturnValue({ top: 12 } as DOMRect);
-    observers[0].callback([], {} as ResizeObserver);
+    observers[0]!.callback([], {} as ResizeObserver);
     await nextTick();
-    expect(wrapper.findAll('nav button')[1].attributes('aria-current')).toBe('location');
+    expect(wrapper.findAll('nav button')[1]!.attributes('aria-current')).toBe('location');
     await wrapper.setProps({ content: '# Replacement' });
-    expect(observers[0].disconnect).toHaveBeenCalledOnce();
+    expect(observers[0]!.disconnect).toHaveBeenCalledOnce();
     wrapper.unmount();
-    expect(observers[1].disconnect).toHaveBeenCalledOnce();
+    expect(observers[1]!.disconnect).toHaveBeenCalledOnce();
   });
 
   it('preserves a native text selection when expanding and collapsing the outline', async () => {

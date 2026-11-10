@@ -4,7 +4,7 @@
 npm install @korus-dev/agent-ui-sdk vue
 ```
 
-Use Node.js 22.19 or later for development and trusted host adapters, and Vue 3.5 or later. The UI is ESM and designed for a Vue-aware bundler such as Vite. Import the stylesheet once in your renderer:
+Use Node.js 22.19 or later for development and trusted host adapters, and Vue 3.5 or later. The package is ESM-only and designed for Electron applications using a Vue-aware bundler such as Vite. TypeScript consumers should use `target: ES2022`, `module: ESNext` and `moduleResolution: Bundler`. NodeNext type resolution is not part of the supported consumer contract. Import the stylesheet once in your renderer:
 
 ```ts
 import { ConversationPane, Composer, MessageList } from '@korus-dev/agent-ui-sdk';

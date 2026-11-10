@@ -11,10 +11,11 @@ const events = ['attach', 'attachmentsChange', 'cancel', 'clientResponse', 'copy
 // Reuse Vue's actual prop types for camelization and Boolean casting. Defaults
 // belong to the generic pane or native snapshot, so absence must stay undefined.
 const paneProps = (Pane as unknown as { props: ComponentObjectPropsOptions }).props;
+type PaneProps = Parameters<typeof Pane>[0];
 const inputProps = Object.fromEntries(Object.entries(paneProps).map(([key, option]) => [key, {
   ...(option && typeof option === 'object' && !Array.isArray(option) ? option : { type: option }),
   default: undefined,
-}]));
+}])) as { [Key in keyof PaneProps]-?: { type: PropType<PaneProps[Key]>; default: undefined } };
 
 /** Explicit native compatibility: the generic pane receives only controlled data/actions. */
 export default defineComponent({

@@ -340,9 +340,7 @@ describe('BrowserPanel', () => {
     await wrapper.get('[aria-label="Annotate page"]').trigger('click');
 
     emitEvent({
-      seq: 1,
       type: 'browser.annotationCreated',
-      occurredAt: '2026-07-29T00:00:00.000Z',
       payload: {
         id: 'annotation-1',
         ownerId: 'agent-1',
@@ -356,9 +354,7 @@ describe('BrowserPanel', () => {
       },
     });
     emitEvent({
-      seq: 2,
       type: 'browser.annotationCreated',
-      occurredAt: '2026-07-29T00:00:01.000Z',
       payload: {
         id: 'annotation-2',
         ownerId: 'agent-1',
@@ -393,9 +389,7 @@ describe('BrowserPanel', () => {
     expect(wrapper.get('[aria-label="Annotate page"]').find('.tabler-icon-scan-position').exists()).toBe(true);
     await wrapper.get('[aria-label="Annotate page"]').trigger('click');
     emitEvent({
-      seq: 1,
       type: 'browser.annotationCreated',
-      occurredAt: '2026-07-29T00:00:00.000Z',
       payload: {
         id: 'annotation-1', ownerId: 'agent-1', browserId: 'primary', kind: 'element', url: 'http://localhost:3000/', comment: 'Translate this.', rect: { x: 8, y: 16, width: 100, height: 40 },
       },
@@ -413,9 +407,7 @@ describe('BrowserPanel', () => {
     const { emitEvent, wrapper } = mountPanel();
     await flushPromises();
     emitEvent({
-      seq: 1,
       type: 'browser.annotationCreated',
-      occurredAt: '2026-07-29T00:00:00.000Z',
       payload: {
         id: 'annotation-other', ownerId: 'agent-2', browserId: 'secondary', kind: 'element', url: 'https://example.com/', comment: 'Ignore this.', rect: { x: 8, y: 16, width: 100, height: 40 },
       },

@@ -20,13 +20,13 @@ import {
 import '@korus-dev/agent-ui-sdk/styles.css';
 ```
 
-Bind a reactive session snapshot and renderer-safe operations with `createSessionConversationController`, then render `<ConversationPane :controller="binding.controller" />`. The same pane adapts to each harness's capabilities. See the [conversation guide](docs/guide/conversation-pane.md) and [typed example](examples/session-pane.ts).
+Bind a reactive session snapshot and renderer-safe operations with `createSessionConversationController`, then render `<ConversationPane :controller="binding.controller" />`. The same pane adapts to each harness's capabilities. See the [conversation guide](https://korus-dev.github.io/agent-ui-sdk/guide/conversation-pane).
 
 ## Documentation
 
-The [VitePress guides](docs/index.md) cover installation, session composition, the composer, messages, tools, history, themes, providers, documents, browser panels and native capabilities. Run `npm run dev:docs` to read them locally.
+The [VitePress guides](https://korus-dev.github.io/agent-ui-sdk/) cover installation, session composition, the composer, messages, tools, history, themes, providers, documents, browser panels and native capabilities. Run `npm run dev:docs` to read them locally.
 
-The root import contains Vue controls. Named optional entries keep trusted host code separate: `/host.js`, `/native.js`, `/electron.js`, `/electron/preload.js`, `/electron/browser.js`, `/speech.js`, `/browser.js`, `/browser-ui.js` and `/documents.js`. See the [entry-point reference](docs/api/index.md). Applications own navigation, authorization, durable attachments and retention.
+The root import contains Vue controls. Named optional entries keep trusted host code separate: `/host.js`, `/native.js`, `/electron.js`, `/electron/preload.js`, `/electron/browser.js`, `/speech.js`, `/browser.js`, `/browser-ui.js` and `/documents.js`. See the [entry-point reference](https://korus-dev.github.io/agent-ui-sdk/api/). Applications own navigation, authorization, durable attachments and retention.
 
 ## Samples
 
@@ -37,7 +37,7 @@ The root import contains Vue controls. Named optional entries keep trusted host 
 | Relay: business board and MCP tools | `npm run dev:relay` |
 | Component lab: mocked visual scenarios | `npm run dev:lab` |
 
-Pass `-- --backend claude` (or `codex`, `cursor`, `antigravity`) to a sample launch command; Codex is the default. Spark and Relay use isolated homes under `~/.agent-ui-sdk/samples/`; Basic uses the runtime’s standard home. The [sample guide](docs/guide/samples.md) explains host boundaries and commands. Lab scenarios use deterministic mocked state.
+Pass `-- --backend claude` (or `codex`, `cursor`, `antigravity`) to a sample launch command; Codex is the default. Spark and Relay use isolated homes under `~/.agent-ui-sdk/samples/`; Basic uses the runtime’s standard home. The [sample guide](https://korus-dev.github.io/agent-ui-sdk/guide/samples) explains host boundaries and commands. Lab scenarios use deterministic mocked state.
 
 ## Development
 
@@ -51,6 +51,6 @@ npm run test:samples:browser
 
 To develop sibling SDKs, set `SDK_LOCAL_SOURCE=1` in `.env` and optionally `SDK_SOURCE_ROOT` to their parent directory. Build `codex-sdk`, `multi-agent-sdk`, then this package. Published dependencies are used by default; `SDK_LOCAL_SOURCE=0` explicitly selects installed packages.
 
-CI checks types, tests, coverage, builds, the packed consumer, VitePress and browser workflows. Publishing uses a manual GitHub Actions workflow with npm trusted publishing. See [contributing](CONTRIBUTING.md) and [release setup](docs/guide/releasing.md).
+CI checks types, tests, coverage, builds, the packed consumer, VitePress and browser workflows. Publishing uses a manual GitHub Actions workflow with npm trusted publishing. See [contributing](https://korus-dev.github.io/agent-ui-sdk/guide/testing) and [release setup](https://korus-dev.github.io/agent-ui-sdk/guide/releasing).
 
 Licensed under [Apache 2.0](LICENSE).

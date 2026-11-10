@@ -4,6 +4,7 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    // Vue renderers, DOM interaction controls, and browser media APIs need DOM types.
     "lib": [
       "ES2022",
       "DOM",

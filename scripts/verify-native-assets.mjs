@@ -2,11 +2,6 @@ import { access, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-if (process.platform !== 'darwin') {
-  console.log(`skipping macOS-only Apple speech helper validation on ${process.platform}`);
-  process.exit(0);
-}
-
 const { resolveAppleSpeechAnalyzerPath } = await import('../dist/speech/index.js');
 
 const packageRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { nextTick, ref } from 'vue';
+import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import { useCodeSelection } from '../../../src/vue/documents/use-code-selection';

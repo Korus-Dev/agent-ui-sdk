@@ -106,7 +106,7 @@ describe('NativeConversationPane', () => {
   });
   it('loads summary Working details on expansion, retries failures, and keeps the loaded group cached', async () => {
     const final = 'Final answer\n\n![Phone](data:image/png;base64,cG5n)\n\n![Desktop](data:image/png;base64,cG5n)';
-    const state = reactive<CodexConversationPaneState>({ identity: {
+    const state: CodexConversationPaneState = reactive({ identity: {
       conversationKey: 'summary-thread', busy: false, activeTurnId: null,
       turns: [{ id: 'summary-turn', status: 'interrupted', error: null, willRetry: false, startedAt: null, completedAt: null, durationMs: 109_000, itemsView: 'summary' }],
       messages: [{ id: 'summary-answer', role: 'assistant', status: 'complete', turnId: 'summary-turn', parts: [{ type: 'text', text: 'Live work', phase: 'commentary' }] }],
@@ -196,7 +196,7 @@ describe('NativeConversationPane', () => {
     { name: 'a continuation input without assistant work', parts: [{ type: 'text' as const, text: 'Answer only', phase: 'final_answer' as const }], hasDetails: true, work: 'Follow-up direction', steer: true },
     { name: 'a final answer without work', parts: [{ type: 'text' as const, text: 'Answer only', phase: 'final_answer' as const }], hasDetails: false },
   ])('keeps the historical status accurate after loading $name', async ({ parts, hasDetails, work, steer }) => {
-    const state = reactive<CodexConversationPaneState>({ identity: {
+    const state: CodexConversationPaneState = reactive({ identity: {
       conversationKey: 'historical-thread', busy: false,
       turns: [{ id: 'historical-turn', status: 'completed', error: null, willRetry: false, startedAt: null, completedAt: null, durationMs: 11_000, itemsView: 'summary' }],
       messages: [{ id: 'historical-answer', role: 'assistant', status: 'complete', turnId: 'historical-turn', parts: [] }],
@@ -232,7 +232,7 @@ describe('NativeConversationPane', () => {
   it.each(
     ['Tab', 'ArrowRight', ' '].flatMap(key => ['props', 'controller'].map(mode => ({ key, mode }))),
   )('accepts an explicit changing prompt suggestion with $key through $mode without submitting', async ({ key, mode }) => {
-    const state = reactive<CodexConversationPaneState>({ identity: { messages: [] }, composer: {} });
+    const state: CodexConversationPaneState = reactive({ identity: { messages: [] }, composer: {} });
     const submit = vi.fn();
     const updateComposerState = vi.fn((next) => { state.composer = { ...state.composer, state: next }; });
     const wrapper = mount(CodexConversationPane, { props: mode === 'controller'
@@ -696,7 +696,7 @@ describe('NativeConversationPane', () => {
   });
 
   it('loads controlled prompt history when an explicit history override is removed', async () => {
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: { conversationKey: 'thread-history-override', messages: [] },
       composer: { promptHistory: ['Configured history'] },
     });
@@ -712,7 +712,7 @@ describe('NativeConversationPane', () => {
   });
 
   it('ignores stale prompt-history responses after the active conversation changes', async () => {
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: { conversationKey: 'thread-old', messages: [] },
     });
     const pending: Array<{ key: string; resolve(prompts: readonly string[]): void }> = [];
@@ -738,7 +738,7 @@ describe('NativeConversationPane', () => {
   });
 
   it('reuses prompt-history results when returning to a previously loaded conversation', async () => {
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: { conversationKey: 'thread-one', messages: [] },
     });
     const readPromptHistory = vi.fn(async () => [`History for ${state.identity.conversationKey}`]);
@@ -1251,7 +1251,7 @@ describe('NativeConversationPane', () => {
 
   it('keeps a controlled initial submission visible while the provider conversation is created', async () => {
     const submit = vi.fn(async () => undefined);
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: { conversationKey: 'agent-provisional', messages: [] },
     });
     const controller = createCodexConversationPaneController({ state, actions: { submit } });
@@ -1297,7 +1297,7 @@ describe('NativeConversationPane', () => {
     let finish!: () => void;
     const submit = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
     const previous: SurfaceMessage = { id: 'previous-user', role: 'user', status: 'complete', parts: [{ type: 'text', text: 'Repeat this task' }] };
-    const state = reactive<CodexConversationPaneState>({ identity: { conversationKey: 'existing-thread', messages: [previous] } });
+    const state: CodexConversationPaneState = reactive({ identity: { conversationKey: 'existing-thread', messages: [previous] } });
     const wrapper = mount(CodexConversationPane, { props: { controller: createCodexConversationPaneController({ state, actions: { submit } }) } });
     await setComposerText(wrapper, 'Repeat this task');
     await wrapper.get('form').trigger('submit');
@@ -1941,7 +1941,7 @@ describe('NativeConversationPane', () => {
   });
 
   it('reacts to in-place controlled composer changes and preserves the last draft when state is absent', async () => {
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: { conversationKey: 'deep-controlled-draft', messages },
       composer: { state: { text: 'Initial draft', selectionStart: 2, selectionEnd: 2 } },
     });
@@ -1967,7 +1967,7 @@ describe('NativeConversationPane', () => {
   });
 
   it('resets a controller-owned draft when the conversation changes without replacement state', async () => {
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: { conversationKey: 'controller-draft-one', messages },
     });
     const controller = createCodexConversationPaneController({ state, actions: {} });
@@ -2869,7 +2869,7 @@ describe('NativeConversationPane', () => {
   });
 
   it('keeps deletion pending for fire-and-forget controller actions until controlled state removes the turn', async () => {
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: {
         conversationKey: 'emitted-delete',
         activeTurnId: null,
@@ -3051,7 +3051,7 @@ describe('NativeConversationPane', () => {
       selectApprovalPreset: vi.fn(),
       updateSettings: vi.fn(),
     };
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: { conversationKey: 'controlled-composer-actions', messages },
       thread: { approvals: [] },
     });
@@ -3109,7 +3109,7 @@ describe('NativeConversationPane', () => {
   });
 
   it('keeps composer settings and decisions controller-owned when actions are absent', async () => {
-    const state = reactive<CodexConversationPaneState>({
+    const state: CodexConversationPaneState = reactive({
       identity: { conversationKey: 'controlled-composer-actions-absent', messages },
       thread: { approvals: [] },
     });
@@ -3859,7 +3859,7 @@ describe('NativeConversationPane', () => {
     const openLink = vi.fn();
     const compatibility = vi.fn();
     const userUrl: SurfaceMessage = { id: 'user-url', role: 'user', status: 'complete', parts: [{ type: 'text', text: expected.href }] };
-    const state = reactive<CodexConversationPaneState>({ identity: { conversationKey: 'controlled-link', messages: [userUrl] } });
+    const state: CodexConversationPaneState = reactive({ identity: { conversationKey: 'controlled-link', messages: [userUrl] } });
     const controller = createCodexConversationPaneController({
       state,
       actions: { openLink },
