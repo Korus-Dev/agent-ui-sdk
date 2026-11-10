@@ -1,5 +1,15 @@
-import type { HarnessCapabilities, SessionState } from '@korus-dev/multi-agent-sdk/consumer-types';
+import type { HarnessCapabilities, ModelOption, SessionState } from '@korus-dev/multi-agent-sdk/consumer-types';
+import type { ModelSelection } from './model-selection';
 import type { CodexConversationPaneState as ConversationPaneState } from './conversation-pane-controller';
+
+/** Controlled catalog and selection; loading and persistence belong to the host. */
+export type SessionConversationControls = {
+  models?: readonly ModelOption[];
+  selection?: ModelSelection;
+  planMode?: boolean;
+  permission?: string;
+  modelCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
+};
 
 /**
  * Compose the controlled pane from a harness-owned snapshot, without owning a
@@ -11,6 +21,7 @@ export function sessionStateToConversationPaneState(
   state: SessionState,
   capabilities: HarnessCapabilities,
   conversationKey?: string | number | null,
+  controls?: SessionConversationControls,
 ): ConversationPaneState {
   const approvals = state.requests.flatMap(request => request.kind === 'approval' ? [request.approval] : []);
   const clientRequests = state.requests.filter(request => request.kind !== 'approval');
@@ -27,6 +38,18 @@ export function sessionStateToConversationPaneState(
     },
     history: state.historyLoading === undefined && state.historyState === undefined
       ? undefined : { loading: state.historyLoading, ...state.historyState },
+    ...(controls === undefined ? {} : {
+      catalogs: {
+        models: controls.models?.map(model => ({ ...model, id: model.model, displayName: model.displayName ?? model.model })),
+        modelCatalogStatus: controls.modelCatalogStatus ?? (controls.models === undefined ? 'notLoaded' : 'loaded'),
+      },
+      composer: {
+        planMode: controls.planMode,
+        selectedModelId: controls.selection?.model,
+        selectedReasoningEffort: controls.selection?.reasoningEffort,
+        selectedServiceTier: controls.selection?.serviceTier,
+      },
+    }),
     capabilities: {
       models: capabilities.models, skills: capabilities.skills,
       reasoningEffort: capabilities.reasoningEffort, serviceTier: capabilities.serviceTier,

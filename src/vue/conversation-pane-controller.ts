@@ -122,7 +122,9 @@ export function resolveCodexConversationPaneValue<T>(
   return source as T;
 }
 
-type PaneAction<Args extends unknown[] = []> = (...args: Args) => void | Promise<void>;
+/** A queued prompt or command can explicitly retire its optimistic user row. */
+export type ConversationSubmissionResult = void | { renderOptimisticMessage: boolean };
+type PaneAction<Args extends unknown[] = [], Result = void> = (...args: Args) => Result | Promise<Result>;
 
 export type CodexConversationPaneActions<Payload = unknown> = {
   attach?: PaneAction;
@@ -149,6 +151,8 @@ export type CodexConversationPaneActions<Payload = unknown> = {
   quoteMessage?: PaneAction<[index: number]>;
   /** Loads bounded user-only prompt history for the active conversation. */
   readPromptHistory?: () => readonly string[] | Promise<readonly string[]>;
+  /** Scoped attachment/media content, independent of native file picking. */
+  readImagePreview?: (reference: string) => Promise<string | null>;
   /** Discovers the skill catalog when the composer opens skill suggestions. */
   requestSkills?: PaneAction;
   resolveApproval?: PaneAction<[
@@ -161,7 +165,7 @@ export type CodexConversationPaneActions<Payload = unknown> = {
   sendFollowUp?: PaneAction<[prompt: string]>;
   steer?: PaneAction<[prompt: string, options?: CodexRendererSendMessageOptions]>;
   steerQueuedPrompt?: PaneAction<[promptId: string, prompt?: string, options?: CodexRendererSendMessageOptions]>;
-  submit?: PaneAction<[prompt: string, options?: CodexRendererSendMessageOptions]>;
+  submit?: PaneAction<[prompt: string, options?: CodexRendererSendMessageOptions], ConversationSubmissionResult>;
   updateAttachments?: PaneAction<[attachments: readonly CodexHostAttachment[]]>;
   updateComposerState?: PaneAction<[state: CodexComposerState]>;
   updateSettings?: PaneAction<[settings: UpdateCodexConversationSettings]>;

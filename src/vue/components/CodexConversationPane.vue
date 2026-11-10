@@ -321,6 +321,7 @@ import type {
   TurnGitDiff,
 } from '../chat/contracts';
 import { resolveCodexConversationPresentation } from '../chat/contracts';
+import { provideImagePreviewReader } from '../chat/host-image-previews';
 import { defaultCapabilities } from '../chat/default-capabilities';
 import { composerCommandsWithGoals } from '../chat/composer-goal-commands';
 import { codexConversationLinkFromHref } from '../chat/conversation-links';
@@ -566,6 +567,12 @@ const effectiveControllerActions = computed<CodexConversationPaneActions<Payload
   const controller = effectiveController.value;
   return controller ? resolveCodexConversationPaneValue(controller.actions) : undefined;
 });
+if (effectiveControllerActions.value?.readImagePreview) {
+  provideImagePreviewReader(async reference => {
+    const preview = await effectiveControllerActions.value?.readImagePreview?.(reference);
+    return preview ?? hostCapabilities?.readImagePreview?.(reference) ?? null;
+  });
+}
 function controlledValue<T>(read: (state: CodexConversationPaneState) => T, fallback: () => T): T {
   const state = effectiveControllerState.value;
   return state ? read(state) : fallback();
@@ -1139,7 +1146,10 @@ function submit(prompt: string, composerOptions?: Pick<CodexRendererSendMessageO
     if (controlledSubmit) {
       const optimisticMessageId = beginControlledSubmission(prompt, selectedAttachments.value, options?.content);
       void runControlledAction(
-        () => Promise.resolve(controlledSubmit(prompt, options)),
+        async () => {
+          const result = await controlledSubmit(prompt, options);
+          if (result?.renderOptimisticMessage === false) clearPendingControlledSubmission(optimisticMessageId);
+        },
         () => {
           clearPendingControlledSubmission(optimisticMessageId);
           locallyDismissedQuestionIds.value = previousDismissedQuestions;

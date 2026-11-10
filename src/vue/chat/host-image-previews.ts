@@ -1,7 +1,14 @@
 import { observeImageViewport } from './image-viewport'
 import { imagePreviewPoolKey } from './image-preview-pool'
-import { computed, inject, shallowRef, watch, type Ref, type WatchSource } from 'vue'
+import { computed, inject, provide, shallowRef, watch, type InjectionKey, type Ref, type WatchSource } from 'vue'
 import { useCodexHostCapabilities } from '../native-capabilities'
+
+type ImagePreviewReader = (reference: string) => Promise<string | null>
+const imagePreviewReaderKey: InjectionKey<ImagePreviewReader> = Symbol('image-preview-reader')
+export function provideImagePreviewReader(read: ImagePreviewReader) { provide(imagePreviewReaderKey, read) }
+export function useImagePreviewReader(): ImagePreviewReader | undefined {
+  return inject(imagePreviewReaderKey, undefined) ?? useCodexHostCapabilities()?.readImagePreview
+}
 
 function localSource(source: string): boolean {
   return Boolean(source) && !/^(?:https?:|data:|blob:|\/\/)/i.test(source)
@@ -12,17 +19,17 @@ function displaySource(source: string): boolean {
 
 /** Hosts resolve their own files; a phone or web client never interprets a laptop path locally. */
 export function useHostImageSource(source: WatchSource<string>, loading?: Ref<boolean>) {
-  const host = useCodexHostCapabilities()
+  const readImagePreview = useImagePreviewReader()
   const resolved = shallowRef<string>()
   watch(source, async (value, _previous, onCleanup) => {
     let active = true
     onCleanup(() => { active = false })
     resolved.value = undefined
     if (loading) loading.value = false
-    if (!localSource(value) || !host?.readImagePreview) { resolved.value = value; return }
+    if (!localSource(value) || !readImagePreview) { resolved.value = value; return }
     if (loading) loading.value = true
     try {
-      const result = await host.readImagePreview(value)
+      const result = await readImagePreview(value)
       if (active && result && displaySource(result)) resolved.value = result
     } catch { /* Opening the image lets its host present an unavailable state. */ }
     finally { if (active && loading) loading.value = false }

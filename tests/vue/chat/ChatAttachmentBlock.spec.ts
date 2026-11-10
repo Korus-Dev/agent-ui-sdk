@@ -70,6 +70,19 @@ describe('ChatAttachmentBlock', () => {
     expect(wrapper.attributes('href')).toBeUndefined();
   });
 
+  it.each(['conversation-image:thread:' + 'a'.repeat(64), 'app-attachment:stored-image'])
+  ('resolves the preview reference before the original provider path: %s', async (url) => {
+    const readImagePreview = vi.fn(async () => 'data:image/png;base64,YQ==');
+    Object.defineProperty(window, 'codexAppSdkNative', { configurable: true, value: { readImagePreview } });
+    const wrapper = mount(ChatAttachmentBlock, {
+      props: { attachment: attachment({ path: '/provider/private/image.png', url }) },
+    });
+    await flushPromises();
+    expect(readImagePreview).toHaveBeenCalledWith(url);
+    expect(wrapper.get('img').attributes('src')).toBe('data:image/png;base64,YQ==');
+    wrapper.unmount();
+  });
+
   it('renders non-image attachments as chips even when their URL is image-safe', () => {
     const wrapper = mount(ChatAttachmentBlock, {
       props: {

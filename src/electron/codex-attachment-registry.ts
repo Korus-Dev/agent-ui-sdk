@@ -1,9 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host';
-import type {
-  CodexRendererAttachment,
-  CodexSurfaceAttachment,
-} from '@korus-dev/multi-agent-sdk/surface';
+import type { PromptOptions } from '@korus-dev/multi-agent-sdk/consumer-types';
+import type { ClientAttachment } from '@korus-dev/multi-agent-sdk/ui-types';
 
 export type CodexElectronAttachmentRegistration = {
   type: CodexHostAttachment['type'];
@@ -40,7 +38,7 @@ export class CodexElectronAttachmentRegistry {
     };
   }
 
-  resolve(attachment: CodexRendererAttachment): CodexSurfaceAttachment {
+  resolve(attachment: ClientAttachment): NonNullable<PromptOptions['attachments']>[number] {
     const registered = this.#registered(attachment.reference);
     if (registered.type !== attachment.type) {
       throw new TypeError('Attachment reference type does not match');

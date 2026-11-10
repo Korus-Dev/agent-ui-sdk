@@ -1,3 +1,5 @@
+export { default as ModelPicker } from './components/ModelPicker.vue';
+export type { ModelSelection } from './model-selection';
 export { default as CodexComposer } from './components/CodexComposer.vue';
 export type { CodexComposerState } from './composer-state';
 export { default as CodexApprovalPrompt } from './components/CodexApprovalPrompt.vue';
@@ -341,9 +343,14 @@ export { codexCustomBlocksKey as customBlocksKey, type CodexCustomBlocks as Cust
 
 export type { DiffOverviewFile, DiffOverviewSlot } from '../documents/diff-overview';
 
-export { sessionStateToConversationPaneState } from './session-conversation-pane';
+export { sessionStateToConversationPaneState, type SessionConversationControls } from './session-conversation-pane';
 export type { ClientAttachment, ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
 
 export { requestResponseFromClientResponse, requestResponseFromApproval, type SessionRequestResponse } from './session-request-response';
 
 export type { ConversationRequest, ConversationQuestionRequest, ConversationConfirmationRequest } from './chat/conversation-request';
+
+export { createSessionConversationController, type SessionConversationClient, type SessionConversationControllerOptions } from './session-conversation-controller';
+export { toHarnessPromptOptions } from '../host/session-prompt-options';
+
+export type { ConversationSubmissionResult } from './conversation-pane-controller';

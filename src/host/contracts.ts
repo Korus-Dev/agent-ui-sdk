@@ -103,3 +103,7 @@ export type HostCapabilities = CodexHostCapabilities;
 export type NativeRendererApi = CodexNativeRendererApi;
 
 export const nativeRendererGlobal = codexNativeRendererGlobal;
+
+export { toHarnessPromptOptions } from './session-prompt-options';
+
+export { conversationImageInput, readEmbeddedConversationImage } from './conversation-images';

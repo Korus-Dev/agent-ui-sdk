@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "rootDir": ".", "noEmit": true },
-  "include": ["src/**/*.ts", "src/**/*.vue", "examples/session-pane.ts", "tests/fixtures/consumer-session.ts", "tests/boundaries/session-composition.spec.ts", "tests/vue/native/NativeConversationPaneProps.spec.ts", "tests/vue/native/NativeConversationPanePropsFixture.vue"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "examples/session-pane.ts", "tests/fixtures/consumer-session.ts", "tests/boundaries/session-composition.spec.ts", "tests/boundaries/session-controller.spec.ts", "tests/vue/native/NativeConversationPaneProps.spec.ts", "tests/vue/native/NativeConversationPanePropsFixture.vue"]
 }

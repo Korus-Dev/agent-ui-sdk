@@ -57,8 +57,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { imageAspectRatio, useManagedImagePreview } from './host-image-previews'
-import { useCodexHostCapabilities } from '../native-capabilities'
+import { imageAspectRatio, useManagedImagePreview, useImagePreviewReader } from './host-image-previews'
 import { PaperclipIcon, PhotoIcon } from '../shared/icons/app-icons'
 import ChatImageLightbox from './ChatImageLightbox.vue'
 import type { CodexMessageImageOpenHandler } from './message-image'
@@ -71,7 +70,7 @@ const props = defineProps<{
 }>()
 // Stryker restore all
 
-const hostCapabilities = useCodexHostCapabilities()
+const readImagePreview = useImagePreviewReader()
 const rootElement = ref<HTMLElement | null>(null)
 const managedPreview = useManagedImagePreview(() => props.attachment.kind === 'image' ? props.attachment.url || props.attachment.path || '' : '', rootElement)
 
@@ -99,9 +98,8 @@ watch(
   async ([kind, path, url]) => {
     const request = ++previewRequest
     nativePreviewSource.value = undefined
-    const reference = path || url
+    const reference = url && !/^file:/i.test(url) ? url : path || url
     if (managedPreview || kind !== 'image' || !reference || isSafeImageSource(url)) return
-    const readImagePreview = hostCapabilities?.readImagePreview
     if (!readImagePreview) return
     try {
       const source = await readImagePreview(reference)
@@ -142,7 +140,7 @@ async function handleImageOpen() {
 
 function isSafeImageSource(value: string | undefined): value is string {
   if (!value) return false
-  if (/^(?:\.\.?\/|\/(?!\/))/.test(value)) return !hostCapabilities?.readImagePreview
+  if (/^(?:\.\.?\/|\/(?!\/))/.test(value)) return !readImagePreview
   return /^(?:https?:|blob:)/i.test(value)
     || /^data:image\/(?:avif|bmp|gif|heic|heif|jpe?g|png|webp);base64,/i.test(value)
 }

@@ -8,6 +8,37 @@ import { sessionPaneExample } from '../../examples/session-pane';
 import { sessionFixture, capabilitiesFixture, failedTurnFixture, timedFailedSessionFixture } from '../fixtures/consumer-session';
 
 describe('neutral session composition', () => {
+  it('renders neutral model catalogs inside the composer and returns controlled native selections', async () => {
+    const selection = shallowRef({ model: 'model:b', reasoningEffort: 'high', serviceTier: null as string | null });
+    const models = [{ id: 'catalog-key', model: 'model:a', supportedReasoningEfforts: [
+      { reasoningEffort: 'low', description: 'Quick' }, { reasoningEffort: 'high', description: 'Deep' },
+    ], serviceTiers: [{ id: 'priority', name: 'Priority', description: 'Faster processing' }] }, { id: 'other-key', model: 'model:b' }];
+    const updateSettings = vi.fn((settings: { modelId?: string; reasoningEffort?: string | null; serviceTier?: string | null }) => {
+      selection.value = { ...selection.value,
+        ...(settings.modelId === undefined ? {} : { model: settings.modelId }),
+        ...(settings.reasoningEffort === undefined ? {} : { reasoningEffort: settings.reasoningEffort ?? 'low' }),
+        ...(settings.serviceTier === undefined ? {} : { serviceTier: settings.serviceTier }),
+      };
+    });
+    const controller = createConversationPaneController({
+      state: () => sessionStateToConversationPaneState({ ...sessionFixture, requests: [], busy: false },
+        { ...capabilitiesFixture, models: true, reasoningEffort: true, serviceTier: true }, 'chat', { models, selection: selection.value }),
+      actions: { updateSettings },
+    });
+    const pane = mount(ConversationPane, { props: { controller, escapeInterrupt: false } });
+    expect(pane.get('.chat-composer .chat-model-selector__button').text()).toContain('model:b');
+    await pane.get('.chat-model-selector__button').trigger('click');
+    await pane.get('[data-submenu-id="model:model:a"]').trigger('mouseenter');
+    await pane.findAll('[data-submenu-id="model:model:a"] [role="menuitemradio"]')[0]!.trigger('click');
+    expect(updateSettings).toHaveBeenCalledWith({ modelId: 'model:a' });
+    expect(updateSettings).not.toHaveBeenCalledWith({ modelId: 'catalog-key' });
+    expect(updateSettings).toHaveBeenCalledWith({ reasoningEffort: 'low' });
+    expect(pane.get('.chat-composer .chat-model-selector__button').text()).toContain('model:a Low');
+    expect(models[0]!.id).toBe('catalog-key');
+    expect(models[0]).not.toHaveProperty('displayName');
+    pane.unmount();
+  });
+
   it('keeps renderer spellings as client-type compatibility aliases', () => {
     expectTypeOf<ClientAttachment>().toEqualTypeOf<RendererAttachment>();
     expectTypeOf<ClientSendMessageOptions>().toEqualTypeOf<RendererSendMessageOptions>();
