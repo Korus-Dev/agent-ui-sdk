@@ -10,10 +10,15 @@
   ],
   "scripts": {
     "build": "vite build && node scripts/typecheck.mjs vue -p tsconfig.build.json && node scripts/package-katex-assets.mjs dist/styles.css dist/fonts && node scripts/verify-package-css.mjs dist/styles.css dist/vue/index.d.ts dist/fonts && node scripts/verify-native-assets.mjs",
-    "typecheck": "node scripts/typecheck.mjs vue --noEmit && npm run typecheck:composition",
+    "typecheck": "node scripts/typecheck.mjs vue --noEmit && npm run typecheck:composition && npm run typecheck:lab",
     "typecheck:composition": "node scripts/typecheck.mjs vue -p tsconfig.composition.json --noEmit",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "dev:lab": "vite --config lab/vite.config.ts",
+    "build:lab": "vite build --config lab/vite.config.ts",
+    "typecheck:lab": "node scripts/typecheck.mjs vue -p lab/tsconfig.json --noEmit",
+    "test:lab": "vitest run --config lab/vitest.config.ts",
+    "test:lab:browser": "node scripts/test-lab-browsers.mjs"
   },
   "name": "@korus-dev/agent-ui-sdk",
   "sideEffects": [
@@ -104,7 +109,8 @@
     "element-plus": "2.14.1",
     "jsdom": "29.1.1",
     "vue": "3.5.35",
-    "vue-tsc": "3.3.7"
+    "vue-tsc": "3.3.7",
+    "playwright": "1.63.0"
   },
   "publishConfig": {
     "access": "public",

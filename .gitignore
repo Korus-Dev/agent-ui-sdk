@@ -8,3 +8,5 @@ coverage/
 .env
 
 .sdk-typecheck-*/
+
+dist-lab/

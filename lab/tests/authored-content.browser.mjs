@@ -1,0 +1,279 @@
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import vue from '@vitejs/plugin-vue';
+import { chromium, webkit } from 'playwright';
+import { createServer } from 'vite';
+
+const root = fileURLToPath(new URL('../..', import.meta.url));
+const source = name => JSON.stringify(path.join(root, 'src/vue', name));
+const cacheDir = await mkdtemp(path.join(tmpdir(), 'sdk-authored-content-'));
+const fixtureId = '\0authored-content';
+const server = await createServer({
+  configFile: false, root, cacheDir, optimizeDeps: { noDiscovery: true, include: ['vue', '@tabler/icons-vue', 'fix-webm-duration', 'beautiful-mermaid'] },
+  plugins: [vue(), {
+    name: 'authored-content-fixture',
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        if (request.url !== '/authored-content') return next();
+        response.setHeader('Content-Type', 'text/html');
+        response.end('<!doctype html><div id="app"></div><script type="module" src="/authored-content.js"></script>');
+      });
+    },
+    resolveId(id) { if (id === '/authored-content.js') return fixtureId; },
+    load(id) {
+      if (id !== fixtureId) return;
+      return `
+        import { createApp, h, ref } from 'vue';
+        import Composer from ${source('components/CodexComposer.vue')};
+        import Message from ${source('components/CodexMessage.vue')};
+        import MessageEditor from ${source('chat/ChatMessageEditor.vue')};
+        import { promptContentDispatchText } from ${JSON.stringify(path.join(root, '../multi-agent-sdk/src/core/prompt-content.ts'))};
+        import ${source('styles.css')};
+        const state = ref({text:'',selectionStart:0,selectionEnd:0});
+        const submitted = ref(null);
+        const attachmentOnly = ref(false);
+        const catalogs = ref(true);
+        const history = ref(undefined);
+        const editing = ref(false);
+        const externalContext = ref(false);
+        window.contextSteers = [];
+        const skill = {name:'cp',displayName:'Commit-Push',path:'/skills/cp/SKILL.md',enabled:true};
+        const plugin = {id:'computer-use@openai-bundled',name:'computer-use',displayName:'Computer Use',brandColor:'#ff0000',enabled:true};
+        const groups = [{id:'agents',label:'Agents',items:[{id:'agent-1',value:'agent:1',label:'Alex'}]}];
+        window.authoredFixture = {
+          clearCatalogs() { catalogs.value = false; },
+          reload() { const {prompt,options}=submitted.value; submitted.value={prompt:promptContentDispatchText(options.content,prompt)}; },
+          edit() { editing.value=true; },
+          recall() { const {prompt,options}=submitted.value; catalogs.value=false; state.value={text:'',selectionStart:0,selectionEnd:0}; history.value=[options?.content?promptContentDispatchText(options.content,prompt):prompt]; },
+          contextOnly() { this.reset(); externalContext.value=true; window.contextSteers=[]; },
+          attachmentOnly(authored) { this.reset(); attachmentOnly.value=true; submitted.value={prompt:'(no user instructions)',options:authored?{content:[{type:'text',text:'(no user instructions)'}]}:undefined}; },
+          reset() { attachmentOnly.value=false; externalContext.value=false; history.value=undefined; editing.value=false; state.value={text:'',selectionStart:0,selectionEnd:0}; catalogs.value=true; },
+          restore() { const {prompt,options}=submitted.value; state.value={text:prompt,content:options?.content,selectionStart:prompt.length,selectionEnd:prompt.length}; },
+          read() { return {state:state.value,submitted:submitted.value}; },
+        };
+        createApp({setup:()=>()=>h('main',[
+          h(Composer,{capabilities:{skills:true,steerPrompt:true},disabled:false,isSending:externalContext.value,hasExternalContent:externalContext.value,suggestedPrompt:externalContext.value?'Suggested follow-up':undefined,followUpBehavior:'steer',composerState:state.value,promptHistory:history.value,
+            skills:catalogs.value?[skill]:[],plugins:catalogs.value?[plugin]:[],mentionGroups:catalogs.value?groups:[],
+            'onUpdate:composerState':value=>state.value=value,
+            onSend:(prompt,options)=>submitted.value={prompt,options},
+            onSteer:(prompt,options)=>window.contextSteers.push({prompt,options}),
+          }),
+          submitted.value?h(Message,{message:{id:'submitted',role:'user',status:'complete',kind:attachmentOnly.value?'steer':undefined,
+            parts:[{type:'text',text:submitted.value.prompt},...(attachmentOnly.value?[{type:'attachment',attachment:{kind:'image',name:'reference.svg',path:'/mock/reference.svg',url:'/lab/public/attachment-preview.svg',mimeType:'image/svg+xml'}}]:[])],metadata:{promptContent:submitted.value.options?.content}},
+            skills:catalogs.value?[skill]:[],plugins:catalogs.value?[plugin]:[],mentionGroups:catalogs.value?groups:[]}):null,
+          submitted.value?.options?.content?h('button',{onClick:()=>editing.value=true},'Edit saved prompt'):null,
+          editing.value?h(MessageEditor,{key:submitted.value.prompt,content:submitted.value.prompt,
+            promptContent:submitted.value.options.content,cancelLabel:'Cancel',inputLabel:'Edit submitted prompt',saveLabel:'Resubmit',
+            onSave:(prompt,options)=>window.inlineSubmission={prompt,options}}):null,
+        ])}).mount('#app');
+      `;
+    },
+  }], server: { port: 0 },
+});
+let browser;
+const appearance = element => {
+  const style = getComputedStyle(element);
+  return Object.fromEntries(['backgroundColor', 'color', 'padding', 'borderRadius', 'fontSize', 'fontWeight', 'lineHeight', 'gap']
+    .map(key => [key, style[key]]));
+};
+const iconAppearance = element => ({
+  paths: [...element.querySelectorAll('path')].map(path => path.getAttribute('d')),
+  width: getComputedStyle(element).width, height: getComputedStyle(element).height,
+});
+const textAlignment = element => {
+  const anchor = element.closest('[data-prompt-mention]') ?? element;
+  let previous = anchor.previousSibling;
+  while (previous && (previous.nodeType === Node.COMMENT_NODE || !previous.textContent?.trim())) previous = previous.previousSibling;
+  const range = document.createRange(); range.selectNodeContents(previous);
+  const text = range.getBoundingClientRect();
+  const pill = element.getBoundingClientRect();
+  return pill.y + pill.height / 2 - text.y - text.height / 2;
+};
+async function focusEnd(locator) {
+  await locator.focus();
+  await locator.evaluate(element => {
+    const range = document.createRange(); range.selectNodeContents(element); range.collapse(false);
+    const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+  });
+}
+try {
+  await server.listen();
+  for (const engine of [chromium, webkit]) {
+    browser = await engine.launch();
+    const page = await browser.newPage({ viewport: { width: 900, height: 700 } });
+    page.on('pageerror', error => console.error(error.message));
+    await page.goto(new URL('authored-content', server.resolvedUrls.local[0]).href);
+    const editor = page.locator('.chat-composer [role="textbox"]');
+    await editor.pressSequentially('$cp');
+    await page.locator('.chat-composer__send').click();
+    assert.equal(await page.locator('.chat-user-text').innerText(), '$cp');
+    assert.equal(await page.locator('.chat-user-text__mention').count(), 0);
+
+    await editor.pressSequentially('$cp then $cp');
+    assert.equal(await editor.locator('[data-skill-name]').count(), 0);
+    await page.getByRole('option', { name: 'Commit-Push', exact: true }).waitFor();
+    await editor.press('Enter');
+    await editor.locator('[data-skill-name="cp"]').waitFor();
+    const skillPill = editor.locator('[data-skill-name="cp"] .chat-mention-chip');
+    const skillStyle = await skillPill.evaluate(appearance);
+    const skillIcon = await skillPill.locator('svg').evaluate(iconAppearance);
+    const skillAlignment = await skillPill.evaluate(textAlignment);
+    await page.locator('.chat-composer__send').click();
+    const messageSkill = page.locator('.chat-user-text__mention--skill');
+    assert.deepEqual(await messageSkill.evaluate(appearance), skillStyle, 'Skill pills must match composer styling');
+    assert.deepEqual(await messageSkill.locator('svg').evaluate(iconAppearance), skillIcon, 'Skill fallback icons must match');
+    const messageSkillAlignment = await messageSkill.evaluate(textAlignment);
+    assert(Math.abs(messageSkillAlignment - skillAlignment) <= 0.5, `Skill alignment: composer ${skillAlignment}px, message ${messageSkillAlignment}px`);
+    const expected = [
+      { type: 'text', text: '$cp then ' },
+      { type: 'mention', kind: 'skill', id: '/skills/cp/SKILL.md', value: 'cp', label: 'Commit-Push' },
+    ];
+    assert.deepEqual(await page.evaluate(() => window.authoredFixture.read().submitted), {
+      prompt: '$cp then Commit-Push', options: { content: expected },
+    });
+    await page.evaluate(() => window.authoredFixture.clearCatalogs());
+    assert.equal(await page.locator('.chat-user-text__mention--skill').innerText(), 'Commit-Push');
+    await page.evaluate(() => window.authoredFixture.restore());
+    await editor.locator('[data-skill-name="cp"]').waitFor();
+    await focusEnd(editor); await editor.pressSequentially(' done');
+    assert.deepEqual((await page.evaluate(() => window.authoredFixture.read().state)).content,
+      [...expected, { type: 'text', text: ' done' }]);
+
+    assert.equal(await editor.locator('[data-skill-name]').count(), 1, 'Draft restore must not duplicate chips');
+    await page.getByRole('button', { name: 'Edit saved prompt', exact: true }).click();
+    const inline = page.getByRole('textbox', { name: 'Edit submitted prompt' });
+    await focusEnd(inline);
+    await inline.evaluate(element => {
+      const clipboardData = new DataTransfer();
+      clipboardData.setData('text/plain', ' pasted'); clipboardData.setData('text/html', '<b> pasted</b>');
+      element.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
+    });
+    assert.equal(await inline.textContent(), '$cp then Commit-Push pasted');
+    assert.equal(await inline.locator('b').count(), 0);
+    assert.equal(await editor.locator('[data-skill-name]').count(), 1, 'Inline paste must not alter another draft');
+    await inline.press('ControlOrMeta+z');
+    assert.equal(await inline.textContent(), '$cp then Commit-Push');
+    assert.equal(await editor.locator('[data-skill-name]').count(), 1, 'Inline undo must not alter another draft');
+    await inline.press('ControlOrMeta+Shift+z');
+    assert.equal(await inline.textContent(), '$cp then Commit-Push pasted');
+    assert.equal(await editor.locator('[data-skill-name]').count(), 1, 'Inline redo must not alter another draft');
+    assert.equal(await editor.textContent(), '$cp then Commit-Push done', 'Inline editing must leave the other draft text unchanged');
+    await page.getByRole('button', { name: 'Resubmit', exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => window.inlineSubmission), {
+      prompt: '$cp then Commit-Push pasted', options: { content: [...expected, { type: 'text', text: ' pasted' }] },
+    });
+
+    await page.screenshot({ path: `/tmp/sdk-authored-content-${engine.name()}.png` });
+    await page.evaluate(() => window.authoredFixture.recall());
+    await focusEnd(editor); await editor.press('ArrowUp');
+    await editor.locator('[data-skill-name="cp"]').waitFor();
+    assert.equal(await editor.textContent(), '$cp then Cp');
+    assert.equal(await page.locator('.chat-composer-skill-menu').count(), 0);
+    await editor.press('Enter');
+    assert.deepEqual((await page.evaluate(() => window.authoredFixture.read().submitted)).options.content, [expected[0], { ...expected[1], label: 'Cp' }]);
+    await page.evaluate(() => window.authoredFixture.reset());
+    await focusEnd(editor); await editor.pressSequentially('@Al');
+    await page.locator('.chat-composer-at-menu__item').filter({ hasText: 'Alex' }).waitFor();
+    await editor.press('Enter');
+    await editor.locator('[data-mention-value="agent:1"]').waitFor();
+    await page.locator('.chat-composer__send').click();
+    assert.deepEqual((await page.evaluate(() => window.authoredFixture.read().submitted)).options.content, [
+      { type: 'mention', kind: 'custom', id: 'agent-1', value: 'agent:1', label: 'Alex', groupId: 'agents' },
+    ]);
+    await page.evaluate(() => window.authoredFixture.clearCatalogs());
+    assert.equal(await page.locator('.chat-user-text__mention--custom').innerText(), 'Alex');
+    await page.evaluate(() => window.authoredFixture.reload());
+    assert.equal(await page.locator('.chat-user-text__mention--custom').innerText(), 'Alex', 'Agent links restore pills without authored metadata or catalogs');
+    await page.evaluate(() => window.authoredFixture.recall());
+    await focusEnd(editor); await editor.press('ArrowUp');
+    await editor.locator('[data-mention-value="agent:1"]').waitFor();
+    assert.equal(await editor.textContent(), 'Alex');
+    await editor.press('Enter');
+    assert.equal((await page.evaluate(() => window.authoredFixture.read().submitted)).options.content[0].value, 'agent:1');
+    await page.evaluate(() => window.authoredFixture.reset());
+    await page.clock.install({ time: 0 });
+    await page.clock.pauseAt(1);
+    await editor.dispatchEvent('blur');
+    await focusEnd(editor); await editor.pressSequentially('Use @computer-use');
+    await page.locator('.chat-composer-at-menu__item').filter({ hasText: 'Computer Use' }).waitFor();
+    await page.clock.runFor(121); // Cross the earlier blur's 120ms close deadline without real time.
+    await editor.press('Enter');
+    const composerPill = editor.locator('[data-plugin-name] .chat-mention-chip');
+    const composerStyle = await composerPill.evaluate(appearance);
+    const composerIcon = await composerPill.locator('svg').evaluate(iconAppearance);
+    const pluginAlignment = await composerPill.evaluate(textAlignment);
+    await page.locator('.chat-composer__send').click();
+    const messagePill = page.locator('.chat-user-text__mention--plugin');
+    assert.deepEqual(await messagePill.evaluate(appearance), composerStyle, 'Message pills must use composer pill styling');
+    assert.deepEqual(await messagePill.locator('svg').evaluate(iconAppearance), composerIcon, 'Plugin fallback icons must match');
+    const messagePluginAlignment = await messagePill.evaluate(textAlignment);
+    assert(Math.abs(messagePluginAlignment - pluginAlignment) <= 0.5, `Plugin alignment: composer ${pluginAlignment}px, message ${messagePluginAlignment}px`);
+    await page.screenshot({ path: `/tmp/sdk-message-pills-${engine.name()}.png` });
+    await page.evaluate(() => window.authoredFixture.recall());
+    await focusEnd(editor); await editor.press('ArrowUp');
+    await editor.locator('[data-plugin-name="computer-use"]').waitFor();
+    assert.equal(await editor.textContent(), 'Use Computer Use');
+    await editor.press('Enter');
+    assert.equal((await page.evaluate(() => window.authoredFixture.read().submitted)).options.content[1].id, 'computer-use@openai-bundled');
+    await page.evaluate(() => window.authoredFixture.reset());
+    const href = 'https://x.com/home';
+    await focusEnd(editor); await editor.pressSequentially(href);
+    await page.locator('.chat-composer__send').click();
+    const link = page.getByRole('link', { name: href, exact: true });
+    await link.waitFor();
+    assert.equal(await link.getAttribute('href'), href);
+    await page.context().route(href, route => route.fulfill({ contentType: 'text/html', body: '<p>Isolated link target</p>' }));
+    for (const input of ['click', 'keyboard']) {
+      const opened = page.waitForEvent('popup');
+      if (input === 'click') await link.click();
+      else { await link.focus(); await link.press('Enter'); }
+      const popup = await opened;
+      await popup.waitForLoadState('domcontentloaded');
+      assert.equal(popup.url(), href);
+      await popup.close();
+    }
+    await page.screenshot({ path: `/tmp/sdk-plain-url-${engine.name()}.png` });
+    await page.evaluate(() => window.authoredFixture.contextOnly());
+    await focusEnd(editor);
+    assert.equal(await editor.textContent(), '');
+    await page.locator('.chat-composer__send').click();
+    await editor.press('Enter');
+    assert.deepEqual(await page.evaluate(() => window.contextSteers.map(entry => entry.prompt)), ['', ''],
+      'Host annotations must submit by click or Enter without accepting the suggested prompt');
+    await editor.press('ControlOrMeta+Enter');
+    assert.equal((await page.evaluate(() => window.authoredFixture.read().submitted)).prompt, '',
+      'The alternate queue shortcut also forwards context-only work');
+    await editor.dblclick();
+    assert.equal(await editor.textContent(), 'Suggested follow-up', 'Double-click accepts the suggestion');
+    assert.equal(await page.evaluate(() => window.contextSteers.length), 2, 'Double-click never submits');
+    assert.equal(await editor.evaluate(element => {
+      const selection = getSelection();
+      return selection.isCollapsed && selection.anchorNode?.parentElement === element
+        && selection.anchorOffset === element.textContent.length;
+    }), true, 'Accepted suggestion leaves the caret at the end');
+    await editor.press('ControlOrMeta+z');
+    assert.equal(await editor.textContent(), '', 'Suggestion acceptance can be undone');
+    await editor.dblclick();
+    await editor.dblclick({ position: { x: 20, y: 8 } });
+    assert.equal(await editor.textContent(), 'Suggested follow-up', 'A second double-click preserves the draft');
+    assert.ok(await editor.evaluate(() => getSelection().toString().length > 0), 'Existing draft retains native word selection');
+    for (const authored of [false, true]) {
+      await page.setViewportSize({ width: authored ? 390 : 900, height: 700 });
+      await page.evaluate(authored => window.authoredFixture.attachmentOnly(authored), authored);
+      await page.locator('.chat-attachment-block__preview').waitFor();
+      await page.waitForFunction(() => document.querySelector('.chat-attachment-block__preview')?.naturalWidth > 0);
+      assert.equal(await page.locator('.chat-message__stack').count(), 0, 'Attachment-only prompts have no placeholder bubble');
+      assert.equal(await page.locator('.chat-message--steer-below').textContent().then(text => text.trim()), 'Steered conversation');
+      assert.equal((await page.evaluate(() => window.authoredFixture.read().submitted)).prompt, '(no user instructions)',
+        'Hiding the placeholder must preserve the submitted payload');
+    }
+    await page.screenshot({ path: `/tmp/sdk-attachment-only-${engine.name()}.png` });
+    console.log(`${engine.name()}: literal triggers, explicit skill/agent chips, draft restoration and inline paste/undo/resubmit preserve authored content; plain URLs open by click and keyboard.`);
+    await browser.close(); browser = undefined;
+  }
+} finally {
+  await browser?.close(); await server.close(); await rm(cacheDir, { recursive: true, force: true });
+}
