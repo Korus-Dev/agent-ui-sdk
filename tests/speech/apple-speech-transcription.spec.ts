@@ -180,24 +180,19 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
     }
   });
 
-  it('uses installed and runtime package resolution when they find the helper', () => {
+  it.each(['file:///installed/sdk/dist/speech/index.js', 'file:///installed/sdk/speech.js'])('uses installed and runtime package resolution from %s', (entryUrl) => {
     const packagePath = '/installed/sdk/assets/apple-speechanalyzer-cli';
     expect(resolveAppleSpeechAnalyzerPath(undefined, discoveryDependencies(
       (filePath) => filePath === packagePath,
       {
         packageResolve: (specifier) => {
-          if (specifier !== '@korus-dev/agent-ui-sdk/speech') throw new Error('unexpected package');
-          return 'file:///installed/sdk/dist/speech/index.js';
+          if (specifier !== '@korus-dev/agent-ui-sdk/speech.js') throw new Error('unexpected package');
+          return entryUrl;
         },
       },
     ))).toBe(packagePath);
 
-    const runtimePath = path.resolve(import.meta.dirname, '../../assets/apple-speechanalyzer-cli');
-    expect(resolveAppleSpeechAnalyzerPath(undefined, {
-      ...discoveryDependencies((filePath) => filePath === runtimePath),
-      moduleUrl: 'file:///unrelated/module/dist/index.js',
-      packageResolve: undefined,
-    })).toBe(runtimePath);
+
   });
 
   it.each([

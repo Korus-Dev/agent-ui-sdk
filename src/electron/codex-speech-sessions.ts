@@ -1,5 +1,5 @@
-import { startAppleSpeechSession, type AppleSpeechSession } from '@korus-dev/agent-ui-sdk/speech';
-import type { CodexSpeechSessionOptions, CodexSpeechTranscriptionResult, CodexSpeechPreparationOptions, CodexSpeechSessionEvent, CodexPreparedSpeechSession } from '@korus-dev/agent-ui-sdk/host';
+import { startAppleSpeechSession, type AppleSpeechSession } from '@korus-dev/agent-ui-sdk/speech.js';
+import type { CodexSpeechSessionOptions, CodexSpeechTranscriptionResult, CodexSpeechPreparationOptions, CodexSpeechSessionEvent, CodexPreparedSpeechSession } from '@korus-dev/agent-ui-sdk/host.js';
 import { codexNativeChannels as channels, codexSpeechEventChannel, type CodexNativeRequests } from './codex-native-renderer';
 import type { IpcMainHandlers } from './typed-ipc';
 import type { WebContentsDidStartNavigationEventParams } from 'electron';

@@ -2,7 +2,7 @@ import { questionPayload } from './conversation-request';
 import { getMessageToolCallArgs, getMessageToolCallName, type Message, type MessageAttachment, type MessageMedia, type MessagePhase, type MessageToolCall, type MessagePart } from './types'
 import { findInlineHtmlBlocks } from './inline-html'
 import { renderedChatMessage, type ChatMessageInput } from './renderer-message-adapter'
-import { promptContentText } from '@korus-dev/multi-agent-sdk/prompt';
+import { promptContentText } from '@korus-dev/multi-agent-sdk/prompt.js';
 
 /** A later model work item supersedes earlier final text in the same turn. */
 export function withoutSupersededFinalAnswers(messages: readonly ChatMessageInput[]): ChatMessageInput[] {

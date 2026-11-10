@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -25,8 +26,8 @@ const fixture = {
     if (id !== '\0image-viewport') return;
     return `
       import { createApp, h, ref } from 'vue';
-      import { CodexMessage, CodexMessageList, provideCodexHostCapabilities } from '@korus-dev/agent-ui-sdk';
-      import '@korus-dev/agent-ui-sdk/styles.css';
+      import { CodexMessage, CodexMessageList, provideCodexHostCapabilities } from '/@fs/${fileURLToPath(new URL('../../src/vue/index.ts', import.meta.url))}';
+      import '/@fs/${fileURLToPath(new URL('../../src/vue/styles.css', import.meta.url))}';
       window.reads = []; window.urls = new Set(); window.cachedBytes = new Map(); window.originals = new Map(); window.active = 0; window.peak = 0;
       const create = URL.createObjectURL.bind(URL), revoke = URL.revokeObjectURL.bind(URL);
       URL.createObjectURL = blob => { const url = create(blob); window.urls.add(url); window.cachedBytes.set(url,blob.size); return url; };

@@ -3,7 +3,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent, h } from 'vue';
-import type { SurfaceMessage, SurfaceMessagePart } from '@korus-dev/multi-agent-sdk/surface';
+import type { SurfaceMessage, SurfaceMessagePart } from '@korus-dev/multi-agent-sdk';
 import ChatCompactionMessage from '../../src/vue/chat/ChatCompactionMessage.vue';
 import CodexMessage from '../../src/vue/components/CodexMessage.vue';
 import { codexCustomBlocksKey } from '../../src/vue/chat/custom-blocks';

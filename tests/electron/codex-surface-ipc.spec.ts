@@ -5,7 +5,7 @@ import {
   type IpcMainPort,
   type IpcRendererPort,
 } from '../../src/electron';
-import type { CodexSurfaceEvent, CodexSurfaceSnapshot, CodexSurfaceStatePatch } from '@korus-dev/multi-agent-sdk/surface';
+import type { CodexSurfaceEvent, CodexSurfaceSnapshot, CodexSurfaceStatePatch } from '@korus-dev/multi-agent-sdk';
 
 const snapshot: CodexSurfaceSnapshot = {
   status: 'ready',

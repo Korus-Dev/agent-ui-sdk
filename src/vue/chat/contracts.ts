@@ -1,5 +1,5 @@
-import type { CodexSpeechTranscriptionResult as NativeSpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host';
-import type { ServiceTier as CodexSurfaceServiceTier } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { CodexSpeechTranscriptionResult as NativeSpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host.js';
+import type { ServiceTier as CodexSurfaceServiceTier } from '@korus-dev/multi-agent-sdk';
 
 export type ApprovalPreset = 'ask-for-approval' | 'approve-for-me' | 'full-access';
 

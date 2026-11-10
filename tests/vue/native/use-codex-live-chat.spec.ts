@@ -1,6 +1,6 @@
 import { effectScope, type EffectScope } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CodexRealtimeEvent, CodexSurfaceEvent } from '@korus-dev/multi-agent-sdk/surface';
+import type { CodexRealtimeEvent, CodexSurfaceEvent } from '@korus-dev/multi-agent-sdk';
 import { useCodexLiveChat, type CodexLiveChatOptions } from '../../../src/vue/native/use-codex-live-chat';
 
 const scopes: EffectScope[] = [];

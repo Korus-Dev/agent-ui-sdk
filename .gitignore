@@ -10,3 +10,8 @@ coverage/
 .sdk-typecheck-*/
 
 dist-lab/
+
+dist-samples/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+*.tgz

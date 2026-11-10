@@ -7,7 +7,7 @@ import type {
   CodexSpeechSessionOptions,
   CodexSpeechPreparationOptions,
   CodexSpeechSessionEvent,
-} from '@korus-dev/agent-ui-sdk/host';
+} from '@korus-dev/agent-ui-sdk/host.js';
 import {
   TypedIpcRenderer,
   type IpcRendererPort,

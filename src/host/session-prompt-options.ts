@@ -1,5 +1,5 @@
-import type { PromptOptions } from '@korus-dev/multi-agent-sdk/consumer-types';
-import type { ClientAttachment, ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { PromptOptions } from '@korus-dev/multi-agent-sdk';
+import type { ClientAttachment, ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
 
 type Attachment = NonNullable<PromptOptions['attachments']>[number];
 /** Call in the trusted host. Opaque renderer references require a host resolver. */

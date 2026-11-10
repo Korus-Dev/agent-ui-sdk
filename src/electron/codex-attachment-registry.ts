@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host';
-import type { PromptOptions } from '@korus-dev/multi-agent-sdk/consumer-types';
-import type { ClientAttachment } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host.js';
+import type { PromptOptions } from '@korus-dev/multi-agent-sdk';
+import type { ClientAttachment } from '@korus-dev/multi-agent-sdk';
 
 export type CodexElectronAttachmentRegistration = {
   type: CodexHostAttachment['type'];

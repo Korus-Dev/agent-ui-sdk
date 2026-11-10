@@ -7,7 +7,7 @@ import {
 } from '../audio/browser-audio-recorder'
 import { transcribeRecordedAudio } from '../audio/apple-speech-transcription'
 import { useCodexHostCapabilities } from '../native-capabilities'
-import type { CodexSpeechTranscript, CodexStreamingTranscription } from '@korus-dev/agent-ui-sdk/host'
+import type { CodexSpeechTranscript, CodexStreamingTranscription } from '@korus-dev/agent-ui-sdk/host.js'
 import { BrowserSpeechRecorder, isBrowserSpeechRecordingSupported, type SpeechRecorder } from '../audio/browser-speech-recorder'
 
 export type CodexComposerVoiceOptions = {

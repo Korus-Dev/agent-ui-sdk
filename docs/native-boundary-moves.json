@@ -1,6 +1,6 @@
 {
   "baseline": "67a7fd637c7ec929046318c11814d0a087bb0d98",
-  "fidelity": "Whole files moved and compared before adaptations. Both native hook destinations remain byte-identical to baseline.",
+  "fidelity": "Files were transferred mechanically before adaptations. The recorded hashes describe the extraction baseline; current public imports use the root type API and static optional entry files.",
   "moves": [
     {
       "from": "src/vue/use-codex-surface.ts",
@@ -49,6 +49,7 @@
     "Generic composer test hosts supply capability/command fixtures explicitly; empty-catalog fallback expectation changes codex.goal to goal.",
     "Reviewer copy cleanup: Composer uses shared Interrupt action label; approval preset description is provider-neutral. Existing interrupt/click assertions retained with neutral expected label; menu description assertion added.",
     "Fresh-review compatibility fixes: native wrapper declares the generic runtime prop schema with undefined defaults, allowing Vue kebab-key/Boolean normalization without masking native fallbacks. Generic pane clears only action-origin errors on an actual host-enabled/explicit-error-null transition; composer-origin errors retain their own lifecycle. Real-template, SSR, explicit false/null/absent, and same-key rejected-send/steer recovery regressions added and included in composition typecheck.",
-    "History fallback parity: missing optional native loadTurnHistory or a falsy conversation key emits the original history intent, with no null/undefined key serialization. Regression cases cover method absence and null/undefined/empty/zero keys. Generic composer-menu fixture now explicitly supplies host capabilities/catalogs; ordering/action assertions unchanged."
+    "History fallback parity: missing optional native loadTurnHistory or a falsy conversation key emits the original history intent, with no null/undefined key serialization. Regression cases cover method absence and null/undefined/empty/zero keys. Generic composer-menu fixture now explicitly supplies host capabilities/catalogs; ordering/action assertions unchanged.",
+    "Public package entry imports now use main/types and static .js forwarders; neutral types import the Multi root. Standalone website sample/transport and lab WebSocket live-chat demo were removed; desktop native APIs remain."
   ]
 }

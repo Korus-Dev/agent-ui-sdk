@@ -1,4 +1,4 @@
-import type { TypedEventBus } from '@korus-dev/multi-agent-sdk/events';
+import type { TypedEventBus } from '@korus-dev/multi-agent-sdk';
 
 export type IpcRequest<Arguments extends unknown[] = unknown[], Result = unknown> = {
   args: Arguments;

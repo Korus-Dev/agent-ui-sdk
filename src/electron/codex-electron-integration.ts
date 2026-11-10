@@ -1,4 +1,4 @@
-import type { CodexSurface } from '@korus-dev/multi-agent-sdk/codex';
+import type { CodexSurface } from '@korus-dev/multi-agent-sdk';
 import {
   registerCodexNativeIpc,
   type CodexNativeMainDependencies,

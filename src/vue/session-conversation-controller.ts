@@ -1,7 +1,7 @@
 import { shallowRef, watch } from 'vue';
 import { readEmbeddedConversationImage } from '../host/conversation-images';
-import type { HarnessCapabilities, HarnessDriver, SessionState } from '@korus-dev/multi-agent-sdk/consumer-types';
-import type { ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { HarnessCapabilities, HarnessDriver, SessionState } from '@korus-dev/multi-agent-sdk';
+import type { ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
 import { createCodexConversationPaneController, resolveCodexConversationPaneValue as read, type CodexConversationPaneActions as Actions, type CodexConversationPaneValueSource as Source } from './conversation-pane-controller';
 import { sessionStateToConversationPaneState, type SessionConversationControls } from './session-conversation-pane';
 import { requestResponseFromApproval, requestResponseFromClientResponse, type SessionRequestResponse } from './session-request-response';

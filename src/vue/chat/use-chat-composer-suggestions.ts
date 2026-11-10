@@ -4,7 +4,7 @@ import type {
   CodexCommandSummary,
   CodexSkillSummary,
 } from './contracts'
-import type { PromptMention as CodexPromptMention, Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { PromptMention as CodexPromptMention, Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
 import { findActiveFileMention, findActivePluginMention } from './composer-mentions'
 import { filterFileSearchItems } from './file-search'
 import { filterComposerCommands, findActiveCommandSlash } from './composer-commands'

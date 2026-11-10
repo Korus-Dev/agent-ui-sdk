@@ -1,4 +1,4 @@
-import type { HarnessDriver } from '@korus-dev/multi-agent-sdk/consumer-types';
+import type { HarnessDriver } from '@korus-dev/multi-agent-sdk';
 type ConversationContentInput = Parameters<HarnessDriver['readConversationContent']>[1] & { sessionId: string };
 type ConversationContentChunk = Awaited<ReturnType<HarnessDriver['readConversationContent']>>;
 

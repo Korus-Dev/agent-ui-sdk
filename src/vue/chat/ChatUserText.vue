@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
-import type { PromptPart as CodexPromptPart, Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { PromptPart as CodexPromptPart, Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill } from '@korus-dev/multi-agent-sdk';
 import { PlugIcon, SparklesIcon } from '../shared/icons/app-icons';
 import ChatMentionChip from './ChatMentionChip.vue';
 import { parseAuthoredUserText, type CodexUserTextToken } from './user-text';

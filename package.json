@@ -1,12 +1,22 @@
 {
-  "version": "0.0.0",
+  "version": "0.25.0",
   "type": "module",
   "license": "Apache-2.0",
   "files": [
     "dist",
     "LICENSE",
     "assets",
-    "native"
+    "native",
+    "INTEGRATION.md",
+    "docs/guide",
+    "examples",
+    "docs/api",
+    "docs/index.md",
+    "CHANGELOG.md",
+    "*.js",
+    "*.d.ts",
+    "styles.css",
+    "electron"
   ],
   "scripts": {
     "build": "vite build && node scripts/typecheck.mjs vue -p tsconfig.build.json && node scripts/package-katex-assets.mjs dist/styles.css dist/fonts && node scripts/verify-package-css.mjs dist/styles.css dist/vue/index.d.ts dist/fonts && node scripts/verify-native-assets.mjs",
@@ -18,52 +28,35 @@
     "build:lab": "vite build --config lab/vite.config.ts",
     "typecheck:lab": "node scripts/typecheck.mjs vue -p lab/tsconfig.json --noEmit",
     "test:lab": "vitest run --config lab/vitest.config.ts",
-    "test:lab:browser": "node scripts/test-lab-browsers.mjs"
+    "test:lab:browser": "node scripts/test-lab-browsers.mjs",
+    "build:samples": "node scripts/build-samples.mjs",
+    "typecheck:samples": "node scripts/typecheck.mjs vue -p samples/shared/tsconfig.json --noEmit",
+    "dev:electron": "npm run build:samples && node scripts/run-sample.mjs basic",
+    "start:electron": "npm run build:samples && node scripts/run-sample.mjs basic",
+    "build:electron": "npm run build:samples",
+    "dev:spark": "npm run build:samples && node scripts/run-sample.mjs spark",
+    "start:spark": "npm run build:samples && node scripts/run-sample.mjs spark",
+    "build:spark": "npm run build:samples",
+    "dev:relay": "npm run build:samples && node scripts/run-sample.mjs relay",
+    "start:relay": "npm run build:samples && node scripts/run-sample.mjs relay",
+    "build:relay": "npm run build:samples",
+    "check": "npm run typecheck && npm run test:coverage -- --maxWorkers=4 && npm run build && npm run check:package && npm run build:lab && npm run build:samples && npm run test:samples && npm run build:docs",
+    "check:package": "node scripts/verify-package.mjs",
+    "build:docs": "vitepress build docs",
+    "dev:docs": "vitepress dev docs",
+    "test:samples": "vitest run --config samples/vitest.config.ts",
+    "build:apple-speech": "node scripts/build-apple-speech.mjs",
+    "prepublishOnly": "npm run check",
+    "test:watch": "vitest",
+    "check:release": "node scripts/check-release.mjs",
+    "test:samples:browser": "node --import tsx samples/shared/samples.browser.mjs"
   },
   "name": "@korus-dev/agent-ui-sdk",
   "sideEffects": [
     "**/*.css"
   ],
-  "exports": {
-    ".": {
-      "types": "./dist/vue/index.d.ts",
-      "import": "./dist/vue/index.js"
-    },
-    "./styles.css": "./dist/styles.css",
-    "./host": {
-      "types": "./dist/host/contracts.d.ts",
-      "import": "./dist/host/contracts.js"
-    },
-    "./electron": {
-      "types": "./dist/electron/index.d.ts",
-      "import": "./dist/electron/index.js"
-    },
-    "./electron/preload": {
-      "types": "./dist/electron/preload.d.ts",
-      "import": "./dist/electron/preload.js"
-    },
-    "./speech": {
-      "types": "./dist/speech/index.d.ts",
-      "import": "./dist/speech/index.js"
-    },
-    "./browser/*": {
-      "types": "./dist/browser/*.d.ts",
-      "import": "./dist/browser/*.js"
-    },
-    "./browser-ui": {
-      "types": "./dist/vue/browser/index.d.ts",
-      "import": "./dist/vue/browser/index.js"
-    },
-    "./documents/*": {
-      "types": "./dist/documents/*.d.ts",
-      "import": "./dist/documents/*.js"
-    },
-    "./native": {
-      "types": "./dist/vue/native/index.d.ts",
-      "import": "./dist/vue/native/index.js"
-    }
-  },
   "dependencies": {
+    "@korus-dev/multi-agent-sdk": "0.25.0",
     "@pierre/highlights": "0.2.0",
     "@shikijs/langs": "4.3.1",
     "@shikijs/themes": "4.3.1",
@@ -73,15 +66,14 @@
     "katex": "0.17.0",
     "marked": "17.0.6",
     "marked-katex-extension": "5.1.10",
-    "shiki": "4.3.1",
-    "ws": "8.22.2",
     "parse-git-diff": "0.0.20",
-    "@korus-dev/multi-agent-sdk": "0.0.0"
+    "shiki": "4.3.1",
+    "ws": "8.22.2"
   },
   "peerDependencies": {
-    "vue": "^3.5.0",
     "electron": ">=30",
-    "element-plus": ">=2.13"
+    "element-plus": ">=2.13",
+    "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
     "electron": {
@@ -96,21 +88,25 @@
   },
   "description": "Reusable capability-driven Vue controls and optional native host adapters for agent applications.",
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@types/node": "25.9.5",
-    "@vitest/coverage-v8": "4.1.10",
-    "typescript": "6.0.3",
-    "vite": "8.1.5",
-    "vitest": "4.1.10",
     "@types/ws": "8.18.2",
     "@vitejs/plugin-vue": "6.0.8",
+    "@vitest/coverage-v8": "4.1.10",
     "@vue/server-renderer": "3.5.35",
     "@vue/test-utils": "2.4.11",
     "electron": "43.1.1",
     "element-plus": "2.14.1",
     "jsdom": "29.1.1",
+    "playwright": "1.63.0",
+    "tsx": "4.23.12",
+    "typescript": "6.0.3",
+    "vite": "8.1.5",
+    "vitepress": "1.6.4",
+    "vitest": "4.1.10",
     "vue": "3.5.35",
     "vue-tsc": "3.3.7",
-    "playwright": "1.63.0"
+    "zod": "4.4.3"
   },
   "publishConfig": {
     "access": "public",
@@ -119,5 +115,19 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Korus-Dev/agent-ui-sdk.git"
-  }
+  },
+  "homepage": "https://github.com/Korus-Dev/agent-ui-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/Korus-Dev/agent-ui-sdk/issues"
+  },
+  "author": "Nicolas Bonamy",
+  "keywords": [
+    "agents",
+    "vue",
+    "electron",
+    "chat",
+    "multi-harness"
+  ],
+  "main": "./dist/vue/index.js",
+  "types": "./dist/vue/index.d.ts"
 }

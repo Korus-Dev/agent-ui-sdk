@@ -1,7 +1,7 @@
 import { createApp, h, nextTick, shallowRef } from 'vue';
 import StreamingPane from './StreamingPane.vue';
 import CodexMessageList from '../../../src/vue/components/CodexMessageList.vue';
-import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk/surface';
+import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk';
 
 let warmApp: ReturnType<typeof createApp> | undefined;
 export function clearWarmStream() { warmApp?.unmount(); warmApp = undefined; }

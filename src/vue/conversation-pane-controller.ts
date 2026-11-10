@@ -20,8 +20,8 @@ import type { CodexConversationVisualization } from './chat/visualization';
 import type { CodexComposerState } from './composer-state';
 import type { QueuedChatPrompt } from './chat/queued-prompts';
 import type { CodexComposerMentionGroup, CodexComposerMentionItem } from './chat/composer-mentions-custom';
-import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host';
-import type { Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, ClientSendMessageOptions as CodexRendererSendMessageOptions, SurfaceMessage, UpdateConversationSettings as UpdateCodexConversationSettings } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host.js';
+import type { Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, ClientSendMessageOptions as CodexRendererSendMessageOptions, SurfaceMessage, UpdateConversationSettings as UpdateCodexConversationSettings } from '@korus-dev/multi-agent-sdk';
 
 export type CodexConversationPaneIdentityState = {
   conversationKey?: string | number | null;
@@ -138,7 +138,7 @@ export type CodexConversationPaneActions<Payload = unknown> = {
   deleteQueuedPrompt?: PaneAction<[promptId: string]>;
   updateQueuedPrompt?: PaneAction<[promptId: string, prompt: string, options?: CodexRendererSendMessageOptions]>;
   editGoal?: PaneAction;
-  editTurn?: PaneAction<[payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk/ui-types').ClientSendMessageOptions }]>;
+  editTurn?: PaneAction<[payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }]>;
   forkTurn?: PaneAction<[turnId: string]>;
   interrupt?: PaneAction;
   loadOlderHistory?: PaneAction;

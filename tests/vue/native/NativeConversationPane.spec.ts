@@ -16,7 +16,7 @@ import {
   type CodexMessageTextSelection,
   type SurfaceMessage,
 } from '../../../src/vue';
-import type { CodexSurfaceClientRequest, CodexSurfaceSnapshot, CodexSurfaceTurn } from '@korus-dev/multi-agent-sdk/surface';
+import type { CodexSurfaceClientRequest, CodexSurfaceSnapshot, CodexSurfaceTurn } from '@korus-dev/multi-agent-sdk';
 import type { Message } from '../../../src/vue/chat/types';
 import ChatComposerShelf from '../../../src/vue/chat/ChatComposerShelf.vue';
 import CodexComposer from '../../../src/vue/components/CodexComposer.vue';

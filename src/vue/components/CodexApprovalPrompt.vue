@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ChatApprovalCard from '../chat/ChatApprovalCard.vue';
-import type { Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, RequestedPermission as CodexSurfaceRequestedPermission } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, RequestedPermission as CodexSurfaceRequestedPermission } from '@korus-dev/multi-agent-sdk';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{

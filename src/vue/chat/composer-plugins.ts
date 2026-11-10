@@ -1,4 +1,4 @@
-import type { Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
 import { filterComposerSearchItems } from './composer-search';
 
 export function filterComposerPlugins(

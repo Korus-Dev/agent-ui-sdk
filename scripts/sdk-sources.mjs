@@ -41,23 +41,42 @@ export function sdkSources(projectRoot, environment = process.env, requested) {
   const aliases = [], paths = {}, typePaths = {};
   for (const [name, directory] of selected) {
     const metadata = readJson(path.join(directory, 'package.json'));
-    for (const [entry, definition] of Object.entries(metadata.exports ?? {})) {
-      const target = typeof definition === 'string' ? definition : definition.import ?? definition.types;
-      if (!target?.startsWith('./dist/')) continue;
-      const specifier = name + (entry === '.' ? '' : entry.slice(1));
-      let source = target.replace(/^\.\/dist\//, 'src/').replace(/\.(d\.ts|js)$/, '');
-      if (name === '@korus-dev/agent-ui-sdk' && entry === './styles.css') source = 'src/vue/styles.css';
-      let replacement = path.resolve(directory, source);
-      if (!source.includes('*') && !source.endsWith('.css')) {
-        if (fs.existsSync(replacement + '.ts')) replacement += '.ts';
-        else if (fs.existsSync(replacement + '.vue')) replacement += '.vue';
-        else throw new Error(`Missing local SDK source for ${specifier}: ${replacement}`);
+    const entry = metadata.main;
+    if (!entry?.startsWith('./dist/')) throw new Error(`Missing built main entry for ${name}`);
+    const source = entry.replace(/^\.\/dist\//, 'src/').replace(/\.js$/, '.ts');
+    const replacement = path.resolve(directory, source);
+    if (!fs.existsSync(replacement)) throw new Error(`Missing local SDK source for ${name}: ${replacement}`);
+    aliases.push({ find: new RegExp('^' + escape(name) + '$'), replacement });
+    paths[name] = [replacement];
+    typePaths[name] = [directory === projectRoot ? replacement : path.resolve(directory, metadata.types)];
+    // Published root forwarders are the public entry inventory; no exports map.
+    const candidates = new Set(fs.readdirSync(directory).filter(file => file.endsWith('.js')));
+    const excluded = new Set(['dist', 'src', 'tests', 'scripts', 'docs', 'examples', 'assets', 'native', 'samples', 'lab', 'coverage', 'node_modules']);
+    for (const published of metadata.files ?? []) {
+      const first = published.replace(/^\.\//, '').split('/')[0];
+      const base = path.join(directory, first);
+      if (first.includes('*') || excluded.has(first) || !fs.existsSync(base) || !fs.statSync(base).isDirectory()) continue;
+      for (const file of fs.readdirSync(base, { recursive: true })) {
+        if (typeof file === 'string' && file.endsWith('.js')) candidates.add(path.join(first, file));
       }
-      aliases.push({ find: new RegExp('^' + specifier.split('*').map(escape).join('(.+)') + '$'), replacement: replacement.replace('*', '$1') });
-      paths[specifier] = [replacement];
-      if (typeof definition !== 'string' && definition.types) {
-        typePaths[specifier] = [directory === projectRoot ? replacement : path.resolve(directory, definition.types)];
-      }
+    }
+    for (const file of candidates) {
+      const target = /export\s+\*\s+from\s+['"]([^'"]+)['"]/.exec(fs.readFileSync(path.join(directory, file), 'utf8'))?.[1];
+      if (!target) continue;
+      const built = path.resolve(directory, path.dirname(file), target);
+      const relative = path.relative(path.join(directory, 'dist'), built);
+      if (relative.startsWith('..')) continue;
+      const live = path.resolve(directory, 'src', relative.replace(/\.js$/, '.ts'));
+      if (!fs.existsSync(live)) throw new Error(`Missing local source for ${name}/${file}: ${live}`);
+      const specifier = `${name}/${file.replaceAll(path.sep, '/')}`;
+      aliases.push({ find: new RegExp('^' + escape(specifier) + '$'), replacement: live });
+      paths[specifier] = [live];
+      typePaths[specifier] = [directory === projectRoot ? live : path.join(directory, file.replace(/\.js$/, '.d.ts'))];
+    }
+    if (name === '@korus-dev/agent-ui-sdk') {
+      const css = path.resolve(directory, 'src/vue/styles.css');
+      aliases.push({ find: /^@korus-dev\/agent-ui-sdk\/styles\.css$/, replacement: css });
+      paths[`${name}/styles.css`] = [css];
     }
   }
   aliases.sort((a, b) => b.find.source.length - a.find.source.length);

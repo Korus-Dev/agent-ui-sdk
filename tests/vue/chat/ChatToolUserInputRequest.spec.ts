@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { flushPromises, mount } from '@vue/test-utils';
-import type { CodexNativeRendererApi, CodexSpeechSessionEvent } from '@korus-dev/agent-ui-sdk/host';
+import type { CodexNativeRendererApi, CodexSpeechSessionEvent } from '../../../src/host/contracts';
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import ChatToolUserInputRequest from '../../../src/vue/chat/ChatToolUserInputRequest.vue';
 import type { AskUserQuestion } from '../../../src/vue/chat/contracts';

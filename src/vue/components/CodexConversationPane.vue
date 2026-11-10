@@ -54,7 +54,7 @@
         :show-tool-details="showToolDetails"
         :skills="effectiveSkills"
         :tool-visibility="toolVisibility"
-        :transform-message="dismissedQuestionIds.size > 0 || activeComposerRequestItemIds.size > 0 ? transformTranscriptMessage : transformMessage"
+        :transform-message="dismissedQuestionIds.size > 0 || activeComposerRequestItemIds.size > 0 || activeComposerConfirmationRequestIds.size > 0 ? transformTranscriptMessage : transformMessage"
         :turns="effectiveTurns"
         @cancel="cancel"
         @client-response="respondToClientRequest"
@@ -276,11 +276,12 @@
 </template>
 
 <script setup lang="ts" generic="Payload = unknown">
+import { parseToolStatusDescriptor } from '../chat/tool-status';
 import { questionPayload, isQuestionRequest, isConfirmationRequest, type ConversationRequest as CodexSurfaceClientRequest } from '../chat/conversation-request';
 import { computed, nextTick, provide, ref, shallowReactive, watch } from 'vue';
-import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt';
-import type { ConversationRenderStrategy as CodexConversationRenderStrategy, ClientAttachment as CodexRendererAttachment, Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, SurfaceMessage, ClientSendMessageOptions as CodexRendererSendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
-import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host';
+import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt.js';
+import type { ConversationRenderStrategy as CodexConversationRenderStrategy, ClientAttachment as CodexRendererAttachment, Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, SurfaceMessage, ClientSendMessageOptions as CodexRendererSendMessageOptions } from '@korus-dev/multi-agent-sdk';
+import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host.js';
 import type { CodexComposerMenuItem, CodexComposerMenuSelectableItem } from '../composer-menu';
 import type {
   CodexConversationPaneActions,
@@ -516,7 +517,7 @@ const emit = defineEmits<{
   deleteQueuedPrompt: [promptId: string];
   updateQueuedPrompt: [promptId: string, prompt: string, options?: CodexRendererSendMessageOptions];
   editGoal: [];
-  editTurn: [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk/ui-types').ClientSendMessageOptions }];
+  editTurn: [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }];
   forkTurn: [turnId: string];
   loadOlderHistory: [];
   loadTurnHistory: [turnId: string];
@@ -747,10 +748,20 @@ const activeComposerRequestItemIds = computed<ReadonlySet<string>>(() => new Set
       : questionPayload(request).delivery === 'tool')
     .map((request) => request.itemId).filter((id): id is string => id !== undefined),
 ));
+const activeComposerConfirmationRequestIds = computed<ReadonlySet<string>>(() => new Set(
+  effectiveClientRequests.value.filter(request => isConfirmationRequest(request)
+    && !displayAnsweredClientRequestIds.value.has(request.id)).map(request => request.id),
+));
 function transformTranscriptMessage(message: Message | SurfaceMessage, index: number): Message | SurfaceMessage {
   const transformed = props.transformMessage?.(message, index) ?? message;
   const chatMessage = renderedChatMessage(transformed);
-  const isHiddenTool = (toolCall: MessageToolCall) => activeComposerRequestItemIds.value.has(toolCall.itemId ?? toolCall.id);
+  const isHiddenTool = (toolCall: MessageToolCall) => {
+    if (activeComposerRequestItemIds.value.has(toolCall.itemId ?? toolCall.id)) return true;
+    const status = parseToolStatusDescriptor(toolCall.status);
+    const requestId = status?.params?.requestId;
+    return status?.action === 'confirm_tool' && typeof requestId === 'string'
+      && activeComposerConfirmationRequestIds.value.has(requestId);
+  };
   if (!chatMessage.parts?.some((part) => (
     (part.type === 'question' && dismissedQuestionIds.value.has(part.request.id))
     || (part.type === 'tool' && isHiddenTool(part.toolCall))
@@ -1493,7 +1504,7 @@ async function deleteTurn(turnId: string): Promise<void> {
   }
 }
 
-function editTurn(payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk/ui-types').ClientSendMessageOptions }): void {
+function editTurn(payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }): void {
   if (dispatchControllerAction('editTurn', payload)) return;
   if (effectiveController.value) return;
   emit('editTurn', payload);

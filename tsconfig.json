@@ -28,8 +28,35 @@
     "outDir": "dist",
     "sourceMap": true,
     "paths": {
-      "@korus-dev/agent-ui-sdk/host": [
+      "@korus-dev/agent-ui-sdk": [
+        "./src/vue/index.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/host.js": [
         "./src/host/contracts.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/native.js": [
+        "./src/vue/native/index.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/electron.js": [
+        "./src/electron/index.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/electron/preload.js": [
+        "./src/electron/preload.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/electron/browser.js": [
+        "./src/browser/electron.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/speech.js": [
+        "./src/speech/index.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/browser.js": [
+        "./src/browser/index.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/browser-ui.js": [
+        "./src/vue/browser/index.ts"
+      ],
+      "@korus-dev/agent-ui-sdk/documents.js": [
+        "./src/documents/index.ts"
       ]
     }
   },

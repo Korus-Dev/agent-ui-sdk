@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { ModelOption } from '@korus-dev/multi-agent-sdk/consumer-types';
+import type { ModelOption } from '@korus-dev/multi-agent-sdk';
 import AppMenu from '../shared/menu/AppMenu.vue';
 import type { AppMenuItem } from '../shared/menu/app-menu';
 import type { ModelSelection } from '../model-selection';

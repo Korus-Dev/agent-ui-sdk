@@ -7,7 +7,7 @@ import {
   chatMessagesFromInputs,
   surfaceMessageToChatMessage,
 } from '../../../src/vue/chat/renderer-message-adapter';
-import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk/surface';
+import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk';
 
 describe('renderer message adapter', () => {
   it('adapts mixed input collections while preserving unchanged compatibility messages', () => {

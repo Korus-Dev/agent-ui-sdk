@@ -1,6 +1,6 @@
 import { computed, type ComputedRef } from 'vue';
-import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
-import { type SurfaceMessage, type SurfaceMessagePart } from '@korus-dev/multi-agent-sdk/ui-types';
+import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt.js';
+import type { SurfaceMessage, SurfaceMessagePart } from '@korus-dev/multi-agent-sdk';
 import type { Message, MessagePart, MessageToolCall, ToolExecutionState } from './types';
 
 export type ChatMessageInput = Message | SurfaceMessage;

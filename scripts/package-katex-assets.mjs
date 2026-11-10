@@ -29,6 +29,7 @@ const fontFaces = [...katexCss.matchAll(/@font-face\{([^}]*)\}/g)].map(([, body]
 
 const cssWithoutInlinedKatexFonts = builtCss.replace(/@font-face\{[^}]*data:font\/woff2[^}]*\}/g, '');
 await mkdir(distFontsPath, { recursive: true });
+await cp(path.join(path.dirname(katexCssPath), '../LICENSE'), path.join(distFontsPath, 'KaTeX-LICENSE.txt'));
 await Promise.all(fontFaces.map(async (fontFace) => {
   const source = /url\("\.\/fonts\/([^)]*?\.woff2)"\)/.exec(fontFace)?.[1];
   if (!source) throw new Error('Could not resolve a packaged KaTeX font.');

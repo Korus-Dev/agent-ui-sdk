@@ -1,0 +1,1 @@
+{"extends":"../../tsconfig.json","compilerOptions":{"rootDir":"../..","noEmit":true},"include":["./**/*.ts","./**/*.vue","../electron/**/src/**/*.ts","../electron/relay/host.ts","../../src/**/*.ts","../../src/**/*.vue"]}

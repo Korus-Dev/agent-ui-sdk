@@ -1,5 +1,5 @@
-import type { AgentRequest } from '@korus-dev/multi-agent-sdk/consumer-types';
-import type { ClientRequest } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { AgentRequest } from '@korus-dev/multi-agent-sdk';
+import type { ClientRequest } from '@korus-dev/multi-agent-sdk';
 
 /** Canonical requests plus explicit compatibility DTOs for existing authored messages. */
 export type ConversationQuestionRequest = Extract<AgentRequest, { kind: 'question' }> | Extract<ClientRequest, { kind: 'ask_user' }>;

@@ -1,12 +1,12 @@
 import { shallowRef } from 'vue';
-import type { HarnessDriver, Session, PromptOptions } from '@korus-dev/multi-agent-sdk/consumer-types';
+import type { HarnessDriver, Session, PromptOptions } from '@korus-dev/multi-agent-sdk';
 import {
   createConversationPaneController,
   sessionStateToConversationPaneState,
   requestResponseFromClientResponse,
   requestResponseFromApproval,
   type ClientSendMessageOptions,
-} from '../src/vue';
+} from '@korus-dev/agent-ui-sdk';
 
 /**
  * Minimal controlled conversation. The host owns subscription lifetime and any

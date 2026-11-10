@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const metadata = JSON.parse(readFileSync('package.json', 'utf8'));
+const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+const version = process.env.RELEASE_VERSION;
+assert(version && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) && version !== '0.0.0', 'Choose a non-placeholder stable RELEASE_VERSION.');
+assert.equal(version, metadata.version, 'Release version must match package.json');
+assert.equal(lock.version, version); assert.equal(lock.packages[''].version, version);
+for (const [name, range] of Object.entries(metadata.dependencies)) if (name.startsWith('@korus-dev/')) assert(!/0\.0\.0|file:|link:|workspace:/.test(range), `Publish ${name} and select its version before releasing.`);
+console.log(`Release ${version} metadata validated.`);

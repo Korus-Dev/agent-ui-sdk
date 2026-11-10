@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
-import type { CodexNativeAttachment, CodexNativeRendererApi } from '@korus-dev/agent-ui-sdk/host';
+import type { CodexNativeAttachment, CodexNativeRendererApi } from '../../src/host/contracts';
 import {
   getCodexNativeRendererApi,
   ingestCodexAttachments,

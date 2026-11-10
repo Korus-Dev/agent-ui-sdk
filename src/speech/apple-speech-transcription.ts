@@ -171,8 +171,8 @@ function defaultAssetsPath(dependencies: AppleSpeechAssetDiscoveryDependencies):
     : dependencies.packageResolve ?? undefined;
   if (packageResolver) {
     try {
-      const packageNodeEntry = fileURLToPath(packageResolver('@korus-dev/agent-ui-sdk/speech'));
-      for (const relative of ['../../assets', '../assets']) {
+      const packageNodeEntry = fileURLToPath(packageResolver('@korus-dev/agent-ui-sdk/speech.js'));
+      for (const relative of ['../../assets', '../assets', './assets']) {
         const packageAssetsPath = path.resolve(path.dirname(packageNodeEntry), relative);
         if (existsSync(path.join(packageAssetsPath, 'apple-speechanalyzer-cli'))) {
           return packageAssetsPath;

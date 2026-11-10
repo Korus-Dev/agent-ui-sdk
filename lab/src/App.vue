@@ -88,9 +88,7 @@
       </div>
 
       <div class="lab__frame">
-        <LiveChatLab v-if="selected.id === 'live-chat'" :key="resetRevision" />
         <CodexConversationPane
-          v-else
           :key="`${selected.id}:${resetRevision}`"
           v-model="draft"
           :capabilities="labCapabilities"
@@ -168,9 +166,8 @@
 </template>
 
 <script setup lang="ts">
-import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
+import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt.js';
 import { computed, defineComponent, h, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
-import LiveChatLab from './LiveChatLab.vue';
 const labCapabilities = { models: true, skills: true, reasoningEffort: true, serviceTier: true, planMode: true, goals: true, steerPrompt: true, interrupt: true, history: true, deleteTurn: true, editTurn: true, retryTurn: true, approvals: true, approvalPresets: ['ask-for-approval', 'approve-for-me', 'full-access'] as const };
 import { chartHtmlChunks, inlineHtmlChunks } from './inline-html-demo';
 import {
@@ -192,7 +189,7 @@ import {
   type SurfaceMessagePart,
   type TurnGitDiff,
 } from '@korus-dev/agent-ui-sdk';
-import type { CodexSurfaceApproval, CodexSurfaceApprovalDecision, CodexSurfaceAskUserQuestion, CodexSurfaceClientRequest, CodexSurfacePlugin, CodexSurfaceTurn } from '@korus-dev/multi-agent-sdk/surface';
+import type { CodexSurfaceApproval, CodexSurfaceApprovalDecision, CodexSurfaceAskUserQuestion, CodexSurfaceClientRequest, CodexSurfacePlugin, CodexSurfaceTurn } from '@korus-dev/multi-agent-sdk';
 
 type Scenario = {
   id: string;
@@ -558,14 +555,7 @@ const scenarios: [Scenario, ...Scenario[]] = [
     error: 'Mock connection lost. The composer remains available for recovery testing.',
     messages: [],
   },
-  {
-    id: 'live-chat',
-    name: 'Live chat',
-    summary: 'Real microphone and Codex realtime V3',
-    title: 'Bidirectional voice',
-    description: 'WebRTC audio, live transcripts, and the normal conversation in one lab.',
-    messages: [],
-  },
+
 ];
 
 const selectedId = ref('conversation');
@@ -736,7 +726,7 @@ function requestApproval(): void {
     }, null, 2),
   };
   clientRequests.value.push({ id, kind: 'confirm_tool', conversationId: selectedId.value,
-    turnId: id, itemId: id, payload: { confirmation } });
+    turnId: id, itemId: `native-${id}`, payload: { confirmation } });
   messages.value.push({ id, role: 'assistant', status: 'streaming', turnId: id,
     parts: [{ type: 'tool', id, kind: 'mcp', title: 'shell.run', status: 'running',
       statusText: JSON.stringify({ source: 'mcp', action: 'confirm_tool', phase: 'running',

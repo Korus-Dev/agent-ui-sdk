@@ -4,7 +4,7 @@ import type {
   CodexHostAttachment,
   CodexHostAttachmentInput,
   CodexNativeRendererApi,
-} from '@korus-dev/agent-ui-sdk/host';
+} from '@korus-dev/agent-ui-sdk/host.js';
 import {
   hasInjectionContext,
   inject,

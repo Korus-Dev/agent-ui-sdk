@@ -1,4 +1,4 @@
-import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk';
 import { computeMessageBlocks } from './message-blocks'
 import { chatMessageFromInput } from './renderer-message-adapter'
 import type { Message, MessageToolCall } from './types'

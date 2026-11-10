@@ -12,21 +12,12 @@
       "node",
       "vite/client",
       "vitest/globals"
-    ],
-    "paths": {
-      "@korus-dev/agent-ui-sdk": [
-        "../src/vue/index.ts"
-      ],
-      "@korus-dev/agent-ui-sdk/native": [
-        "../src/vue/native/index.ts"
-      ]
-    }
+    ]
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "vite*.config.ts",
-    "live-chat-server.ts"
+    "vite*.config.ts"
   ]
 }

@@ -14,8 +14,8 @@
 <script setup lang="ts">
 import { Fragment, h, nextTick, onBeforeUnmount, onMounted, ref, render, useSlots, watch } from 'vue';
 import type { CodexFileSearchItem, CodexSkillSummary } from './contracts';
-import { normalizePromptContent, promptContentText, slicePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
-import { type PromptPart as CodexPromptPart, type PromptMention as CodexPromptMention, type Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk/ui-types';
+import { normalizePromptContent, promptContentText, slicePromptContent } from '@korus-dev/multi-agent-sdk/prompt.js';
+import type { PromptPart as CodexPromptPart, PromptMention as CodexPromptMention, Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
 import ChatMentionChip from './ChatMentionChip.vue';
 import {
   type CodexComposerMentionGroup,

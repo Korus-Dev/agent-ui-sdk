@@ -29,7 +29,7 @@ export { default as CodexMessageList } from './components/CodexMessageList.vue';
 export { default as CodexMessageTurn } from './components/CodexMessageTurn.vue';
 export { default as CodexScrollToBottom } from './components/CodexScrollToBottom.vue';
 export { default as CodexWorkbenchLayout } from './components/CodexWorkbenchLayout.vue';
-export type { ConversationRenderStrategy as CodexConversationRenderStrategy } from '@korus-dev/multi-agent-sdk/ui-types';
+export type { ConversationRenderStrategy as CodexConversationRenderStrategy } from '@korus-dev/multi-agent-sdk';
 export { default as CodexAttachmentBlock } from './chat/ChatAttachmentBlock.vue';
 export { default as CodexAnimatedDiffStat } from './chat/ChatAnimatedDiffStat.vue';
 export { default as CodexCompactionMessage } from './chat/ChatCompactionMessage.vue';
@@ -178,7 +178,7 @@ export type {
   ToolConfirmationDecision,
   TurnGitDiff,
 } from './chat/contracts';
-export type { Plugin as CodexSurfacePlugin, ServiceTier as CodexSurfaceServiceTier } from '@korus-dev/multi-agent-sdk/ui-types';
+export type { Plugin as CodexSurfacePlugin, ServiceTier as CodexSurfaceServiceTier } from '@korus-dev/multi-agent-sdk';
 export type {
   MessageAttachment as CodexMessageAttachment,
   Message as CodexChatMessage,
@@ -232,8 +232,8 @@ export type {
   CodexNativeAttachmentInput,
   CodexNativeClipboardContent,
   CodexNativeRendererApi,
-} from '@korus-dev/agent-ui-sdk/host';
-export type { ClientAttachment as CodexRendererAttachment, ClientSendMessageOptions as CodexRendererSendMessageOptions, Attachment as CodexSurfaceAttachment, SendMessageOptions as SendCodexMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
+} from '@korus-dev/agent-ui-sdk/host.js';
+export type { ClientAttachment as CodexRendererAttachment, ClientSendMessageOptions as CodexRendererSendMessageOptions, Attachment as CodexSurfaceAttachment, SendMessageOptions as SendCodexMessageOptions } from '@korus-dev/multi-agent-sdk';
 
 export { codexCustomBlocksKey, type CodexCustomBlocks } from './chat/custom-blocks';
 
@@ -263,7 +263,7 @@ export { default as MessageList } from './components/CodexMessageList.vue';
 export { default as MessageTurn } from './components/CodexMessageTurn.vue';
 export { default as ScrollToBottom } from './components/CodexScrollToBottom.vue';
 export { default as WorkbenchLayout } from './components/CodexWorkbenchLayout.vue';
-export type { ConversationRenderStrategy } from '@korus-dev/multi-agent-sdk/ui-types';
+export type { ConversationRenderStrategy } from '@korus-dev/multi-agent-sdk';
 export { default as AttachmentBlock } from './chat/ChatAttachmentBlock.vue';
 export { default as AnimatedDiffStat } from './chat/ChatAnimatedDiffStat.vue';
 export { default as CompactionMessage } from './chat/ChatCompactionMessage.vue';
@@ -324,7 +324,7 @@ export { registerCodexToolTitlePresenter as registerToolTitlePresenter } from '.
 export type { CodexToolTitlePresenter as ToolTitlePresenter, CodexToolTitlePresenterContext as ToolTitlePresenterContext } from './chat/tool-status';
 export type { CodexComposerMenuActionItem as ComposerMenuActionItem, CodexComposerMenuCheckboxItem as ComposerMenuCheckboxItem, CodexComposerMenuHeadingItem as ComposerMenuHeadingItem, CodexComposerMenuItem as ComposerMenuItem, CodexComposerMenuItemBase as ComposerMenuItemBase, CodexComposerMenuRadioItem as ComposerMenuRadioItem, CodexComposerMenuSelectableItem as ComposerMenuSelectableItem, CodexComposerMenuSeparatorItem as ComposerMenuSeparatorItem, CodexComposerMenuSubmenuItem as ComposerMenuSubmenuItem } from './composer-menu';
 export type { CodexContextUsage as ContextUsage, CodexComposerPresentation as ComposerPresentation, CodexComposerShelfPresentation as ComposerShelfPresentation, CodexConversationFileAction as ConversationFileAction, CodexConversationPresentation as ConversationPresentation, CodexConversationLink as ConversationLink, CodexFileSearchItem as FileSearchItem, CodexSpeechTranscriptionResult as SpeechTranscriptionResult, CodexCapabilities as Capabilities, CodexCommandSummary as CommandSummary, CodexModelOption as ModelOption, CodexMessageActionsPresentation as MessageActionsPresentation, CodexMessagesPresentation as MessagesPresentation, CodexReasoningEffortOption as ReasoningEffortOption, CodexSkillSummary as SkillSummary, CodexChatTranscription as ChatTranscription, ResolvedCodexConversationPresentation as ResolvedConversationPresentation } from './chat/contracts';
-export type { Plugin as SurfacePlugin, ServiceTier as SurfaceServiceTier } from '@korus-dev/multi-agent-sdk/ui-types';
+export type { Plugin as SurfacePlugin, ServiceTier as SurfaceServiceTier } from '@korus-dev/multi-agent-sdk';
 export type { MessageAttachment as MessageAttachment, Message as ChatMessage, MessageMedia as MessageMedia, MessagePart as ChatMessagePart, MessageSuggestedPrompt as MessageSuggestedPrompt, MessageToolCall as MessageToolCall, ToolExecutionState as ToolExecutionState, ToolStatusDescriptor as ToolStatusDescriptor } from './chat/types';
 export type { CodexMessageTextSelection as MessageTextSelection, CodexMessageTextSelectionAnchor as MessageTextSelectionAnchor } from './chat/message-text-selection';
 export type { ChatMessageInput as MessageInput } from './chat/renderer-message-adapter';
@@ -334,17 +334,17 @@ export type { QueuedChatPrompt as QueuedPromptData } from './chat/queued-prompts
 export { applyCodexTheme as applyTheme, type CodexThemeMode as ThemeMode, type CodexThemeOptions as ThemeOptions } from './codex-theme';
 export { codexConversationLinkFromHref as conversationLinkFromHref, parseCodexEditorFileReference as parseEditorFileReference, type CodexEditorFileReference as EditorFileReference } from './chat/conversation-links';
 export { getCodexGlobalHostCapabilities as getGlobalHostCapabilities, getCodexNativeRendererApi as getNativeRendererApi, ingestCodexAttachments as ingestAttachments, pickCodexAttachments as pickAttachments, provideCodexHostCapabilities as provideHostCapabilities, useCodexHostCapabilities as useHostCapabilities, type CodexAttachmentIngester as AttachmentIngester, type CodexAttachmentPicker as AttachmentPicker } from './native-capabilities';
-export type { CodexHostCapabilities as HostCapabilities, CodexHostAttachment as HostAttachment, CodexHostAttachmentInput as HostAttachmentInput, CodexNativeAttachment as NativeAttachment, CodexNativeAttachmentInput as NativeAttachmentInput, CodexNativeClipboardContent as NativeClipboardContent, CodexNativeRendererApi as NativeRendererApi } from '@korus-dev/agent-ui-sdk/host';
+export type { CodexHostCapabilities as HostCapabilities, CodexHostAttachment as HostAttachment, CodexHostAttachmentInput as HostAttachmentInput, CodexNativeAttachment as NativeAttachment, CodexNativeAttachmentInput as NativeAttachmentInput, CodexNativeClipboardContent as NativeClipboardContent, CodexNativeRendererApi as NativeRendererApi } from '@korus-dev/agent-ui-sdk/host.js';
 /** @deprecated Prefer ClientAttachment and ClientSendMessageOptions for UI actions. */
-export type { ClientAttachment as RendererAttachment, ClientSendMessageOptions as RendererSendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
+export type { ClientAttachment as RendererAttachment, ClientSendMessageOptions as RendererSendMessageOptions } from '@korus-dev/multi-agent-sdk';
 /** Native surface compatibility types. */
-export type { Attachment as SurfaceAttachment, SendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
+export type { Attachment as SurfaceAttachment, SendMessageOptions } from '@korus-dev/multi-agent-sdk';
 export { codexCustomBlocksKey as customBlocksKey, type CodexCustomBlocks as CustomBlocks } from './chat/custom-blocks';
 
 export type { DiffOverviewFile, DiffOverviewSlot } from '../documents/diff-overview';
 
 export { sessionStateToConversationPaneState, type SessionConversationControls } from './session-conversation-pane';
-export type { ClientAttachment, ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
+export type { ClientAttachment, ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
 
 export { requestResponseFromClientResponse, requestResponseFromApproval, type SessionRequestResponse } from './session-request-response';
 

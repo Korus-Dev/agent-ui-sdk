@@ -5,7 +5,7 @@
   </CodexConversationPane>
 </template>
 <script setup lang="ts">
-import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk/surface'
+import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk'
 import CodexConversationPane from '../../../src/vue/components/CodexConversationPane.vue'
 defineProps<{ messages: SurfaceMessage[]; lazy: boolean }>()
 </script>

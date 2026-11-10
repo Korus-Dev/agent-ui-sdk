@@ -5,13 +5,13 @@ import type {
   CodexHostAttachment,
   CodexNativeAttachmentInput,
   CodexNativeClipboardContent,
-} from '@korus-dev/agent-ui-sdk/host';
+} from '@korus-dev/agent-ui-sdk/host.js';
 import {
   startAppleSpeechSession,
   transcribeWithAppleSpeechAnalyzer,
   type AppleSpeechTranscriptionOptions,
   type AppleSpeechTranscriptionResult,
-} from '@korus-dev/agent-ui-sdk/speech';
+} from '@korus-dev/agent-ui-sdk/speech.js';
 import {
   registerIpcMainHandlers,
   type IpcMainPort,

@@ -19,7 +19,7 @@ const backendMocks = vi.hoisted(() => ({
   transcribeWithAppleSpeechAnalyzer: vi.fn(async () => ({ text: 'native transcript' })),
 }));
 
-vi.mock('@korus-dev/agent-ui-sdk/speech', async (importOriginal) => ({
+vi.mock('../../src/speech/index', async (importOriginal) => ({
   ...await importOriginal<Record<string, unknown>>(),
   transcribeWithAppleSpeechAnalyzer: backendMocks.transcribeWithAppleSpeechAnalyzer,
 }));

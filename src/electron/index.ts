@@ -60,7 +60,7 @@ export type {
   CodexSpeechPreparationOptions,
   CodexPreparedSpeechSession,
   CodexSpeechSession,
-} from '@korus-dev/agent-ui-sdk/host';
+} from '@korus-dev/agent-ui-sdk/host.js';
 export {
   exposeCodexElectronPreload,
   type CodexElectronRendererApis,
@@ -87,7 +87,7 @@ export { createCodexNativeRendererApi as createNativeRendererApi, exposeCodexNat
 export { registerCodexNativeIpc as registerNativeIpc, type CodexNativeClipboard as NativeClipboard, type CodexNativeDialog as NativeDialog, type CodexNativeMainDependencies as NativeMainDependencies, type CodexNativeMainOptions as NativeMainOptions, type CodexNativeShell as NativeShell } from './codex-native-ipc';
 export type { CodexSpeechOperation as SpeechOperation, CodexSpeechOperationOutcome as SpeechOperationOutcome, CodexSpeechOperationObserver as SpeechOperationObserver, CodexSpeechSessionPreparer as SpeechSessionPreparer } from './codex-speech-sessions';
 export { CodexElectronAttachmentRegistry as ElectronAttachmentRegistry, type CodexElectronAttachmentRegistration as ElectronAttachmentRegistration } from './codex-attachment-registry';
-export type { CodexHostAttachment as HostAttachment, CodexHostAttachmentInput as HostAttachmentInput, CodexNativeAttachment as NativeAttachment, CodexNativeAttachmentInput as NativeAttachmentInput, CodexNativeClipboardContent as NativeClipboardContent, CodexNativeRendererApi as NativeRendererApi, CodexSpeechTranscriptionResult as SpeechTranscriptionResult, CodexSpeechPreparationOptions as SpeechPreparationOptions, CodexPreparedSpeechSession as PreparedSpeechSession, CodexSpeechSession as SpeechSession } from '@korus-dev/agent-ui-sdk/host';
+export type { CodexHostAttachment as HostAttachment, CodexHostAttachmentInput as HostAttachmentInput, CodexNativeAttachment as NativeAttachment, CodexNativeAttachmentInput as NativeAttachmentInput, CodexNativeClipboardContent as NativeClipboardContent, CodexNativeRendererApi as NativeRendererApi, CodexSpeechTranscriptionResult as SpeechTranscriptionResult, CodexSpeechPreparationOptions as SpeechPreparationOptions, CodexPreparedSpeechSession as PreparedSpeechSession, CodexSpeechSession as SpeechSession } from '@korus-dev/agent-ui-sdk/host.js';
 export { exposeCodexElectronPreload as exposeElectronPreload, type CodexElectronRendererApis as ElectronRendererApis } from './codex-electron-preload';
 export { registerCodexElectronMain as registerElectronMain, type CodexElectronMainOptions as ElectronMainOptions } from './codex-electron-integration';
 export { codexExternalUrl as externalUrl } from './codex-window-policy';

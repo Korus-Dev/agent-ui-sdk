@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { flushPromises, mount } from '@vue/test-utils';
 import { shallowRef } from 'vue';
-import type { SessionState } from '@korus-dev/multi-agent-sdk/consumer-types';
+import type { SessionState } from '@korus-dev/multi-agent-sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { ConversationPane, MessageList, toChatMessage, createSessionConversationController, toHarnessPromptOptions } from '../../src/vue';
 import { sessionFixture, capabilitiesFixture } from '../fixtures/consumer-session';
@@ -22,6 +22,40 @@ function fixture(busy = false) {
 }
 
 describe('standard session conversation', () => {
+
+  it.each([undefined, 'native-item-with-another-id'])('shows a pending confirmation only in the composer when itemId is %s', async itemId => {
+    const { state, pane, client, binding } = fixture(true);
+    const request = { id: 'confirm-rebook', kind: 'toolConfirmation' as const, conversationId: 'conversation-1',
+      ...(itemId === undefined ? {} : { itemId }),
+      confirmation: { integrationId: 'relay', integrationName: 'Relay', toolName: 'rebook_shipment',
+        summary: 'Approve shipment rebooking', argumentsPreview: '{}', allowConversation: true } };
+    state.value = { ...state.value, requests: [request], messages: [{ ...sessionFixture.messages[1]!, parts: [
+      { type: 'text', text: 'Investigating shipment.' },
+      { type: 'tool', id: 'transcript-confirmation', kind: 'mcp', title: 'rebook_shipment', status: 'running',
+        statusText: JSON.stringify({ source: 'mcp', action: 'confirm_tool', phase: 'running',
+          params: { requestId: request.id, confirmationSummary: request.confirmation.summary } }) },
+      { type: 'tool', id: 'unrelated-read', kind: 'read', title: 'Read shipment record', status: 'running',
+        statusText: JSON.stringify({ source: 'mcp', action: 'read', phase: 'running', params: { path: 'shipment.json' } }) },
+    ] }] };
+    try {
+      await flushPromises();
+      const transcript = pane.get('.codex-conversation-pane__messages');
+      expect(transcript.text()).toContain('Investigating shipment.');
+      expect(transcript.find('.chat-tool-call').exists()).toBe(true);
+      expect(transcript.find('.chat-tool-confirmation').exists()).toBe(false);
+      const footer = pane.get('.codex-conversation-pane__footer');
+      expect(footer.text()).toContain(request.confirmation.summary);
+      expect(pane.findAll('.chat-tool-confirmation')).toHaveLength(1);
+      await footer.findAll('button').find(button => button.text() === 'Allow')!.trigger('click');
+      await flushPromises();
+      expect(client.respondToRequest.mock.calls).toEqual([[{ id: request.id, outcome: { kind: 'decision', decision: 'allow' } }]]);
+      state.value = { ...state.value, requests: [], answeredClientRequestIds: [request.id] };
+      await flushPromises();
+      expect(pane.find('.codex-conversation-pane__footer .chat-tool-confirmation').exists()).toBe(false);
+      expect(pane.get('.codex-conversation-pane__messages').text()).toContain('Allowed tool call');
+    } finally { pane.unmount(); binding.dispose(); }
+  });
+
   it('provides composer models, plan/goal controls and opaque permission choices without host UI mapping', async () => {
     const { binding, pane, composer, client, state } = fixture();
     expect(pane.get('.chat-model-selector__button').text()).toContain('model High');

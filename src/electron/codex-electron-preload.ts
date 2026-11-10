@@ -1,5 +1,5 @@
-import type { CodexNativeRendererApi } from '@korus-dev/agent-ui-sdk/host';
-import type { CodexSurfaceRendererApi } from '@korus-dev/multi-agent-sdk/surface';
+import type { CodexNativeRendererApi } from '@korus-dev/agent-ui-sdk/host.js';
+import type { CodexSurfaceRendererApi } from '@korus-dev/multi-agent-sdk';
 import {
   createCodexNativeRendererApi,
   type CodexContextBridge,

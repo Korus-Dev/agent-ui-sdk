@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -25,8 +26,8 @@ const fixture = {
     if (id !== fixtureId) return;
     return `
       import { createApp, h, ref, reactive } from 'vue';
-      import { CodexConversationPane, createCodexConversationPaneController } from '@korus-dev/agent-ui-sdk';
-      import '@korus-dev/agent-ui-sdk/styles.css';
+      import { CodexConversationPane, createCodexConversationPaneController } from '/@fs/${fileURLToPath(new URL('../../src/vue/index.ts', import.meta.url))}';
+      import '/@fs/${fileURLToPath(new URL('../../src/vue/styles.css', import.meta.url))}';
       const canvas = document.createElement('canvas');
       canvas.width = 180; canvas.height = 120;
       const context = canvas.getContext('2d');

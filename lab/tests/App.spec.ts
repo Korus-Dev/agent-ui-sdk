@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App.vue';
-import type { CodexMessageTextSelection } from '@korus-dev/agent-ui-sdk';
+import type { CodexMessageTextSelection } from '../../src/vue/index';
 
 async function openQuestionLab(wrapper: ReturnType<typeof mount>, delivery = 'async', format = 'choices', steps = 'multiple') {
   await wrapper.findAll('nav button').find((button) => button.text().includes('Approvals & questions'))!.trigger('click');
