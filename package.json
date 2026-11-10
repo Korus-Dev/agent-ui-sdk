@@ -76,7 +76,7 @@
     "test:ai": "vitest --run --silent --reporter=./tests/reporter/silent.ts"
   },
   "dependencies": {
-    "@korus-dev/multi-agent-sdk": "0.25.0",
+    "@korus-dev/multi-agent-sdk": "0.25.1",
     "@pierre/highlights": "0.2.0",
     "@shikijs/langs": "4.3.1",
     "@shikijs/themes": "4.3.1",
@@ -109,7 +109,7 @@
     "@types/ws": "8.18.2",
     "@vitejs/plugin-vue": "6.0.8",
     "@vitest/coverage-v8": "4.1.12",
-    "@vue/server-renderer": "3.5.35",
+    "@vue/server-renderer": "3.5.45",
     "@vue/test-utils": "2.4.11",
     "electron": "43.1.1",
     "element-plus": "2.14.1",
@@ -120,7 +120,7 @@
     "vite": "8.1.7",
     "vitepress": "1.6.4",
     "vitest": "4.1.12",
-    "vue": "3.5.35",
+    "vue": "3.5.45",
     "vue-tsc": "3.3.7",
     "zod": "4.6.7"
   },

@@ -2,6 +2,8 @@
 
 CI checks pull requests and pushes to main. Publishing is an explicit manual workflow on main, using npm trusted publishing through GitHub OIDC. No long-lived npm token belongs in this repository.
 
+Release dependencies in order: **codex-sdk → multi-agent-sdk → agent-ui-sdk → Korus**. Each upstream release must be available from npm before updating the next package's exact dependency pin and regenerating its lockfile with npm. Run a clean `npm ci --ignore-scripts`, the quality gate and the production audit before releasing that package. A Codex SDK change therefore requires the downstream SDK releases before Korus consumes it.
+
 Before the first publication:
 
 1. Create the public `Korus-Dev/agent-ui-sdk` GitHub repository and configure Actions/Pages as appropriate.

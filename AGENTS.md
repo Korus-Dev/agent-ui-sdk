@@ -28,3 +28,8 @@ Preserve unrelated work. Do not create branches, commit, push or publish without
 explicit user authorization. Normal checks must not log in, execute paid prompts,
 record microphones or change the user's provider homes. Never commit credentials,
 runtime homes, local conversations or `.env` files.
+
+Follow the release cascade: codex-sdk → multi-agent-sdk → agent-ui-sdk → Korus.
+Wait for the upstream version to be published, then update the exact dependency
+pin and regenerate the lockfile with npm together. Verify a clean
+`npm ci --ignore-scripts`, `npm run check` and the production audit before release.
