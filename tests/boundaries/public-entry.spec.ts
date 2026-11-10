@@ -35,6 +35,7 @@ describe('public UI boundary', () => {
     expect(ui).not.toHaveProperty('CodexConversationSidebar');
   });
 
+  // This audit transpiles the complete source graph on cold CI workers.
   it('keeps trusted runtimes outside conversation and document root imports', () => {
     const graph = runtimeGraph(path.resolve(import.meta.dirname, '../../src/vue/index.ts'));
     for (const name of ['MarkdownPanel', 'SourcePreviewPanel', 'DiffPreviewPanel']) runtimeGraph(path.resolve(import.meta.dirname, `../../src/vue/documents/${name}.vue`), graph);
@@ -46,5 +47,5 @@ describe('public UI boundary', () => {
     expect(Object.keys(ui).filter(name => /korus|sidebar|treemap/i.test(name))).toEqual([]);
     expect(files.length).toBeGreaterThan(50);
     expect(files.filter(file => /\/src\/(electron|speech)\/|\/src\/browser\/electron\.ts$/.test(file))).toEqual([]);
-  });
+  }, 10_000);
 });

@@ -30,7 +30,7 @@ const server = await createServer({
         import Composer from ${source('components/CodexComposer.vue')};
         import Message from ${source('components/CodexMessage.vue')};
         import MessageEditor from ${source('chat/ChatMessageEditor.vue')};
-        import { promptContentDispatchText } from ${JSON.stringify(path.join(root, '../multi-agent-sdk/src/core/prompt-content.ts'))};
+        import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt.js';
         import ${source('styles.css')};
         const state = ref({text:'',selectionStart:0,selectionEnd:0});
         const submitted = ref(null);
