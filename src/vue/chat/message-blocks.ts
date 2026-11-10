@@ -1,0 +1,720 @@
+import { getMessageToolCallArgs, getMessageToolCallName, type Message, type MessageAttachment, type MessageMedia, type MessagePhase, type MessageToolCall, type MessagePart } from './types'
+import { findInlineHtmlBlocks } from './inline-html'
+import { renderedChatMessage, type ChatMessageInput } from './renderer-message-adapter'
+import { promptContentText } from 'multi-agents-sdk/surface'
+
+/** A later model work item supersedes earlier final text in the same turn. */
+export function withoutSupersededFinalAnswers(messages: readonly ChatMessageInput[]): ChatMessageInput[] {
+  const resumedTurns = new Set<string>()
+  return [...messages].reverse().map((input) => {
+    const message = renderedChatMessage(input)
+    if (message.role !== 'assistant' || !message.parts) return input
+    let resumed = message.turnId ? resumedTurns.has(message.turnId) : false
+    const parts = [...message.parts].reverse().filter((part) => {
+      if (part.type === 'tool' || part.type === 'reasoning'
+        || (part.type === 'text' && (part.phase === 'commentary' || part.phase === 'partial_answer'))) resumed = true
+      return !(resumed && part.type === 'text' && part.phase === 'final_answer')
+    }).reverse()
+    if (resumed && message.turnId) resumedTurns.add(message.turnId)
+    return parts.length === message.parts.length ? input : {
+      ...message, parts, content: parts.flatMap(part => part.type === 'text' ? [part.content] : []).join('\n\n'),
+    }
+  }).reverse()
+}
+
+type PhasedMessageBlock = {
+  phase?: MessagePhase
+}
+
+export type MessageBlock =
+  | { type: 'attachment'; attachment: MessageAttachment }
+  | Extract<MessagePart, { type: 'question' }>
+  | ({ type: 'text'; content: string } & PhasedMessageBlock)
+  | { type: 'user-text'; content: string; promptContent?: Message['promptContent'] }
+  | ({ type: 'reasoning'; content: string } & PhasedMessageBlock)
+  | ({ type: 'mermaid'; code: string } & PhasedMessageBlock)
+  | ({ type: 'custom'; language: string; code: string; complete: boolean } & PhasedMessageBlock)
+  | ({ type: 'html'; source: string; title?: string; complete: boolean } & PhasedMessageBlock)
+  | ({ type: 'visualization'; path?: string; title: string } & PhasedMessageBlock)
+  | ({ type: 'media'; media: MessageMedia; toolCall?: MessageToolCall } & PhasedMessageBlock)
+  | { type: 'tool'; toolCall: MessageToolCall }
+  | { type: 'tool-group'; toolCalls: MessageToolCall[]; activityTitle?: string }
+  | ({ type: 'follow-ups'; prompts: string[] } & PhasedMessageBlock)
+
+export type RenderedMessageBlock = MessageBlock | {
+  type: 'work-group'
+  active: boolean
+  blocks: MessageBlock[]
+  continuation?: boolean
+  finalStarted: boolean
+}
+
+type CodeBlockRange = {
+  start: number
+  end: number
+}
+
+const toolTagRegex = /<tool\s+(id|index)="([^"]*)"><\/tool>/g
+const markdownImageRegex = /(?<!\[)!\[([^\]]*)\]\(([^)\s]+)(?:\s+["']([^"']*)["'])?\)/g
+const contextTagRegex = /<context>[\s\S]*?<\/context>\s*/g
+const inAppBrowserContextTagRegex = /<in-app-browser-context(?:\s+[^>]*)?>[\s\S]*?<\/in-app-browser-context>\s*/g
+const ambientRequestHeadingRegex = /^[ \t]*## My request for Codex:[ \t]*(?:\r?\n|$)/m
+const followUpTagRegex = /<follow-up>([\s\S]*?)<\/follow-up>/g
+const visualizationAnnotationRegex = /\uE200visualize\uE202([\s\S]*?)\uE201/g
+const ungroupedToolNames = new Set([
+  'ask_user_question',
+])
+
+export function computeMessageBlocks(message: Message, customLanguages: readonly string[] = []): MessageBlock[] {
+  customLanguages = message.role === 'assistant'
+    ? customLanguages.filter(language => language !== 'mermaid' && language !== 'html') : [];
+  if (message.role !== 'assistant') {
+    if (message.promptContent) return [
+      ...(userMessageDisplayText(promptContentText(message.promptContent))
+        ? [{ type: 'user-text' as const, content: message.content, promptContent: message.promptContent }] : []),
+      ...(message.parts ?? []).flatMap((part): MessageBlock[] => part.type === 'attachment'
+        ? [{ type: 'attachment', attachment: part.attachment }]
+        : part.type === 'media' ? [{ type: 'media', media: part.media }] : []),
+    ];
+    if ((message.parts?.length ?? 0) > 0) {
+      return message.parts!.flatMap((part): MessageBlock[] => {
+        if (part.type === 'attachment') {
+          return [{ type: 'attachment', attachment: part.attachment }]
+        }
+        if (part.type === 'media') {
+          return [{ type: 'media', media: part.media }]
+        }
+        if (part.type === 'text') {
+          const content = userMessageDisplayText(part.content)
+          return content ? [{ type: 'user-text', content }] : []
+        }
+        return []
+      })
+    }
+
+    const content = userMessageDisplayText(message.content)
+    return content ? [{ type: 'user-text', content }] : []
+  }
+
+  const toolCalls = message.toolCalls ?? []
+  const parts = message.parts ?? []
+  if (parts.length > 0) {
+    return computeMessageBlocksFromParts(parts, toolCalls, message.streaming === true, customLanguages)
+  }
+
+  const anchoredToolCallIds = new Set<string>()
+  const { blocks, prompts } = parseTextBlocks(message.content, toolCalls, anchoredToolCallIds, undefined, message.streaming === true, customLanguages)
+
+  appendUnanchoredTools(blocks, toolCalls, anchoredToolCallIds)
+  return finalizeAssistantBlocks(blocks, prompts)
+}
+
+/** Preserve unchanged block props, including completed tools before a growing tail. */
+export function reuseMessageBlocks(next: MessageBlock[], previous: MessageBlock[] = []): MessageBlock[] {
+  const reused = next.map((block, index) => {
+    const old = previous[index]
+    return old && sameBlockValue(old, block) ? old : block
+  })
+  return reused.length === previous.length && reused.every((block, index) => block === previous[index])
+    ? previous : reused
+}
+
+function sameBlockValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((value, index) => sameBlockValue(value, b[index]))
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false
+  const left = a as Record<string, unknown>
+  const right = b as Record<string, unknown>
+  const keys = Object.keys(left)
+  return keys.length === Object.keys(right).length && keys.every(key => {
+    const value = left[key]
+    const other = right[key]
+    // Block wrappers are recreated by parsing; their payloads stay shared.
+    if (['toolCalls', 'prompts', 'metadata'].includes(key)) return sameBlockValue(value, other)
+    if (['toolCall', 'media', 'attachment', 'args'].includes(key) && value && other) {
+      const fields = Object.keys(value)
+      return fields.length === Object.keys(other).length && fields.every(field => (
+        field === 'metadata'
+          ? sameBlockValue((value as Record<string, unknown>)[field], (other as Record<string, unknown>)[field])
+          : (value as Record<string, unknown>)[field] === (other as Record<string, unknown>)[field]
+      ))
+    }
+    return value === other
+  })
+}
+
+export function groupAssistantWorkBlocks(
+  message: Message,
+  blocks: MessageBlock[],
+  workActive = message.streaming === true,
+  groupWork = hasExplicitAssistantWorkPhases(message),
+  answeredClientRequestIds?: ReadonlySet<string>,
+): RenderedMessageBlock[] {
+  if (message.role !== 'assistant' || !groupWork) return blocks
+
+  const finalStarted = message.parts?.some((part) => (
+    part.type === 'text' && part.phase === 'final_answer' && part.content.trim().length > 0
+  )) ?? false
+  const rendered: RenderedMessageBlock[] = []
+  let workBlocks: MessageBlock[] = []
+  let workGroupCount = 0
+  const flushWork = () => {
+    if (workBlocks.length === 0) return
+    rendered.push({
+      type: 'work-group',
+      active: workActive && !finalStarted,
+      blocks: workBlocks,
+      ...(workGroupCount > 0 ? { continuation: true } : {}),
+      finalStarted,
+    })
+    workBlocks = []
+    workGroupCount += 1
+  }
+
+  for (const block of blocks) {
+    if (isAssistantWorkBlock(block, answeredClientRequestIds)) {
+      workBlocks.push(block)
+      continue
+    }
+    flushWork()
+    rendered.push(block)
+  }
+  flushWork()
+  return workGroupCount > 0 ? rendered : blocks
+}
+
+function computeMessageBlocksFromParts(parts: MessagePart[], toolCalls: MessageToolCall[], streaming: boolean, customLanguages: readonly string[]): MessageBlock[] {
+  const blocks: MessageBlock[] = []
+  const prompts: string[] = []
+  const anchoredToolCallIds = new Set<string>()
+
+  for (const [index, part] of parts.entries()) {
+    if (part.type === 'tool') {
+      anchoredToolCallIds.add(part.toolCall.id)
+      blocks.push({ type: 'tool', toolCall: part.toolCall })
+      continue
+    }
+
+    if (part.type === 'attachment') {
+      blocks.push({ type: 'attachment', attachment: part.attachment })
+      continue
+    }
+
+    if (part.type === 'media') {
+      blocks.push({ type: 'media', media: part.media, ...(part.phase ? { phase: part.phase } : {}) })
+      continue
+    }
+
+    if (part.type === 'reasoning') {
+      if (part.summary.trim()) {
+        blocks.push({ type: 'reasoning', content: part.summary, phase: 'commentary' })
+      }
+      continue
+    }
+
+    if (part.type === 'question') {
+      blocks.push({ ...part })
+      continue
+    }
+
+    const nextPart = parts[index + 1]
+    if (nextPart?.type === 'question'
+      && nextPart.request.payload.request.questions.some((question) => question.question.trim() === part.content.trim())) {
+      continue
+    }
+
+    const parsed = parseTextBlocks(part.content, toolCalls, anchoredToolCallIds, part.phase, streaming, customLanguages)
+    blocks.push(...parsed.blocks)
+    prompts.push(...parsed.prompts)
+  }
+
+  appendUnanchoredTools(blocks, toolCalls, anchoredToolCallIds)
+  return finalizeAssistantBlocks(blocks, prompts)
+}
+
+function parseTextBlocks(
+  rawContent: string,
+  toolCalls: MessageToolCall[],
+  anchoredToolCallIds: Set<string>,
+  phase?: MessagePhase,
+  streaming = false,
+  customLanguages: readonly string[] = [],
+) {
+  const blocks: MessageBlock[] = []
+  const prompts: string[] = []
+  let offset = 0
+  const appendMarkdown = (content: string) => {
+    const parsed = parseMarkdownBlocks(content, toolCalls, anchoredToolCallIds, phase, customLanguages, streaming)
+    blocks.push(...parsed.blocks)
+    prompts.push(...parsed.prompts)
+  }
+  for (const html of findInlineHtmlBlocks(rawContent, streaming)) {
+    appendMarkdown(rawContent.slice(offset, html.start))
+    const { start: _start, end, ...block } = html
+    blocks.push({ ...block, ...(phase ? { phase } : {}) })
+    offset = end
+  }
+  appendMarkdown(rawContent.slice(offset))
+  return { blocks, prompts }
+}
+
+function parseMarkdownBlocks(
+  rawContent: string,
+  toolCalls: MessageToolCall[],
+  anchoredToolCallIds: Set<string>,
+  phase?: MessagePhase,
+  customLanguages: readonly string[] = [],
+  streaming = false,
+) {
+  const { content, prompts } = extractFollowUps(completeStreamingCustomTags(rawContent))
+  const codeBlocks = findCodeBlocks(content)
+  const blocks: MessageBlock[] = []
+  let lastIndex = 0
+
+  for (const item of findSpecialBlocks(content, codeBlocks, customLanguages, streaming)) {
+    if (item.start > lastIndex) {
+      pushTextBlock(blocks, content.slice(lastIndex, item.start), phase)
+    }
+
+    if (item.type === 'mermaid') {
+      blocks.push({ type: 'mermaid', code: item.code, ...(phase ? { phase } : {}) })
+    } else if (item.type === 'custom') {
+      blocks.push({ type: 'custom', language: item.language, code: item.code, complete: item.complete, ...(phase ? { phase } : {}) })
+    } else if (item.type === 'visualization') {
+      blocks.push({
+        type: 'visualization',
+        title: item.title,
+        ...(item.path ? { path: item.path } : {}),
+        ...(phase ? { phase } : {}),
+      })
+    } else if (item.type === 'tool') {
+      const toolCall = findToolCall(item.kind, item.value, toolCalls)
+      if (toolCall) {
+        anchoredToolCallIds.add(toolCall.id)
+        blocks.push({ type: 'tool', toolCall })
+      }
+    } else {
+      const toolCall = findMediaToolCall(item.media, toolCalls)
+      if (toolCall) {
+        anchoredToolCallIds.add(toolCall.id)
+      }
+      blocks.push({
+        type: 'media',
+        media: {
+          ...item.media,
+          prompt: item.media.prompt ?? getToolCallPrompt(toolCall),
+        },
+        toolCall,
+        ...(phase ? { phase } : {}),
+      })
+    }
+
+    lastIndex = item.end
+  }
+
+  if (lastIndex < content.length) {
+    pushTextBlock(blocks, content.slice(lastIndex), phase)
+  }
+
+  return { blocks, prompts }
+}
+
+function appendUnanchoredTools(blocks: MessageBlock[], toolCalls: MessageToolCall[], anchoredToolCallIds: Set<string>) {
+  for (const toolCall of toolCalls) {
+    if (!anchoredToolCallIds.has(toolCall.id)) {
+      blocks.push({ type: 'tool', toolCall })
+    }
+  }
+}
+
+function finalizeAssistantBlocks(blocks: MessageBlock[], prompts: string[]): MessageBlock[] {
+  const grouped = groupToolBlocks(blocks)
+  if (prompts.length > 0) {
+    grouped.push({ type: 'follow-ups', prompts })
+  }
+
+  return grouped
+}
+
+export function userMessageDisplayText(content: string) {
+  const text = stripMessageContext(content)
+  return text === '(no user instructions)' ? '' : text
+}
+
+export function stripMessageContext(content: string) {
+  const withoutContext = content.replace(contextTagRegex, '')
+  const withoutBrowserContext = withoutContext.replace(inAppBrowserContextTagRegex, '')
+  return (withoutBrowserContext === withoutContext
+    ? withoutBrowserContext
+    : withoutBrowserContext.replace(ambientRequestHeadingRegex, ''))
+    .trim()
+}
+
+export function groupToolBlocks(blocks: MessageBlock[]): MessageBlock[] {
+  const result: MessageBlock[] = []
+  let toolGroup: MessageToolCall[] = []
+  let activityTitle: string | undefined
+
+  const flushGroup = (showActivityTitle = false) => {
+    if (toolGroup.length === 0) {
+      if (showActivityTitle && activityTitle) {
+        result.push({ type: 'tool-group', toolCalls: [], activityTitle })
+      }
+      activityTitle = undefined
+      return
+    }
+
+    result.push({
+      type: 'tool-group',
+      toolCalls: [...toolGroup],
+      ...(showActivityTitle && activityTitle ? { activityTitle } : {}),
+    })
+    toolGroup = []
+    activityTitle = undefined
+  }
+
+  for (const block of blocks) {
+    if (block.type === 'reasoning') {
+      activityTitle = reasoningActivityTitle(block.content)
+      continue
+    }
+
+    if (block.type === 'tool') {
+      if (isUngroupedTool(block.toolCall)) {
+        flushGroup()
+        result.push(block)
+        continue
+      }
+
+      toolGroup.push(block.toolCall)
+      continue
+    }
+
+    flushGroup()
+    result.push(block)
+  }
+
+  flushGroup(true)
+  return result
+}
+
+function reasoningActivityTitle(summary: string) {
+  const trimmed = summary.trim()
+  const emphasized = /^\*\*([\s\S]*)\*\*$/u.exec(trimmed)?.[1]
+    ?? /^__([\s\S]*)__$/u.exec(trimmed)?.[1]
+    ?? trimmed
+  return emphasized.trim().replace(/\s+/gu, ' ')
+}
+
+function isUngroupedTool(toolCall: MessageToolCall) {
+  if (ungroupedToolNames.has(getMessageToolCallName(toolCall))) {
+    return true
+  }
+
+  const status = parseToolStatus(toolCall.status)
+  if (status?.action === 'plan') {
+    return true
+  }
+
+  return (status?.source === 'mcp' || status?.source === 'home') &&
+    typeof status.params?.requestId === 'string' &&
+    toolCall.state === 'running'
+}
+
+function parseToolStatus(status: unknown) {
+  if (typeof status !== 'string' || !status.startsWith('{')) {
+    return undefined
+  }
+
+  try {
+    return JSON.parse(status) as {
+      action?: unknown
+      params?: Record<string, unknown>
+      source?: unknown
+    }
+  } catch {
+    return undefined
+  }
+}
+
+function pushTextBlock(blocks: MessageBlock[], content: string, phase?: MessagePhase) {
+  if (content.trim()) {
+    blocks.push({ type: 'text', content, ...(phase ? { phase } : {}) })
+  }
+}
+
+export function hasExplicitAssistantWorkPhases(message: Message) {
+  return message.parts?.some((part) => (
+    part.type === 'reasoning' || ((part.type === 'text' || part.type === 'media') && part.phase !== undefined)
+  )) ?? false
+}
+
+export function isAssistantWorkBlock(block: MessageBlock, answeredClientRequestIds?: ReadonlySet<string>) {
+  if (block.type === 'question') return block.historical === true || answeredClientRequestIds?.has(block.request.id) === true
+  if (block.type === 'reasoning' || block.type === 'tool' || block.type === 'tool-group') return true
+  return 'phase' in block && block.phase === 'commentary'
+}
+
+function extractFollowUps(content: string) {
+  const prompts: string[] = []
+  const stripped = content.replace(followUpTagRegex, (_match, prompt: string) => {
+    const trimmed = prompt.trim()
+    if (trimmed) {
+      prompts.push(trimmed)
+    }
+    return ''
+  })
+
+  return { content: stripped, prompts }
+}
+
+function completeStreamingCustomTags(content: string) {
+  return completeStreamingToolTag(completeStreamingPairedTag(content, 'follow-up'))
+}
+
+function completeStreamingPairedTag(content: string, tagName: string) {
+  const openTag = `<${tagName}>`
+  const closeTag = `</${tagName}>`
+  const openIndex = content.lastIndexOf(openTag)
+  const closeIndex = content.lastIndexOf(closeTag)
+  if (openIndex <= closeIndex) {
+    return content
+  }
+
+  const partialCloseIndex = content.lastIndexOf('</')
+  if (partialCloseIndex > openIndex && closeTag.startsWith(content.slice(partialCloseIndex))) {
+    return `${content.slice(0, partialCloseIndex)}${closeTag}`
+  }
+
+  return `${content}${closeTag}`
+}
+
+function completeStreamingToolTag(content: string) {
+  const openIndex = content.lastIndexOf('<tool')
+  const closeIndex = content.lastIndexOf('</tool>')
+  if (openIndex <= closeIndex) {
+    return content
+  }
+
+  const beforeTool = content.slice(0, openIndex)
+  const toolText = content.slice(openIndex)
+  const closeTag = '</tool>'
+  const partialCloseIndex = toolText.lastIndexOf('</')
+  const openingText = partialCloseIndex >= 0 ? toolText.slice(0, partialCloseIndex) : toolText
+  const openingEnd = openingText.indexOf('>')
+
+  if (openingEnd === -1) {
+    const attributeMatch = openingText.match(/^<tool\s+(id|index)="([^"]*)"$/)
+    return attributeMatch ? `${beforeTool}${openingText}>${closeTag}` : beforeTool
+  }
+
+  const completedOpening = openingText.slice(0, openingEnd + 1)
+  const trailingText = openingText.slice(openingEnd + 1)
+  return `${beforeTool}${completedOpening}${closeTag}${trailingText}`
+}
+
+function findToolCall(kind: string, value: string, toolCalls: MessageToolCall[]) {
+  if (kind === 'id') {
+    return toolCalls.find((toolCall) => toolCall.id === value)
+  }
+
+  return toolCalls[Number.parseInt(value, 10)]
+}
+
+function findMediaToolCall(media: MessageMedia, toolCalls: MessageToolCall[]) {
+  return toolCalls.find((toolCall) => {
+    if (getMessageToolCallName(toolCall) !== 'image_generation') {
+      return false
+    }
+
+    const resultUrl = getToolCallResultString(toolCall, 'url')
+    const resultExternalUrl = getToolCallResultString(toolCall, 'externalUrl')
+    const resultPath = getToolCallResultString(toolCall, 'path')
+    return media.url === resultUrl || media.url === resultExternalUrl || media.url === resultPath
+  })
+}
+
+function getToolCallPrompt(toolCall?: MessageToolCall) {
+  return getToolCallResultString(toolCall, 'prompt') ?? getToolCallParamString(toolCall, 'prompt')
+}
+
+function getToolCallResultString(toolCall: MessageToolCall | undefined, key: string) {
+  const result = toolCall?.result
+  if (!result || typeof result !== 'object' || Array.isArray(result)) {
+    return undefined
+  }
+
+  const value = (result as Record<string, unknown>)[key]
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+function getToolCallParamString(toolCall: MessageToolCall | undefined, key: string) {
+  const params = toolCall ? getMessageToolCallArgs(toolCall) : undefined
+  if (!params || typeof params !== 'object' || Array.isArray(params)) {
+    return undefined
+  }
+
+  const value = (params as Record<string, unknown>)[key]
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+type SpecialBlock =
+  | { type: 'tool'; start: number; end: number; kind: string; value: string }
+  | { type: 'mermaid'; start: number; end: number; code: string }
+  | { type: 'custom'; start: number; end: number; language: string; code: string; complete: boolean }
+  | { type: 'visualization'; start: number; end: number; path?: string; title: string }
+  | { type: 'media'; start: number; end: number; media: MessageMedia }
+
+function findSpecialBlocks(content: string, codeBlocks: CodeBlockRange[], customLanguages: readonly string[], streaming: boolean) {
+  const blocks: SpecialBlock[] = []
+  for (const range of codeBlocks) {
+    const fenced = content.slice(range.start, range.end).match(/^(```|~~~)[ \t]*([\w+-]+)[ \t]*\n([\s\S]*)$/)
+    const language = fenced?.[2]?.toLowerCase()
+    const body = fenced?.[3] ?? ''
+    const complete = !!fenced && body.endsWith(`\n${fenced[1]}`)
+    const code = (complete ? body.slice(0, -(fenced![1]!.length + 1)) : body).trim()
+    if (language && customLanguages.includes(language) && (complete || streaming)) {
+      blocks.push({ ...range, type: 'custom', language, code, complete })
+    }
+  }
+
+  for (const block of findMermaidCodeBlocks(content)) {
+    blocks.push(block)
+  }
+
+  for (const match of content.matchAll(visualizationAnnotationRegex)) {
+    const start = match.index
+    if (isInsideCodeBlock(start, codeBlocks)) continue
+    const payload = visualizationPayload(match[1]!)
+    blocks.push({
+      end: start + match[0].length,
+      start,
+      title: payload?.title ?? 'Visualization',
+      ...(payload?.path ? { path: payload.path } : {}),
+      type: 'visualization',
+    })
+  }
+
+  for (const match of content.matchAll(toolTagRegex)) {
+    const start = match.index
+    if (isInsideCodeBlock(start, codeBlocks)) {
+      continue
+    }
+
+    const kind = match[1]
+    const value = match[2]
+    if (!kind || !value) {
+      continue
+    }
+
+    blocks.push({
+      end: start + match[0].length,
+      kind,
+      start,
+      type: 'tool',
+      value
+    })
+  }
+
+  for (const match of content.matchAll(markdownImageRegex)) {
+    const start = match.index
+    if (isInsideCodeBlock(start, codeBlocks)) {
+      continue
+    }
+
+    const alt = match[1]!.trim()
+    const url = match[2]!
+    const title = match[3]?.trim()
+    blocks.push({
+      end: start + match[0].length,
+      media: {
+        alt: alt || undefined,
+        title: title || alt || undefined,
+        url
+      },
+      start,
+      type: 'media'
+    })
+  }
+
+  return blocks.sort((first, second) => first.start - second.start)
+}
+
+function visualizationPayload(value: string): { path?: string; title: string } | null {
+  try {
+    const payload = JSON.parse(value) as { path?: unknown; title?: unknown }
+    const title = typeof payload.title === 'string' && payload.title.trim()
+      ? payload.title.trim()
+      : 'Visualization'
+    const path = typeof payload.path === 'string' && payload.path.trim()
+      ? payload.path.trim()
+      : undefined
+    return { title, ...(path ? { path } : {}) }
+  } catch {
+    return null
+  }
+}
+
+function findMermaidCodeBlocks(content: string): SpecialBlock[] {
+  const blocks: SpecialBlock[] = []
+  const fenceRegex = /(^|\n)(```|~~~)[ \t]*mermaid[^\n]*\n/gi
+  let match: RegExpExecArray | null
+
+  while ((match = fenceRegex.exec(content)) !== null) {
+    const fence = match[2]!
+    const prefix = match[1]!
+    const start = match.index + prefix.length
+    const codeStart = start + match[0].length - prefix.length
+    const closeRegex = new RegExp(`(^|\\n)${escapeRegex(fence)}[ \\t]*(?=\\n|$)`, 'g')
+    closeRegex.lastIndex = codeStart
+    const close = closeRegex.exec(content)
+
+    if (!close) {
+      continue
+    }
+
+    const codeEnd = close.index
+    const end = close.index + close[0].length
+    const code = content.slice(codeStart, codeEnd).trim()
+    if (code) {
+      blocks.push({ code, end, start, type: 'mermaid' })
+    }
+    fenceRegex.lastIndex = end
+  }
+
+  return blocks
+}
+
+function findCodeBlocks(content: string): CodeBlockRange[] {
+  const ranges: CodeBlockRange[] = []
+  const fenceRegex = /(^|\n)(```|~~~)/g
+  let match: RegExpExecArray | null
+
+  while ((match = fenceRegex.exec(content)) !== null) {
+    const fence = match[2]!
+    const prefix = match[1]!
+    const start = match.index + prefix.length
+    const closeRegex = new RegExp(`(^|\\n)${escapeRegex(fence)}`, 'g')
+    closeRegex.lastIndex = start + fence.length
+    const close = closeRegex.exec(content)
+
+    if (!close) {
+      ranges.push({ start, end: content.length })
+      break
+    }
+
+    const end = close.index + close[1]!.length + fence.length
+    ranges.push({ start, end })
+    fenceRegex.lastIndex = end
+  }
+
+  return ranges
+}
+
+function isInsideCodeBlock(index: number, ranges: CodeBlockRange[]) {
+  return ranges.some((range) => index >= range.start && index <= range.end)
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}

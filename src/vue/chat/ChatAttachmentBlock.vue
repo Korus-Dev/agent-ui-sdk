@@ -1,0 +1,244 @@
+<template>
+  <figure
+    v-if="(previewSource && !previewFailed) || (managedPreview?.viewport && attachment.kind === 'image')"
+    ref="rootElement"
+    class="codex-chat-theme chat-attachment-block chat-attachment-block--image"
+    :class="{ 'chat-attachment-block--proportional': managedPreview?.viewport && aspectRatio }"
+    :title="attachment.path || attachment.url || attachment.name"
+  >
+    <button
+      class="chat-attachment-block__preview-button"
+      :style="managedPreview?.viewport && aspectRatio ? { aspectRatio, '--image-aspect-ratio': aspectRatio } : undefined"
+      type="button"
+      :aria-label="`Open ${attachment.name}`"
+      @click="previewSource ? handleImageOpen() : reloadPreview()"
+    >
+      <img
+        v-if="previewSource && !previewFailed"
+        class="chat-attachment-block__preview"
+        :alt="attachment.name"
+        :src="previewSource"
+        @error="previewFailed = true"
+      >
+      <span v-if="!previewSource || previewFailed" class="chat-attachment-block__placeholder">{{ managedPreview?.loading.value ? 'Loading image…' : attachment.name }}</span>
+    </button>
+    <ChatImageLightbox
+      :alt="attachment.name"
+      :label="attachment.name"
+      :open="fullscreenOpen"
+      :src="originalSource || ''"
+      :reference="attachment.url || attachment.path"
+      :theme-source="rootElement"
+      @close="fullscreenOpen = false"
+    />
+  </figure>
+  <button
+    v-else-if="managedPreview && attachment.kind === 'image'"
+    class="codex-chat-theme chat-attachment-block chat-attachment-block--chip"
+    type="button"
+    :aria-label="`Load ${attachment.name}`"
+    @click="reloadPreview"
+  >
+    <PhotoIcon aria-hidden="true" />
+    <span>{{ attachment.name }} · {{ managedPreview.loading.value ? 'Loading image…' : 'Load image' }}</span>
+  </button>
+  <component
+    :is="chipHref ? 'a' : 'span'"
+    v-else
+    class="codex-chat-theme chat-attachment-block chat-attachment-block--chip"
+    :href="chipHref"
+    :title="attachment.path || attachment.url || attachment.name"
+  >
+    <PhotoIcon v-if="attachment.kind === 'image'" aria-hidden="true" />
+    <PaperclipIcon v-else aria-hidden="true" />
+    <span class="chat-attachment-block__name">{{ attachment.name }}</span>
+  </component>
+</template>
+
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { imageAspectRatio, useManagedImagePreview } from './host-image-previews'
+import { useCodexHostCapabilities } from '../native-capabilities'
+import { PaperclipIcon, PhotoIcon } from '../icons/app-icons'
+import ChatImageLightbox from './ChatImageLightbox.vue'
+import type { CodexMessageImageOpenHandler } from './message-image'
+import type { MessageAttachment } from './types'
+
+// Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
+const props = defineProps<{
+  attachment: MessageAttachment
+  openImage?: CodexMessageImageOpenHandler
+}>()
+// Stryker restore all
+
+const hostCapabilities = useCodexHostCapabilities()
+const rootElement = ref<HTMLElement | null>(null)
+const managedPreview = useManagedImagePreview(() => props.attachment.kind === 'image' ? props.attachment.url || props.attachment.path || '' : '', rootElement)
+
+const aspectRatio = computed(() => imageAspectRatio(props.attachment) ?? imageAspectRatio(managedPreview?.dimensions.value))
+const previewFailed = ref(false)
+const nativePreviewSource = ref<string>()
+const fullscreenOpen = ref(false)
+const previewSource = computed(() => (
+  managedPreview ? managedPreview.source.value : props.attachment.kind === 'image' && isSafeImageSource(props.attachment.url)
+    ? props.attachment.url
+    : nativePreviewSource.value
+))
+const originalSource = computed(() => managedPreview ? managedPreview.original.value : previewSource.value)
+const chipHref = computed(() => (
+  safeFileHref(props.attachment.path) || safeLinkHref(props.attachment.url)
+))
+
+watch(previewSource, () => {
+  previewFailed.value = false
+})
+
+let previewRequest = 0
+watch(
+  [() => props.attachment.kind, () => props.attachment.path, () => props.attachment.url],
+  async ([kind, path, url]) => {
+    const request = ++previewRequest
+    nativePreviewSource.value = undefined
+    const reference = path || url
+    if (managedPreview || kind !== 'image' || !reference || isSafeImageSource(url)) return
+    const readImagePreview = hostCapabilities?.readImagePreview
+    if (!readImagePreview) return
+    try {
+      const source = await readImagePreview(reference)
+      if (request === previewRequest && source && isSafeImageSource(source)) {
+        nativePreviewSource.value = source
+      }
+    } catch {
+      // Missing, stale, or unreadable historical attachments remain file chips.
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  previewRequest += 1
+})
+
+async function reloadPreview() {
+  await managedPreview?.reload()
+  if (!previewSource.value) await handleImageOpen()
+}
+
+async function handleImageOpen() {
+  const src = originalSource.value || (managedPreview ? props.attachment.url || props.attachment.path : undefined)
+  if (!src) return
+  const image = {
+    alt: props.attachment.name,
+    kind: 'attachment',
+    mimeType: props.attachment.mimeType,
+    name: props.attachment.name,
+    path: props.attachment.path,
+    src,
+    title: props.attachment.name,
+  } as const
+  if (await props.openImage?.(image, { intent: 'open' }) === true) return
+  fullscreenOpen.value = true
+}
+
+function isSafeImageSource(value: string | undefined): value is string {
+  if (!value) return false
+  if (/^(?:\.\.?\/|\/(?!\/))/.test(value)) return !hostCapabilities?.readImagePreview
+  return /^(?:https?:|blob:)/i.test(value)
+    || /^data:image\/(?:avif|bmp|gif|heic|heif|jpe?g|png|webp);base64,/i.test(value)
+}
+
+function safeLinkHref(value: string | undefined): string | undefined {
+  return value && /^(?:https?:|file:)/i.test(value) ? value : undefined
+}
+
+function safeFileHref(value: string | undefined): string | undefined {
+  if (!value || /^(?:\\\\|\/\/)/.test(value)) return undefined
+  if (/^[a-z]:[\\/]/i.test(value)) return value
+  return /^[a-z][a-z\d+.-]*:/i.test(value)
+    ? (/^file:/i.test(value) ? value : undefined)
+    : value
+}
+</script>
+
+<style scoped>
+.chat-attachment-block {
+  box-sizing: border-box;
+  max-width: 100%;
+  color: inherit;
+  font-size: var(--font-size-13);
+  line-height: var(--line-height-18);
+}
+
+.chat-attachment-block--image {
+  width: 160px;
+  margin: 0;
+  padding: var(--space-1);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-lowest);
+}
+
+.chat-attachment-block__preview {
+  display: block;
+  width: 100%;
+  height: 120px;
+  border-radius: calc(var(--radius-lg) - var(--space-1));
+  object-fit: cover;
+}
+
+.chat-attachment-block--proportional .chat-attachment-block__preview-button { position: relative; max-width: min(100%, calc(min(360px, 50vh) * (var(--image-aspect-ratio)))); }
+.chat-attachment-block--proportional .chat-attachment-block__preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.chat-attachment-block--proportional .chat-attachment-block__placeholder { position: absolute; inset: 0; height: 100%; }
+.chat-attachment-block__placeholder { display: flex; align-items: center; justify-content: center; height: 120px; overflow: hidden; overflow-wrap: anywhere; color: var(--color-text-muted); }
+
+.chat-attachment-block__preview-button {
+  display: block;
+  width: 100%;
+  max-height: min(360px, 50vh);
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.chat-attachment-block--chip {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.chat-attachment-block--chip {
+  width: fit-content;
+  max-width: 260px;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-lowest);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a.chat-attachment-block--chip:hover {
+  border-color: var(--color-border-strong, var(--color-text-muted));
+  background: var(--color-surface-low);
+}
+
+.chat-attachment-block svg {
+  width: var(--space-8);
+  height: var(--space-8);
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+}
+
+.chat-attachment-block__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+</style>

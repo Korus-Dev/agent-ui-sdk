@@ -1,0 +1,115 @@
+<template>
+  <ChatComposerDrawerRow class="chat-queued-prompt" aria-label="Queued prompt">
+    <template #leading>
+      <TerminalIcon class="chat-queued-prompt__icon" aria-hidden="true" />
+    </template>
+    <span class="chat-queued-prompt__text">{{ preview }}</span>
+    <template #actions>
+      <div class="chat-queued-prompt__actions">
+        <button
+          class="chat-queued-prompt__action"
+          type="button"
+          aria-label="Steer queued prompt now"
+          title="Steer now"
+          :disabled="steerDisabled"
+          @click="emit('steer', prompt.id)"
+        >
+          <SteeringWheelIcon aria-hidden="true" />
+          <span>Steer</span>
+        </button>
+        <button
+          class="chat-queued-prompt__action"
+          type="button"
+          aria-label="Edit queued prompt"
+          title="Edit"
+          :disabled="editDisabled"
+          @click="emit('edit', prompt.id)"
+        >
+          <PencilIcon aria-hidden="true" />
+        </button>
+        <button
+          class="chat-queued-prompt__action"
+          type="button"
+          aria-label="Delete queued prompt"
+          title="Delete"
+          @click="emit('delete', prompt.id)"
+        >
+          <Trash2Icon aria-hidden="true" />
+        </button>
+      </div>
+    </template>
+  </ChatComposerDrawerRow>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import ChatComposerDrawerRow from './ChatComposerDrawerRow.vue';
+import { PencilIcon, SteeringWheelIcon, TerminalIcon, Trash2Icon } from '../icons/app-icons';
+import type { QueuedChatPrompt } from './queued-prompts';
+import { parseAuthoredUserText } from './user-text';
+import { userMessageDisplayText } from './message-blocks';
+
+// Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
+const props = defineProps<{
+  prompt: QueuedChatPrompt;
+  editDisabled?: boolean;
+  steerDisabled?: boolean;
+}>();
+
+const emit = defineEmits<{
+  delete: [id: string];
+  edit: [id: string];
+  steer: [id: string];
+}>();
+// Stryker restore all
+
+const preview = computed(() => {
+  const text = parseAuthoredUserText(props.prompt.text, props.prompt.options?.content)
+    .map(token => 'displayName' in token ? token.displayName : token.type === 'line-break' ? '\n' : token.text)
+    .join('');
+  return userMessageDisplayText(text) || 'Attached content';
+});
+</script>
+
+<style scoped>
+.chat-queued-prompt__icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
+.chat-queued-prompt__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chat-queued-prompt__action {
+  width: auto;
+  height: var(--space-12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12);
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.chat-queued-prompt__action:hover:not(:disabled) {
+  background: var(--color-surface-low);
+  color: var(--color-text);
+}
+
+.chat-queued-prompt__action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.chat-queued-prompt__action svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+</style>

@@ -1,0 +1,402 @@
+.codex-text-shimmer {
+  color: transparent;
+  background:
+    linear-gradient(
+      110deg,
+      var(--color-text-muted) 20%,
+      var(--color-background) 45%,
+      var(--color-text-muted) 70%
+    );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: codex-text-shimmer 4.5s linear infinite;
+}
+
+.codex-chat-theme {
+  font-family: var(--font-family-base);
+}
+
+.codex-chat-theme,
+.codex-chat-theme * {
+  box-sizing: border-box;
+}
+
+.codex-chat-theme::before,
+.codex-chat-theme::after,
+.codex-chat-theme *::before,
+.codex-chat-theme *::after {
+  box-sizing: border-box;
+}
+
+.codex-chat-theme :where(button, input, textarea) {
+  font: inherit;
+}
+
+.codex-chat-theme :where(button, [role='button'], [role='listbox'], .chat-icon-button),
+.codex-chat-theme:where(button, [role='button'], [role='listbox'], .chat-icon-button) {
+  user-select: none;
+}
+
+/* Shiki injects these local variables on highlighted spans. */
+/* stylelint-disable lyliya/value-no-unknown-custom-properties */
+.codex-markdown .shiki,
+.codex-markdown .shiki span {
+  color: var(--shiki-light);
+}
+
+:where(.codex-chat-theme--dark, [data-codex-theme="dark"]) .codex-markdown .shiki,
+:where(.codex-chat-theme--dark, [data-codex-theme="dark"]) .codex-markdown .shiki span {
+  color: var(--shiki-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.codex-chat-theme--system, [data-codex-theme="system"]) .codex-markdown .shiki,
+  :where(.codex-chat-theme--system, [data-codex-theme="system"]) .codex-markdown .shiki span {
+    color: var(--shiki-dark);
+  }
+}
+
+.codex-markdown .shiki {
+  background: var(--color-surface-low) !important;
+}
+/* Highlights emits the same themes under its own CSS variables. */
+.codex-markdown .highlights,
+.codex-markdown .highlights span {
+  color: var(--hls-light);
+}
+
+:where(.codex-chat-theme--dark, [data-codex-theme="dark"]) .codex-markdown .highlights,
+:where(.codex-chat-theme--dark, [data-codex-theme="dark"]) .codex-markdown .highlights span {
+  color: var(--hls-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.codex-chat-theme--system, [data-codex-theme="system"]) .codex-markdown .highlights,
+  :where(.codex-chat-theme--system, [data-codex-theme="system"]) .codex-markdown .highlights span {
+    color: var(--hls-dark);
+  }
+}
+
+.codex-markdown .highlights {
+  background: var(--color-surface-low) !important;
+}
+/* stylelint-enable lyliya/value-no-unknown-custom-properties */
+
+.codex-markdown .katex {
+  color: inherit;
+  font-size: 1.02em;
+}
+
+.codex-markdown .katex-display {
+  max-width: 100%;
+  margin: var(--space-8) 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--space-2) 0;
+}
+
+.codex-markdown .katex-display > .katex {
+  display: block;
+  min-width: min-content;
+  text-align: center;
+}
+
+.codex-markdown .katex-error {
+  color: var(--color-text-muted) !important;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-13);
+}
+
+.codex-markdown {
+  color: var(--color-text);
+  font-size: var(--chat-font-size, var(--chat-message-font-size, var(--font-size-15)));
+  line-height:
+    var(
+      --chat-message-line-height,
+      calc(var(--chat-font-size, var(--chat-message-font-size, var(--font-size-15))) + 9px)
+    );
+  overflow-wrap: anywhere;
+}
+
+.codex-markdown.chat-message-block--text {
+  font-size: calc(var(--chat-font-size, var(--chat-message-font-size, var(--font-size-15))) - 0.5px);
+  font-weight: var(--chat-message-font-weight, 350);
+  line-height: var(--chat-message-line-height, 1.55);
+}
+
+.codex-markdown > :not(.chat-markdown-chunk):first-child,
+.codex-markdown > .chat-markdown-chunk:first-child > :first-child {
+  margin-top: 0;
+}
+
+.codex-markdown > :not(.chat-markdown-chunk):last-child,
+.codex-markdown > .chat-markdown-chunk:last-child > :last-child {
+  margin-bottom: 0;
+}
+
+.codex-markdown.chat-user-text {
+  padding: var(--space-3) var(--space-6);
+}
+
+.codex-markdown p,
+.codex-markdown ul,
+.codex-markdown ol,
+.codex-markdown blockquote,
+.codex-markdown pre,
+.codex-markdown table {
+  margin: 0 0 0.6875rem;
+}
+
+.codex-markdown h1,
+.codex-markdown h2,
+.codex-markdown h3,
+.codex-markdown h4,
+.codex-markdown h5,
+.codex-markdown h6 {
+  margin: var(--space-10) 0 calc(var(--space-6) - 2px);
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-24);
+}
+
+.codex-markdown h1 {
+  font-size: var(--font-size-24);
+  line-height: var(--line-height-28);
+}
+
+.codex-markdown h2 {
+  font-size: var(--font-size-20);
+}
+
+.codex-markdown h3,
+.codex-markdown h4 {
+  font-size: calc(var(--font-size-16) + 1px);
+  line-height: var(--line-height-22);
+}
+
+.codex-markdown h5,
+.codex-markdown h6 {
+  font-size: var(--font-size-15);
+}
+
+.codex-markdown ul,
+.codex-markdown ol {
+  padding-left: 1.3125rem;
+}
+
+.codex-markdown li + li {
+  margin-top: var(--space-4);
+}
+
+.codex-markdown li > :first-child,
+.codex-markdown li > :last-child {
+  margin-bottom: 0;
+}
+
+.codex-markdown strong {
+  font-weight: var(--chat-message-strong-font-weight, 500);
+}
+
+.codex-markdown code {
+  box-decoration-break: clone;
+  border-radius: var(--radius-md);
+  padding: 1px var(--space-3);
+  background: color-mix(in srgb, var(--color-surface-low) 60%, var(--color-text) 6%);
+  font-family: var(--font-family-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-box-decoration-break: clone;
+}
+
+.codex-markdown pre {
+  margin: 14px 0;
+  overflow: auto;
+  outline: none;
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  background: var(--color-surface-low);
+}
+
+.codex-markdown .chat-code-block {
+  position: relative;
+  margin: 14px 0;
+}
+
+.codex-markdown .chat-code-block pre {
+  margin: 0;
+  padding-right: calc(var(--space-4) + 32px);
+}
+
+.codex-markdown .chat-code-block__copy {
+  position: absolute;
+  z-index: 1;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 0;
+  background: var(--color-surface-low);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.codex-markdown .chat-code-block__copy:hover,
+.codex-markdown .chat-code-block__copy:focus-visible {
+  background: var(--color-surface-high);
+  color: var(--color-text);
+}
+
+.codex-markdown .chat-code-block__copy:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.codex-markdown :where(.chat-code-block__copy-icon, .chat-code-block__check-icon) {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.codex-markdown .chat-code-block__check-icon,
+.codex-markdown .chat-code-block__copy[data-copied] .chat-code-block__copy-icon {
+  display: none;
+}
+
+.codex-markdown .chat-code-block__copy[data-copied] .chat-code-block__check-icon {
+  display: block;
+}
+
+.codex-markdown pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-family-mono);
+  font-size: var(--code-font-size, var(--font-size-13));
+  line-height: var(--line-height-20);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.codex-markdown blockquote {
+  position: relative;
+  margin: 0 0 var(--space-4);
+  border: 0;
+  padding: var(--space-4) 0 var(--space-4) var(--space-12);
+  color: var(--color-text);
+}
+
+.codex-markdown blockquote::after {
+  content: "";
+  position: absolute;
+  top: var(--space-4);
+  bottom: var(--space-4);
+  left: 0;
+  width: var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-border-strong);
+}
+
+.codex-markdown blockquote > :first-child {
+  margin-top: 0;
+}
+
+.codex-markdown blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.codex-markdown hr {
+  clear: both;
+  height: 0;
+  margin: 28px 0;
+  border: 0;
+  border-top: 1px solid var(--color-border-strong);
+}
+
+.codex-markdown a {
+  color: var(--color-secondary);
+  line-height: inherit;
+  text-decoration: none;
+  vertical-align: baseline;
+}
+
+.codex-markdown a:hover {
+  color: var(--color-secondary);
+}
+
+.codex-markdown .chat-message-link__icon {
+  display: inline-block;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  margin-left: var(--space-1);
+  margin-right: var(--space-2);
+  vertical-align: -0.12em;
+}
+
+.codex-markdown .chat-message-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+}
+
+.codex-markdown .chat-message-image--blocked {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  font-style: italic;
+}
+
+.codex-markdown table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--font-size-14);
+}
+
+.codex-markdown th,
+.codex-markdown td {
+  border: 0;
+  padding: var(--space-4) var(--space-12) var(--space-4) 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.codex-markdown th {
+  border-bottom: 1px solid var(--color-border-strong);
+  background: transparent;
+  font-weight: var(--font-weight-bold);
+}
+
+.codex-markdown td {
+  padding-top: calc(var(--space-4) + 2px);
+  padding-bottom: calc(var(--space-4) + 2px);
+}
+
+.codex-markdown tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.codex-markdown th:last-child,
+.codex-markdown td:last-child {
+  padding-right: 0;
+}
+
+@keyframes codex-text-shimmer {
+  0% {
+    background-position: 150% 0;
+  }
+
+  100% {
+    background-position: -150% 0;
+  }
+}

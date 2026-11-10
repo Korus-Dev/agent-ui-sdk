@@ -1,0 +1,40 @@
+<template>
+  <ChatIconButton :disabled="disabled" :label="copied ? copiedLabel : label" @click="copy">
+    <slot :copied="copied">
+      <CheckIcon v-if="showIcon !== false && copied" />
+      <CopyIcon v-else-if="showIcon !== false" />
+    </slot>
+  </ChatIconButton>
+</template>
+
+<script setup lang="ts">
+import { onBeforeUnmount, ref } from 'vue'
+import { CheckIcon, CopyIcon } from '../icons/app-icons'
+import ChatIconButton from './ChatIconButton.vue'
+
+const props = withDefaults(defineProps<{
+  action: () => Promise<void> | void
+  copiedLabel: string
+  disabled?: boolean
+  label: string
+  showIcon?: boolean
+}>(), { showIcon: true })
+
+const copied = ref(false)
+let resetTimeout: ReturnType<typeof setTimeout> | null = null
+
+async function copy() {
+  await props.action()
+  copied.value = true
+
+  if (resetTimeout) clearTimeout(resetTimeout)
+  resetTimeout = setTimeout(() => {
+    copied.value = false
+    resetTimeout = null
+  }, 1_500)
+}
+
+onBeforeUnmount(() => {
+  if (resetTimeout) clearTimeout(resetTimeout)
+})
+</script>

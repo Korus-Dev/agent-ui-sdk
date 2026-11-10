@@ -1,0 +1,314 @@
+import { Lexer } from 'marked';
+import { codexConversationLinkFromHref } from './conversation-links';
+import { normalizePromptContent, type CodexPromptMention, type CodexPromptPart, type CodexSurfacePlugin, type CodexSurfaceSkill } from 'multi-agents-sdk/surface';
+import { skillDisplayName, skillMatchesMention } from './composer-skills';
+import { pluginMatchesMention } from './composer-plugins';
+import {
+  findComposerMention,
+  type CodexComposerMentionGroup,
+  type CodexComposerMentionItem,
+} from './composer-mentions-custom';
+
+export type CodexUserTextToken =
+  | { type: 'text'; text: string }
+  | { type: 'code'; text: string }
+  | { type: 'link'; text: string; href: string }
+  | { type: 'line-break' }
+  | { type: 'file-mention'; displayName: string; label: string; href: string }
+  | {
+    type: 'custom-mention';
+    displayName: string;
+    group: CodexComposerMentionGroup;
+    item: CodexComposerMentionItem;
+    label: string;
+  }
+  | {
+    type: 'plugin-mention';
+    displayName: string;
+    href: string;
+    label: string;
+    plugin?: CodexSurfacePlugin;
+  }
+  | {
+    type: 'skill-mention';
+    displayName: string;
+    href: string;
+    label: string;
+    skill?: CodexSurfaceSkill;
+  };
+
+export function parseAuthoredUserText(
+  text: string,
+  content?: readonly CodexPromptPart[],
+  plugins: readonly CodexSurfacePlugin[] = [],
+  skills: readonly CodexSurfaceSkill[] = [],
+  groups: readonly CodexComposerMentionGroup[] = [],
+): CodexUserTextToken[] {
+  if (content === undefined) return parseCodexUserText(text, plugins, skills, groups, false);
+  return normalizePromptContent(content).flatMap((part): CodexUserTextToken[] => {
+    if (part.type === 'text') {
+      return withWebLinks(part.text, text => text.split(/(`[^`\n]+`|\n)/g).filter(Boolean).map(value => value === '\n'
+        ? { type: 'line-break' } : value.startsWith('`') && value.endsWith('`')
+          ? { type: 'code', text: value.slice(1, -1) } : { type: 'text', text: value }));
+    }
+    if (part.kind === 'skill') return [{
+      type: 'skill-mention', displayName: part.label, label: part.label, href: part.id,
+      skill: skills.find(skill => skill.path === part.id),
+    }];
+    if (part.kind === 'plugin') return [{
+      type: 'plugin-mention', displayName: part.label, label: part.label, href: `plugin://${part.id}`,
+      plugin: plugins.find(plugin => plugin.id === part.id),
+    }];
+    if (part.kind === 'file') return [{ type: 'file-mention', displayName: part.label, label: part.label, href: part.id }];
+    return [customMentionToken(part, groups)];
+  });
+}
+
+function customMentionToken(part: CodexPromptMention, groups: readonly CodexComposerMentionGroup[]): Extract<CodexUserTextToken, { type: 'custom-mention' }> {
+  const group = groups.find(group => group.id === part.groupId);
+  const item = group?.items.find(item => item.id === part.id);
+  return {
+    type: 'custom-mention', displayName: part.label, label: part.label,
+    group: group ?? { id: part.groupId ?? part.kind, label: part.groupId ?? part.kind, items: [] },
+    item: { ...item, id: part.id, value: part.value, label: part.label },
+  };
+}
+
+export function parseCodexUserText(
+  content: string,
+  plugins: readonly CodexSurfacePlugin[] = [],
+  skills: readonly CodexSurfaceSkill[] = [],
+  mentionGroups: readonly CodexComposerMentionGroup[] = [],
+  allowBareMentions = true,
+): CodexUserTextToken[] {
+  return withWebLinks(content, text => parseUserTextTokens(text, plugins, skills, mentionGroups, allowBareMentions));
+}
+
+/** Rehydrate serialized selected references without interpreting bare typed triggers. */
+export function recalledPromptContent(
+  text: string,
+  plugins: readonly CodexSurfacePlugin[] = [],
+  skills: readonly CodexSurfaceSkill[] = [],
+  groups: readonly CodexComposerMentionGroup[] = [],
+): CodexPromptPart[] {
+  return normalizePromptContent(parseCodexUserText(text, plugins, skills, groups, false).map((token): CodexPromptPart => {
+    switch (token.type) {
+      case 'skill-mention': return {
+        type: 'mention', kind: 'skill', id: skillPathFromHref(token.href)!,
+        value: token.skill?.name ?? token.label.slice(1), label: token.displayName,
+      };
+      case 'plugin-mention': return {
+        type: 'mention', kind: 'plugin', id: safeDecode(token.href.slice('plugin://'.length)),
+        value: token.plugin?.name ?? token.label.slice(1), label: token.displayName,
+      };
+      case 'custom-mention': return {
+        type: 'mention', kind: 'custom', id: token.item.id, value: token.item.value,
+        label: token.displayName, groupId: token.group.id,
+      };
+      case 'file-mention': return { type: 'mention', kind: 'file', id: token.href, value: token.href, label: token.displayName };
+      case 'line-break': return { type: 'text', text: '\n' };
+      case 'code': return { type: 'text', text: `\`${token.text}\`` };
+      default: return { type: 'text', text: token.text };
+    }
+  }));
+}
+
+function withWebLinks(content: string, literal: (text: string) => CodexUserTextToken[]): CodexUserTextToken[] {
+  if (!/https?:\/\//i.test(content)) return literal(content);
+  return Lexer.lexInline(content, { gfm: true }).flatMap((token): CodexUserTextToken[] => {
+    const link = token.type === 'link' && /^https?:\/\//i.test(token.raw)
+      ? codexConversationLinkFromHref(token.href) : null;
+    return link?.kind === 'external'
+      ? [{ type: 'link', text: token.raw, href: link.href }]
+      : literal(token.raw);
+  });
+}
+
+function parseUserTextTokens(
+  content: string,
+  plugins: readonly CodexSurfacePlugin[],
+  skills: readonly CodexSurfaceSkill[],
+  mentionGroups: readonly CodexComposerMentionGroup[],
+  allowBareMentions: boolean,
+): CodexUserTextToken[] {
+  const tokens: CodexUserTextToken[] = [];
+  let lastIndex = 0;
+
+  for (const match of content.matchAll(userTextTokenRegex())) {
+    const index = match.index ?? 0;
+    if (index > lastIndex) tokens.push({ type: 'text', text: content.slice(lastIndex, index) });
+
+    const raw = match[0];
+    const code = match[1];
+    const label = match[2];
+    const href = match[3];
+    const bareTrigger = match[4];
+    const bareName = match[5];
+    if (code !== undefined) {
+      tokens.push({ type: 'code', text: code });
+    } else if (label !== undefined) {
+      tokens.push(mentionToken(label, href!, plugins, skills, mentionGroups) ?? { type: 'text', text: raw });
+    } else if (bareTrigger !== undefined) {
+      tokens.push((allowBareMentions ? bareMentionToken(bareTrigger, bareName!, plugins, skills, mentionGroups) : null) ?? { type: 'text', text: raw });
+    } else {
+      tokens.push({ type: 'line-break' });
+    }
+    lastIndex = index + raw.length;
+  }
+
+  if (lastIndex < content.length) tokens.push({ type: 'text', text: content.slice(lastIndex) });
+  return tokens;
+}
+
+function bareMentionToken(
+  trigger: string,
+  name: string,
+  plugins: readonly CodexSurfacePlugin[],
+  skills: readonly CodexSurfaceSkill[],
+  mentionGroups: readonly CodexComposerMentionGroup[],
+): Extract<CodexUserTextToken, { type: 'custom-mention' | 'plugin-mention' | 'skill-mention' }> | null {
+  if (trigger === '$') {
+    const skill = skills.find((candidate) => skillMatchesMention(candidate, name));
+    if (skill) {
+      return {
+        type: 'skill-mention',
+        displayName: skillDisplayName(skill, plugins),
+        href: skill.path,
+        label: `${trigger}${name}`,
+        skill,
+      };
+    }
+  }
+
+  if (trigger !== '@') return null;
+  const leadingMention = findComposerMention(
+    mentionGroups.filter((group) => group.placement !== 'after'),
+    name,
+  );
+  if (leadingMention) {
+    return {
+      type: 'custom-mention',
+      displayName: leadingMention.item.label,
+      label: `${trigger}${name}`,
+      ...leadingMention,
+    };
+  }
+  const plugin = plugins.find((candidate) => pluginMatchesMention(candidate, name));
+  if (plugin) {
+    return {
+      type: 'plugin-mention',
+      displayName: plugin.displayName || plugin.name,
+      href: `plugin://${plugin.id}`,
+      label: `${trigger}${name}`,
+      plugin,
+    };
+  }
+  const trailingMention = findComposerMention(
+    mentionGroups,
+    name,
+  );
+  return trailingMention ? {
+    type: 'custom-mention',
+    displayName: trailingMention.item.label,
+    label: `${trigger}${name}`,
+    ...trailingMention,
+  } : null;
+}
+
+function mentionToken(
+  rawLabel: string,
+  rawHref: string,
+  plugins: readonly CodexSurfacePlugin[],
+  skills: readonly CodexSurfaceSkill[],
+  groups: readonly CodexComposerMentionGroup[],
+): Extract<CodexUserTextToken, { type: 'custom-mention' | 'plugin-mention' | 'skill-mention' }> | null {
+  const label = rawLabel.trim().replace(/\\([\\[\]])/g, '$1');
+  const href = markdownDestination(rawHref);
+
+  if (label.startsWith('@') && href.startsWith('mention://')) {
+    try {
+      const match = /^mention:\/\/([^/]+)\/([^?]+)\?value=(.+)$/.exec(href);
+      if (!match) return null;
+      const [groupId, id, value] = match.slice(1).map(value => decodeURIComponent(value));
+      if (!groupId || !id || !value || label.length === 1) return null;
+      return customMentionToken({ type: 'mention', kind: 'custom', groupId, id, value, label: label.slice(1) }, groups);
+    } catch { return null; }
+  }
+
+  if (label.startsWith('@') && href.startsWith('plugin://')) {
+    const pluginId = safeDecode(href.slice('plugin://'.length));
+    if (!pluginId) return null;
+    const plugin = plugins.find((candidate) => candidate.id === pluginId);
+    const fallbackName = label.slice(1) || pluginId.split('@')[0]!;
+    return {
+      type: 'plugin-mention',
+      displayName: plugin?.displayName || humanizeMentionName(fallbackName, 'App'),
+      href,
+      label,
+      ...(plugin ? { plugin } : {}),
+    };
+  }
+
+  if (label.startsWith('$')) {
+    const skillPath = skillPathFromHref(href);
+    if (!skillPath) return null;
+    const skill = skills.find((candidate) => candidate.path === skillPath);
+    return {
+      type: 'skill-mention',
+      displayName: skill
+        ? skillDisplayName(skill, plugins)
+        : humanizeMentionName(label, 'Skill'),
+      href,
+      label,
+      ...(skill ? { skill } : {}),
+    };
+  }
+
+  return null;
+}
+
+function markdownDestination(value: string): string {
+  const trimmed = value.trim();
+  return trimmed.startsWith('<') && trimmed.endsWith('>')
+    ? trimmed.slice(1, -1).trim()
+    : trimmed;
+}
+
+function skillPathFromHref(href: string): string | null {
+  const withoutFragment = href.split(/[?#]/, 1)[0]!;
+  let path = safeDecode(withoutFragment);
+  if (path.startsWith('file://')) {
+    try {
+      path = decodeURIComponent(new URL(path).pathname);
+    } catch {
+      return null;
+    }
+  }
+  return /(?:^|[\\/])SKILL\.md$/i.test(path) ? path : null;
+}
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+export function humanizeMentionName(value: string, fallback: string): string {
+  const trimmed = value.trim().replace(/^[@$]/, '');
+  if (!trimmed || isOpaqueAppName(trimmed)) return fallback;
+  return trimmed
+    .split(/[-_:\s]/)
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ');
+}
+
+function userTextTokenRegex(): RegExp {
+  return /`([^`\n]+)`|\[((?:\\.|[^\]\\\n])+)\]\(([^)\n]+)\)|(?<![\w.%+-])([$@/])([A-Za-z0-9_.:-]+(?:[ \t]+\([A-Za-z0-9_.-]+\))?)|(\n)/g;
+}
+
+function isOpaqueAppName(value: string): boolean {
+  return /^app[-_]?[a-f\d]{16,}$/i.test(value);
+}

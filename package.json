@@ -1,0 +1,85 @@
+{
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "files": [
+    "dist",
+    "LICENSE",
+    "assets",
+    "native"
+  ],
+  "scripts": {
+    "build": "vite build && vue-tsc -p tsconfig.build.json && node scripts/package-katex-assets.mjs dist/styles.css dist/fonts && node scripts/verify-package-css.mjs dist/styles.css dist/vue/index.d.ts dist/fonts && node scripts/verify-native-assets.mjs",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "name": "ai-app-sdk",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/vue/index.d.ts",
+      "import": "./dist/vue/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./host": {
+      "types": "./dist/host/contracts.d.ts",
+      "import": "./dist/host/contracts.js"
+    },
+    "./electron": {
+      "types": "./dist/electron/index.d.ts",
+      "import": "./dist/electron/index.js"
+    },
+    "./electron/preload": {
+      "types": "./dist/electron/preload.d.ts",
+      "import": "./dist/electron/preload.js"
+    },
+    "./speech": {
+      "types": "./dist/speech/index.d.ts",
+      "import": "./dist/speech/index.js"
+    },
+    "./browser/*": {
+      "types": "./dist/browser/*.d.ts",
+      "import": "./dist/browser/*.js"
+    },
+    "./browser-ui": {
+      "types": "./dist/vue/browser/index.d.ts",
+      "import": "./dist/vue/browser/index.js"
+    },
+    "./documents/*": {
+      "types": "./dist/documents/*.d.ts",
+      "import": "./dist/documents/*.js"
+    }
+  },
+  "dependencies": {
+    "multi-agents-sdk": "file:../multi-agents-sdk",
+    "@pierre/highlights": "0.2.0",
+    "@shikijs/langs": "4.3.1",
+    "@shikijs/themes": "4.3.1",
+    "@tabler/icons-vue": "3.45.0",
+    "beautiful-mermaid": "1.1.3",
+    "fix-webm-duration": "1.0.6",
+    "katex": "0.17.0",
+    "marked": "17.0.6",
+    "marked-katex-extension": "5.1.10",
+    "shiki": "4.3.1",
+    "ws": "8.22.2",
+    "parse-git-diff": "0.0.20"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0",
+    "electron": ">=30",
+    "element-plus": ">=2.13"
+  },
+  "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    },
+    "element-plus": {
+      "optional": true
+    }
+  }
+}

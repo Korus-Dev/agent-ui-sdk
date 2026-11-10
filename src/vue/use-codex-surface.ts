@@ -1,0 +1,174 @@
+import { getCurrentScope, onScopeDispose, reactive, readonly, shallowRef } from 'vue';
+import type {
+  CodexConversationHistory,
+  CodexConversationPromptHistory,
+  CodexSurfaceApprovalDecision,
+  CodexSurfaceApprovalScope,
+  CodexSurfaceClientRequestResponse,
+  CodexSurfaceEvent,
+  CodexSurfaceRendererApi,
+  CodexSurfaceSnapshot,
+  CodexSurfaceSkill,
+  CreateCodexRendererConversationOptions,
+  ListCodexConversationsOptions,
+  ListCodexModelsOptions,
+  ListCodexSkillsOptions,
+  CodexRendererSendMessageOptions,
+  StartCodexReviewOptions,
+  UpdateCodexConversationSettings,
+} from 'multi-agents-sdk/surface';
+import { subscribeCodexSurfaceState } from 'multi-agents-sdk/surface-bridge';
+
+const initialState: CodexSurfaceSnapshot = {
+  status: 'idle',
+  authentication: {
+    status: 'notLoaded',
+    account: null,
+    requiresOpenaiAuth: null,
+    error: null,
+    login: { status: 'idle', loginId: null, authUrl: null, error: null },
+  },
+  conversations: [],
+  activeConversationId: null,
+  activeTurnId: null,
+  turns: [],
+  messages: [],
+  clientRequests: [],
+  answeredClientRequestIds: [],
+  approvals: [],
+  models: [],
+  modelCatalogStatus: 'notLoaded',
+  skills: [],
+  skillCatalogStatus: 'notLoaded',
+  plugins: [],
+  pluginCatalogStatus: 'notLoaded',
+  permissionProfiles: [],
+  approvalPresets: [],
+  approvalPreset: null,
+  selectedModelId: null,
+  selectedReasoningEffort: null,
+  selectedServiceTier: null,
+  planMode: false,
+  contextUsage: null,
+  goal: null,
+  turnGitDiff: null,
+  threadStatus: null,
+  rateLimits: null,
+  queuedPrompts: [],
+  busy: false,
+  historyLoading: false,
+  error: null,
+};
+
+export function useCodexSurface(api: CodexSurfaceRendererApi) {
+  const state = reactive<CodexSurfaceSnapshot>(structuredClone(initialState));
+  const mutableAnsweredClientRequestIds = reactive(new Set<string>());
+  const answeredClientRequestIds: ReadonlySet<string> = readonly(mutableAnsweredClientRequestIds);
+  const lastEvent = shallowRef<CodexSurfaceEvent | null>(null);
+  const eventListeners = new Set<(event: CodexSurfaceEvent) => void>();
+  let pushedSnapshotVersion = 0;
+  const apply = (snapshot: CodexSurfaceSnapshot) => {
+    Object.assign(state, snapshot);
+    mutableAnsweredClientRequestIds.clear();
+    for (const requestId of snapshot.answeredClientRequestIds) {
+      mutableAnsweredClientRequestIds.add(requestId);
+    }
+  };
+  // Patch-capable APIs keep unchanged messages identical between updates, so
+  // only the components whose data changed re-render.
+  const unsubscribe = subscribeCodexSurfaceState(api, (snapshot) => {
+    pushedSnapshotVersion += 1;
+    apply(snapshot);
+  });
+  const unsubscribeEvents = api.onEvent((event) => {
+    lastEvent.value = event;
+    for (const listener of eventListeners) listener(event);
+  });
+  if (getCurrentScope()) onScopeDispose(() => {
+    unsubscribeEvents();
+    unsubscribe();
+    eventListeners.clear();
+  });
+
+  async function run(action: () => Promise<CodexSurfaceSnapshot>): Promise<CodexSurfaceSnapshot> {
+    const versionBeforeAction = pushedSnapshotVersion;
+    const snapshot = await action();
+    if (pushedSnapshotVersion === versionBeforeAction) apply(snapshot);
+    return snapshot;
+  }
+
+  const skillActions: { listSkills?: (options?: ListCodexSkillsOptions) => Promise<CodexSurfaceSkill[]> } = {
+    listSkills: (options) => api.listSkills
+      ? api.listSkills(options) : Promise.reject(new Error('Skill discovery is unavailable')),
+  };
+  return {
+    ...skillActions,
+    state: readonly(state),
+    lastEvent: readonly(lastEvent),
+    answeredClientRequestIds,
+    onEvent: (listener: (event: CodexSurfaceEvent) => void) => {
+      eventListeners.add(listener);
+      return () => eventListeners.delete(listener);
+    },
+    archiveConversation: (conversationId: string) => run(() => api.archiveConversation(conversationId)),
+    cancelLogin: (loginId?: string) => run(() => api.cancelLogin(loginId)),
+    clearGoal: () => run(() => api.clearGoal()),
+    compactConversation: () => run(() => api.compactConversation()),
+    continueInterruptedTurn: () => run(() => api.continueInterruptedTurn()),
+    connect: () => {
+      mutableAnsweredClientRequestIds.clear();
+      return run(() => api.connect());
+    },
+    createConversation: (options?: CreateCodexRendererConversationOptions) => run(() => api.createConversation(options)),
+    deleteConversation: (conversationId: string) => run(() => api.deleteConversation(conversationId)),
+    deleteTurn: (turnId: string) => run(() => api.deleteTurn(turnId)),
+    deleteQueuedPrompt: (promptId: string) => run(() => api.deleteQueuedPrompt(promptId)),
+    updateQueuedPrompt: (promptId: string, prompt: string, options?: CodexRendererSendMessageOptions) => run(() => api.updateQueuedPrompt(promptId, prompt, options)),
+    editTurn: (turnId: string, content: string, options?: CodexRendererSendMessageOptions) => run(() => api.editTurn(turnId, content, options)),
+    forkTurn: (turnId: string) => run(() => api.forkTurn(turnId)),
+    interrupt: () => run(() => api.interrupt()),
+    listConversations: (options?: ListCodexConversationsOptions) => api.listConversations(options),
+    listModels: (options?: ListCodexModelsOptions) => api.listModels(options),
+    logout: () => run(() => api.logout()),
+    readConversationHistory: (conversationId?: string): Promise<CodexConversationHistory> => (
+      api.readConversationHistory(conversationId)
+    ),
+    readConversationPromptHistory: (
+      conversationId?: string,
+    ): Promise<CodexConversationPromptHistory> => api.readConversationPromptHistory(conversationId),
+    loadOlderConversationHistory: (conversationId?: string) => (
+      api.loadOlderConversationHistory
+        ? api.loadOlderConversationHistory(conversationId)
+        : Promise.reject(new Error('Conversation history paging is not available.'))
+    ),
+    loadTurnHistory: (turnId: string, conversationId?: string) => api.loadTurnHistory
+      ? api.loadTurnHistory(turnId, conversationId) : Promise.reject(new Error('Turn history is unavailable.')),
+    refreshAccount: () => run(() => api.refreshAccount()),
+    refreshConversations: () => run(() => api.refreshConversations()),
+    renameConversation: (title: string) => run(() => api.renameConversation(title)),
+    respondToClientRequest: (response: CodexSurfaceClientRequestResponse) => {
+      mutableAnsweredClientRequestIds.add(response.id);
+      return run(() => api.respondToClientRequest(response));
+    },
+    resolveApproval: (
+      approvalId: string,
+      decision: CodexSurfaceApprovalDecision,
+      scope?: CodexSurfaceApprovalScope,
+    ) => run(() => api.resolveApproval(approvalId, decision, scope)),
+    retryTurn: (turnId: string) => run(() => api.retryTurn(turnId)),
+    setGoal: (objective: string, tokenBudget?: number | null) => run(() => api.setGoal(objective, tokenBudget)),
+    selectConversation: (conversationId: string) => run(() => api.selectConversation(conversationId)),
+    sendMessage: (prompt: string, options?: CodexRendererSendMessageOptions) => run(() => api.sendMessage(prompt, options)),
+    startReview: (options?: StartCodexReviewOptions) => run(() => api.startReview(options)),
+    startChatGptDeviceCodeLogin: () => api.startChatGptDeviceCodeLogin(),
+    startChatGptLogin: () => api.startChatGptLogin(),
+    steerMessage: (prompt: string, options?: CodexRendererSendMessageOptions) => run(() => api.steerMessage(prompt, options)),
+    steerQueuedPrompt: (promptId: string, prompt?: string, options?: CodexRendererSendMessageOptions) => run(() => api.steerQueuedPrompt(promptId, prompt, options)),
+    unarchiveConversation: (conversationId: string) => run(() => api.unarchiveConversation(conversationId)),
+    updateConversationSettings: (settings: UpdateCodexConversationSettings) => (
+      run(() => api.updateConversationSettings(settings))
+    ),
+  };
+}
+
+export type CodexSurfaceController = ReturnType<typeof useCodexSurface>;

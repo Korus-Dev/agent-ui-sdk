@@ -1,0 +1,158 @@
+<template>
+  <div ref="root" class="codex-chat-theme codex-composer-menu" @keydown.escape.prevent.stop="close(true)">
+    <slot name="trigger" :open="menuOpen" :toggle="toggle">
+      <button
+        class="codex-composer-menu__trigger"
+        type="button"
+        :aria-label="buttonLabel"
+        aria-haspopup="menu"
+        :aria-expanded="menuOpen"
+        :disabled="disabled"
+        @click="toggle"
+      >
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
+          <path d="M9 3.5v11M3.5 9h11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8" />
+        </svg>
+      </button>
+    </slot>
+    <CodexComposerMenuList
+      v-if="menuOpen"
+      class="codex-composer-menu__list"
+      :class="menuClass"
+      :aria-label="ariaLabel"
+      :items="items"
+      :pinned-item-count="pinnedItemCount"
+      @select="selectItem"
+    >
+      <template v-if="$slots.icon" #icon="scope"><slot name="icon" v-bind="scope" /></template>
+      <template v-if="$slots.item" #item="scope"><slot name="item" v-bind="scope" /></template>
+    </CodexComposerMenuList>
+  </div>
+</template>
+
+<script setup lang="ts" generic="Payload = unknown">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import type { CodexComposerMenuItem, CodexComposerMenuSelectableItem } from '../composer-menu';
+import CodexComposerMenuList from './CodexComposerMenuList.vue';
+
+// Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
+const props = withDefaults(defineProps<{
+  ariaLabel?: string;
+  buttonLabel?: string;
+  disabled?: boolean;
+  items: readonly CodexComposerMenuItem<Payload>[];
+  pinnedItemCount?: number;
+  menuClass?: string;
+  open?: boolean;
+}>(), {
+  ariaLabel: 'Composer actions',
+  buttonLabel: 'Open composer actions',
+  disabled: false,
+  pinnedItemCount: 0,
+  menuClass: undefined,
+  open: undefined,
+});
+
+const emit = defineEmits<{
+  select: [item: CodexComposerMenuSelectableItem<Payload>];
+  'update:open': [open: boolean];
+}>();
+// Stryker restore all
+
+const root = ref<HTMLElement | null>(null);
+const triggerElement = ref<HTMLElement | null>(null);
+const internalOpen = ref(false);
+const menuOpen = computed(() => props.open ?? internalOpen.value);
+
+onMounted(() => document.addEventListener('click', closeOnOutsideClick));
+onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick));
+
+watch(menuOpen, async (open) => {
+  if (!open) return;
+  await nextTick();
+  const firstItem = root.value?.querySelector(
+    '.codex-composer-menu__list [role^="menuitem"][tabindex="0"]:not(:disabled)',
+  );
+  if (firstItem instanceof HTMLElement) firstItem.focus();
+}, { immediate: true });
+
+function setOpen(open: boolean): void {
+  if (props.open === undefined) {
+    internalOpen.value = open;
+  }
+  emit('update:open', open);
+}
+
+function toggle(event?: Event): void {
+  event?.stopPropagation();
+  if (event?.currentTarget instanceof HTMLElement) triggerElement.value = event.currentTarget;
+  if (!props.disabled) {
+    setOpen(!menuOpen.value);
+  }
+}
+
+function close(restoreFocus = false): void {
+  if (menuOpen.value) {
+    setOpen(false);
+    if (restoreFocus) void nextTick(() => triggerElement.value?.focus());
+  }
+}
+
+function closeOnOutsideClick(event: MouseEvent): void {
+  if (root.value && event.target && !root.value.contains(event.target as Node)) {
+    close(false);
+  }
+}
+
+function selectItem(item: CodexComposerMenuSelectableItem<Payload>): void {
+  emit('select', item);
+  const shouldClose = item.closeOnSelect ?? (item.type !== 'checkbox');
+  if (shouldClose) {
+    close(true);
+  }
+}
+
+// Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
+defineExpose({ close, open: () => setOpen(true), toggle });
+// Stryker restore all
+</script>
+
+<style scoped>
+.codex-composer-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.codex-composer-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--chat-composer-control-size, var(--codex-composer-button-size, 36px));
+  height: var(--chat-composer-control-size, var(--codex-composer-button-size, 36px));
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--codex-muted-text-color, var(--color-text-muted, #777b82));
+  background: transparent;
+  cursor: pointer;
+}
+
+.codex-composer-menu__trigger:hover:not(:disabled),
+.codex-composer-menu__trigger:focus-visible {
+  color: var(--codex-text-color, var(--color-text, #202124));
+  background: var(--codex-hover-color, var(--color-surface-low, rgb(0 0 0 / 6%)));
+  outline: none;
+}
+
+.codex-composer-menu__trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.codex-composer-menu__list {
+  position: absolute;
+  z-index: 10;
+  bottom: calc(100% + var(--codex-space-2, 8px));
+  left: 0;
+}
+</style>

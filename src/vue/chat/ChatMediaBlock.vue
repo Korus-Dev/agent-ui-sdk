@@ -1,0 +1,225 @@
+<template>
+  <figure ref="rootElement" class="codex-chat-theme chat-media-block"
+    :style="aspectRatio ? { '--image-aspect-ratio': aspectRatio, '--image-natural-width': `${dimensions?.width}px` } : undefined"
+  >
+    <button
+      class="chat-media-block__image-button"
+      :class="{ 'chat-media-block__image-button--reserved': managedPreview?.viewport && aspectRatio }"
+      :style="managedPreview?.viewport && aspectRatio ? { aspectRatio } : undefined"
+      type="button"
+      :aria-label="openLabel"
+      @click="handleImageAction('open')"
+    >
+      <img
+        v-if="previewSource || !managedPreview"
+        class="chat-media-block__image"
+        :alt="media.alt || generatedAltLabel"
+        :src="previewSource"
+      >
+      <span v-if="managedPreview && !previewSource" class="chat-media-block__placeholder">{{ managedPreview?.loading.value ? 'Loading image…' : 'Load image' }}</span>
+    </button>
+    <figcaption class="chat-media-block__footer">
+      <span class="chat-media-block__title">{{ media.title || generatedLabel }}</span>
+      <span class="chat-media-block__actions">
+        <ChatIconButton :label="fullscreenLabel" @click="handleImageAction('fullscreen')">
+          <Maximize2 />
+        </ChatIconButton>
+        <ChatCopyButton
+          :action="copyImage"
+          :copied-label="copiedLabel"
+          :label="copyLabel"
+        />
+        <ChatIconButton
+          :download="downloadName"
+          :href="originalSource"
+          :label="downloadLabel"
+          @click.stop
+        >
+          <Download />
+        </ChatIconButton>
+        <ChatIconButton v-if="media.prompt" :label="promptLabel" @click="toggleDetails">
+          <Info />
+        </ChatIconButton>
+      </span>
+    </figcaption>
+    <ChatFoldTransition v-if="media.prompt" :open="detailsOpen">
+      <div class="chat-media-block__details">
+        <div class="chat-media-block__details-title">{{ promptLabel }}</div>
+        <p class="chat-media-block__prompt">{{ media.prompt }}</p>
+      </div>
+    </ChatFoldTransition>
+    <ChatImageLightbox
+      :alt="media.alt || generatedAltLabel"
+      :label="media.title || generatedLabel"
+      :open="fullscreenOpen"
+      :src="originalSource || media.url"
+      :reference="media.url"
+      :theme-source="rootElement"
+      @close="closeFullscreen"
+    />
+  </figure>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { Download, Info, Maximize2 } from '../icons/app-icons'
+import ChatCopyButton from './ChatCopyButton.vue'
+import ChatFoldTransition from './ChatFoldTransition.vue'
+import ChatImageLightbox from './ChatImageLightbox.vue'
+import ChatIconButton from './ChatIconButton.vue'
+import type { CodexMessageImageOpenHandler, CodexMessageImageOpenIntent } from './message-image'
+import type { MessageMedia } from './types'
+import { imageAspectRatio, useHostImageSource, useManagedImagePreview } from './host-image-previews'
+
+// Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
+const props = defineProps<{
+  media: MessageMedia
+  openImage?: CodexMessageImageOpenHandler
+}>()
+// Stryker restore all
+
+const downloadLabel = 'Download media'
+const copyLabel = 'Copy image'
+const copiedLabel = 'Image copied'
+const fullscreenLabel = 'Open fullscreen'
+const generatedAltLabel = 'Generated media'
+const generatedLabel = 'Generated media'
+const promptLabel = 'Prompt'
+const openLabel = computed(() => `Open ${props.media.title || props.media.alt || generatedLabel}`)
+const rootElement = ref<HTMLElement | null>(null)
+const managedPreview = useManagedImagePreview(() => props.media.url, rootElement)
+const dimensions = computed(() => imageAspectRatio(props.media) ? props.media : managedPreview?.dimensions.value)
+const aspectRatio = computed(() => imageAspectRatio(dimensions.value))
+const previewSource = managedPreview?.source ?? useHostImageSource(() => props.media.url)
+const originalSource = computed(() => managedPreview ? managedPreview.original.value : previewSource.value)
+const detailsOpen = ref(false)
+const fullscreenOpen = ref(false)
+const downloadName = computed(() => mediaDownloadName(props.media))
+
+async function handleImageAction(intent: CodexMessageImageOpenIntent) {
+  if (managedPreview && !previewSource.value) { await managedPreview.reload(); if (previewSource.value && intent === 'open') return }
+  const image = {
+    alt: props.media.alt || generatedAltLabel,
+    kind: 'media',
+    mimeType: props.media.mimeType,
+    name: props.media.title,
+    src: originalSource.value || props.media.url,
+    title: props.media.title || generatedLabel,
+  } as const
+  if (await props.openImage?.(image, { intent }) === true) return
+  fullscreenOpen.value = true
+}
+
+function closeFullscreen() {
+  fullscreenOpen.value = false
+}
+
+async function copyImage() {
+  const blob = await fetch(originalSource.value || props.media.url).then((response) => response.blob())
+  const mimeType = blob.type || props.media.mimeType || 'image/png'
+  await navigator.clipboard.write([
+    new ClipboardItem({ [mimeType]: blob }),
+  ])
+}
+
+function toggleDetails() {
+  detailsOpen.value = !detailsOpen.value
+}
+
+function mediaDownloadName(media: MessageMedia): string {
+  const baseName = (media.title?.trim() || media.alt?.trim() || 'generated-image')
+    .replace(/[\\/:*?"<>|]+/g, '-')
+  if (/\.[a-z\d]{2,5}$/i.test(baseName)) return baseName
+  const extension = {
+    'image/avif': 'avif',
+    'image/gif': 'gif',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  }[media.mimeType ?? '']
+  return extension ? `${baseName}.${extension}` : baseName
+}
+
+</script>
+
+<style scoped>
+.chat-media-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: min(60%, calc(min(360px, 50vh) * (var(--image-aspect-ratio, 100))));
+  margin: var(--space-3) var(--space-6);
+}
+
+.chat-media-block__image-button {
+  display: block;
+  width: fit-content;
+  max-width: min(100%, var(--image-natural-width, 100%));
+  max-height: min(360px, 50vh);
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  border-radius: var(--radius-lg);
+  appearance: none;
+  background: var(--color-surface-low);
+  cursor: pointer;
+}
+
+.chat-media-block__image-button--reserved { position: relative; width: 100%; }
+.chat-media-block__image-button--reserved .chat-media-block__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.chat-media-block__placeholder { display: block; padding: var(--space-6); color: var(--color-text-muted); }
+
+.chat-media-block__image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: min(360px, 50vh);
+  object-fit: contain;
+}
+
+.chat-media-block__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  line-height: var(--line-height-20);
+}
+
+.chat-media-block__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-media-block__actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0;
+}
+
+.chat-media-block__details {
+  color: var(--color-text-muted);
+}
+
+.chat-media-block__details-title {
+  margin-bottom: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-16);
+}
+
+.chat-media-block__prompt {
+  margin: 0;
+  font-size: var(--font-size-13);
+  line-height: var(--line-height-20);
+  white-space: pre-wrap;
+}
+
+</style>
