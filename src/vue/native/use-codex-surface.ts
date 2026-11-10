@@ -16,8 +16,8 @@ import type {
   CodexRendererSendMessageOptions,
   StartCodexReviewOptions,
   UpdateCodexConversationSettings,
-} from 'multi-agents-sdk/surface';
-import { subscribeCodexSurfaceState } from 'multi-agents-sdk/surface-bridge';
+} from '@korus-dev/multi-agent-sdk/surface';
+import { subscribeCodexSurfaceState } from '@korus-dev/multi-agent-sdk/surface-bridge';
 
 const initialState: CodexSurfaceSnapshot = {
   status: 'idle',

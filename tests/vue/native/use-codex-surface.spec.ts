@@ -5,7 +5,7 @@ import type {
   CodexSurfaceRendererApi,
   CodexSurfaceSnapshot,
   CreateCodexRendererConversationOptions,
-} from 'multi-agents-sdk/surface';
+} from '@korus-dev/multi-agent-sdk/surface';
 import { useCodexSurface } from '../../../src/vue/native';
 
 describe('useCodexSurface', () => {

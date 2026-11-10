@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { confirmationPayload, type ConversationRequest as CodexSurfaceClientRequest } from './conversation-request';
 import { computed } from 'vue'
-import type { ClientRequestResponse as CodexSurfaceClientRequestResponse } from 'multi-agents-sdk/ui-types';
+import type { ClientRequestResponse as CodexSurfaceClientRequestResponse } from '@korus-dev/multi-agent-sdk/ui-types';
 import type { MessageToolCall } from './types'
 import ChatToolConfirmation from './ChatToolConfirmation.vue'
 

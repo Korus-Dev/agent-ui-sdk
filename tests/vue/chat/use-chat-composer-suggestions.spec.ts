@@ -3,7 +3,7 @@
 import { nextTick, ref } from 'vue';
 import { describe, expect, it, vi } from 'vitest';
 import type { CodexFileSearchItem, CodexCommandSummary, CodexSkillSummary } from '../../../src/vue/chat/contracts';
-import type { CodexPromptMention, CodexSurfacePlugin } from 'multi-agents-sdk/surface';
+import type { CodexPromptMention, CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk/surface';
 import { useChatComposerSuggestions } from '../../../src/vue/chat/use-chat-composer-suggestions';
 import type { CodexComposerMentionGroup } from '../../../src/vue/chat/composer-mentions-custom';
 

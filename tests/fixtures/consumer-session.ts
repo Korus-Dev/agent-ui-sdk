@@ -1,4 +1,4 @@
-import type { HarnessCapabilities, SessionState, Turn } from 'multi-agents-sdk/consumer-types';
+import type { HarnessCapabilities, SessionState, Turn } from '@korus-dev/multi-agent-sdk/consumer-types';
 
 const activeTurnFixture = {
   id: 'turn-1', status: 'inProgress' as const, error: null, willRetry: false,

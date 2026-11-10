@@ -37,8 +37,8 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { trimPromptContent } from 'multi-agents-sdk/prompt';
-import { type PromptPart as CodexPromptPart, type ClientSendMessageOptions as CodexRendererSendMessageOptions } from 'multi-agents-sdk/ui-types';
+import { trimPromptContent } from '@korus-dev/multi-agent-sdk/prompt';
+import { type PromptPart as CodexPromptPart, type ClientSendMessageOptions as CodexRendererSendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
 import ChatRichTextEditor, { type CodexRichTextEditorExpose } from './ChatRichTextEditor.vue'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.

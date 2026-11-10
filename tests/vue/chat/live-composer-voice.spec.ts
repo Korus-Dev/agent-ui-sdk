@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { effectScope } from 'vue';
 import { afterEach, expect, it, vi } from 'vitest';
-import type { CodexSpeechSessionEvent, CodexStreamingTranscription } from 'ai-app-sdk/host';
+import type { CodexSpeechSessionEvent, CodexStreamingTranscription } from '@korus-dev/agent-ui-sdk/host';
 import { useChatComposerVoice } from '../../../src/vue/chat/use-chat-composer-voice';
 import type { SpeechRecorder } from '../../../src/vue/audio/browser-speech-recorder';
 

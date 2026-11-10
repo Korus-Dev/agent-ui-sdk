@@ -154,8 +154,8 @@ function defaultAssetsPath(dependencies: AppleSpeechAssetDiscoveryDependencies):
     const resourceCandidates = [
       resourcesPath,
       path.join(resourcesPath, 'assets'),
-      path.join(resourcesPath, 'app.asar.unpacked/node_modules/ai-app-sdk/assets'),
-      path.join(resourcesPath, 'app.asar/node_modules/ai-app-sdk/assets'),
+      path.join(resourcesPath, 'app.asar.unpacked/node_modules/@korus-dev/agent-ui-sdk/assets'),
+      path.join(resourcesPath, 'app.asar/node_modules/@korus-dev/agent-ui-sdk/assets'),
       path.join(resourcesPath, 'app.asar.unpacked/node_modules/codex-app-sdk/assets'),
       path.join(resourcesPath, 'app.asar/node_modules/codex-app-sdk/assets'),
     ];
@@ -171,7 +171,7 @@ function defaultAssetsPath(dependencies: AppleSpeechAssetDiscoveryDependencies):
     : dependencies.packageResolve ?? undefined;
   if (packageResolver) {
     try {
-      const packageNodeEntry = fileURLToPath(packageResolver('ai-app-sdk/speech'));
+      const packageNodeEntry = fileURLToPath(packageResolver('@korus-dev/agent-ui-sdk/speech'));
       for (const relative of ['../../assets', '../assets']) {
         const packageAssetsPath = path.resolve(path.dirname(packageNodeEntry), relative);
         if (existsSync(path.join(packageAssetsPath, 'apple-speechanalyzer-cli'))) {
@@ -185,8 +185,8 @@ function defaultAssetsPath(dependencies: AppleSpeechAssetDiscoveryDependencies):
 
   const cwd = (dependencies.cwd ?? process.cwd)();
   const cwdCandidates = [
-    path.resolve(cwd, 'node_modules/ai-app-sdk/assets'),
-    path.resolve(cwd, '../node_modules/ai-app-sdk/assets'),
+    path.resolve(cwd, 'node_modules/@korus-dev/agent-ui-sdk/assets'),
+    path.resolve(cwd, '../node_modules/@korus-dev/agent-ui-sdk/assets'),
     path.resolve(cwd, 'node_modules/codex-app-sdk/assets'),
     path.resolve(cwd, '../node_modules/codex-app-sdk/assets'),
     path.resolve(cwd, '../codex-app-sdk/assets'),

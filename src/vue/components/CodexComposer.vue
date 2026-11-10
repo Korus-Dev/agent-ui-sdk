@@ -160,8 +160,8 @@
 <script setup lang="ts" generic="Payload = unknown">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import type { CodexContextUsage, CodexFileSearchItem, ApprovalPreset, CodexCapabilities, CodexCommandSummary, CodexModelOption, CodexSkillSummary, CodexChatTranscription, CodexConversationPresentation, ReasoningEffort } from '../chat/contracts';
-import { promptContentDispatchText, promptContentText, trimPromptContent, replacePromptContentRange } from 'multi-agents-sdk/prompt';
-import { type PromptPart as CodexPromptPart, type ClientSendMessageOptions as CodexRendererSendMessageOptions, type Plugin as CodexSurfacePlugin } from 'multi-agents-sdk/ui-types';
+import { promptContentDispatchText, promptContentText, trimPromptContent, replacePromptContentRange } from '@korus-dev/multi-agent-sdk/prompt';
+import { type PromptPart as CodexPromptPart, type ClientSendMessageOptions as CodexRendererSendMessageOptions, type Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk/ui-types';
 import { resolveCodexConversationPresentation } from '../chat/contracts';
 import { defaultCapabilities } from '../chat/default-capabilities';
 import { composerCommandsWithGoals } from '../chat/composer-goal-commands';

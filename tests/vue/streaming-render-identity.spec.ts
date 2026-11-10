@@ -7,7 +7,7 @@ import type {
   CodexSurfaceSnapshot,
   CodexSurfaceStatePatch,
   SurfaceMessage,
-} from 'multi-agents-sdk/surface';
+} from '@korus-dev/multi-agent-sdk/surface';
 import { effectScope } from 'vue';
 import { NativeConversationPane as CodexConversationPane, useCodexSurface } from '../../src/vue/native';
 function answer(id: string, text: string, status: SurfaceMessage['status'] = 'complete'): SurfaceMessage {

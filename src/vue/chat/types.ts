@@ -76,7 +76,7 @@ export type MessageSuggestedPrompt = {
 };
 
 export type Message = {
-  promptContent?: readonly import('multi-agents-sdk/ui-types').PromptPart[];
+  promptContent?: readonly import('@korus-dev/multi-agent-sdk/ui-types').PromptPart[];
   compactionStatus?: 'completed' | 'running';
   role: 'user' | 'assistant';
   content: string;

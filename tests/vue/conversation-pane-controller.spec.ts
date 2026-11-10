@@ -9,7 +9,7 @@ import {
   type CodexConversationPaneState,
   type CodexRendererSendMessageOptions,
 } from '../../src/vue';
-import type { SurfaceMessage } from 'multi-agents-sdk/surface';
+import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk/surface';
 
 function message(id: string): SurfaceMessage {
   return {

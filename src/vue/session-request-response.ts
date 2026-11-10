@@ -1,4 +1,4 @@
-import type { AgentRequestResponse } from 'multi-agents-sdk/consumer-types';
+import type { AgentRequestResponse } from '@korus-dev/multi-agent-sdk/consumer-types';
 import type { ClientRequestResponse } from './chat/contracts';
 
 export type SessionRequestResponse = Omit<AgentRequestResponse, 'agentId'>;

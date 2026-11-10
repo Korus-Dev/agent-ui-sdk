@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, expect, it, vi } from 'vitest';
 import type WebSocket from 'ws';
-import type { CodexSpeechSessionEvent } from 'ai-app-sdk/host';
+import type { CodexSpeechSessionEvent } from '@korus-dev/agent-ui-sdk/host';
 import { startOpenAISpeechSession, type OpenAISpeechSessionConfiguration } from '../../src/speech/openai-speech-session';
 
 class Socket extends EventEmitter {

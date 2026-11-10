@@ -1,5 +1,5 @@
 import { shallowRef } from 'vue';
-import type { HarnessDriver, Session, PromptOptions } from 'multi-agents-sdk/consumer-types';
+import type { HarnessDriver, Session, PromptOptions } from '@korus-dev/multi-agent-sdk/consumer-types';
 import {
   createConversationPaneController,
   sessionStateToConversationPaneState,

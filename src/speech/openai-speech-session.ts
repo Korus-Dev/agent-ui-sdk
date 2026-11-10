@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import type { CodexSpeechSessionEvent, CodexSpeechSessionOptions, CodexSpeechTranscriptionResult, CodexSpeechPreparationOptions, CodexPreparedSpeechSession } from 'ai-app-sdk/host';
+import type { CodexSpeechSessionEvent, CodexSpeechSessionOptions, CodexSpeechTranscriptionResult, CodexSpeechPreparationOptions, CodexPreparedSpeechSession } from '@korus-dev/agent-ui-sdk/host';
 
 export type OpenAISpeechSession = {
   append(audio: ArrayBuffer): Promise<void>;

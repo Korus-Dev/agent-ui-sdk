@@ -2,7 +2,7 @@ import {
   invokeCodexSurfaceBridgeOperation,
   type CodexSurfaceBridgeOperation,
   type CodexSurfaceBridgeTarget,
-} from 'multi-agents-sdk/surface-bridge';
+} from '@korus-dev/multi-agent-sdk/surface-bridge';
 import type {
   CodexConversationHistory,
   CodexConversationPromptHistory,
@@ -32,12 +32,12 @@ import type {
   UpdateCodexConversationSettings,
   CodexSurfaceStatePatch,
   CodexVersionedSurfaceSnapshot,
-} from 'multi-agents-sdk/surface';
+} from '@korus-dev/multi-agent-sdk/surface';
 import {
   isCodexSurfaceStatePatchSource,
   subscribeCodexSurfaceState,
   type CodexSurfaceStatePatchSource,
-} from 'multi-agents-sdk/surface-bridge';
+} from '@korus-dev/multi-agent-sdk/surface-bridge';
 import {
   registerIpcMainHandlers,
   TypedIpcRenderer,
@@ -49,7 +49,7 @@ import {
 } from './typed-ipc';
 
 export type CodexSurfaceIpcOptions = IpcSenderPolicy & {
-  resolveAttachment?: import('multi-agents-sdk/surface-bridge').CodexSurfaceBridgeAttachmentResolver;
+  resolveAttachment?: import('@korus-dev/multi-agent-sdk/surface-bridge').CodexSurfaceBridgeAttachmentResolver;
 };
 
 const channels = {
@@ -129,8 +129,8 @@ type SurfaceRequests = {
   [channels.readConversationPromptHistory]: IpcRequest<[
     conversationId?: string,
   ], CodexConversationPromptHistory>;
-  [channels.loadOlderConversationHistory]: IpcRequest<[conversationId?: string], import('multi-agents-sdk/surface').CodexConversationHistoryPage>;
-  [channels.loadTurnHistory]: IpcRequest<[turnId: string, conversationId?: string], import('multi-agents-sdk/surface').CodexConversationSnapshot>;
+  [channels.loadOlderConversationHistory]: IpcRequest<[conversationId?: string], import('@korus-dev/multi-agent-sdk/surface').CodexConversationHistoryPage>;
+  [channels.loadTurnHistory]: IpcRequest<[turnId: string, conversationId?: string], import('@korus-dev/multi-agent-sdk/surface').CodexConversationSnapshot>;
   [channels.refreshAccount]: IpcRequest<[], CodexSurfaceSnapshot>;
   [channels.readRateLimits]: IpcRequest<[options?: ReadCodexRateLimitsOptions], CodexSurfaceRateLimits>;
   [channels.consumeRateLimitResetCredit]: IpcRequest<[options: ConsumeCodexRateLimitResetCreditOptions], CodexSurfaceRateLimitResetCreditResult>;
@@ -168,7 +168,7 @@ type SurfaceEvents = {
   [channels.event]: CodexSurfaceEvent;
 };
 
-export type { CodexSurfaceRendererApi } from 'multi-agents-sdk/surface';
+export type { CodexSurfaceRendererApi } from '@korus-dev/multi-agent-sdk/surface';
 
 type OptionalSurfaceOperation = 'loadOlderConversationHistory' | 'loadTurnHistory' | 'startLiveChat' | 'stopLiveChat';
 

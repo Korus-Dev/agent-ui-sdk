@@ -1,7 +1,7 @@
 export type QueuedChatPrompt = {
   id: string;
   text: string;
-  options?: Pick<import('multi-agents-sdk/ui-types').SendMessageOptions, 'content'>;
+  options?: Pick<import('@korus-dev/multi-agent-sdk/ui-types').SendMessageOptions, 'content'>;
 };
 
 let nextQueuedPromptId = 0;

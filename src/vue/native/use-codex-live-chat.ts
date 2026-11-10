@@ -1,5 +1,5 @@
 import { onScopeDispose, readonly, ref } from 'vue';
-import type { CodexSurfaceEvent, CodexSurfaceRendererApi, StartCodexLiveChatOptions } from 'multi-agents-sdk/surface';
+import type { CodexSurfaceEvent, CodexSurfaceRendererApi, StartCodexLiveChatOptions } from '@korus-dev/multi-agent-sdk/surface';
 
 export type CodexLiveChatStatus = 'idle' | 'connecting' | 'connected' | 'stopping' | 'error';
 export type CodexLiveChatTranscript = { id: string; role: string; text: string; complete: boolean };

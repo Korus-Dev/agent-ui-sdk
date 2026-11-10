@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils';
 import { h, nextTick } from 'vue';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CodexSurfacePlugin } from 'multi-agents-sdk/surface';
+import type { CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk/surface';
 import type { CodexFileSearchItem, CodexSkillSummary } from '../../../src/vue/chat/contracts';
 import ChatComposerAtMentionMenu from '../../../src/vue/chat/ChatComposerAtMentionMenu.vue';
 import ChatComposerFileMentionMenu from '../../../src/vue/chat/ChatComposerFileMentionMenu.vue';

@@ -120,8 +120,8 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
   it.each([
     '',
     'assets',
-    'app.asar.unpacked/node_modules/ai-app-sdk/assets',
-    'app.asar/node_modules/ai-app-sdk/assets',
+    'app.asar.unpacked/node_modules/@korus-dev/agent-ui-sdk/assets',
+    'app.asar/node_modules/@korus-dev/agent-ui-sdk/assets',
     'app.asar.unpacked/node_modules/codex-app-sdk/assets',
     'app.asar/node_modules/codex-app-sdk/assets',
   ])('finds the packaged helper in the resources candidate %j', async (relativeCandidate) => {
@@ -147,7 +147,7 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
       { packageResolve: () => 'file:///installed/sdk/dist/index.js', resourcesPath: '/bundle/resources' },
     ))).toBe(packagePath);
 
-    const cwdPath = '/workspace/application/node_modules/ai-app-sdk/assets/apple-speechanalyzer-cli';
+    const cwdPath = '/workspace/application/node_modules/@korus-dev/agent-ui-sdk/assets/apple-speechanalyzer-cli';
     for (const packageResolve of [
       () => 'file:///installed/sdk/dist/index.js',
       () => { throw new Error('package is unavailable'); },
@@ -186,7 +186,7 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
       (filePath) => filePath === packagePath,
       {
         packageResolve: (specifier) => {
-          if (specifier !== 'ai-app-sdk/speech') throw new Error('unexpected package');
+          if (specifier !== '@korus-dev/agent-ui-sdk/speech') throw new Error('unexpected package');
           return 'file:///installed/sdk/dist/speech/index.js';
         },
       },
@@ -201,8 +201,8 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
   });
 
   it.each([
-    'node_modules/ai-app-sdk/assets',
-    '../node_modules/ai-app-sdk/assets',
+    'node_modules/@korus-dev/agent-ui-sdk/assets',
+    '../node_modules/@korus-dev/agent-ui-sdk/assets',
     'node_modules/codex-app-sdk/assets',
     '../node_modules/codex-app-sdk/assets',
     '../codex-app-sdk/assets',

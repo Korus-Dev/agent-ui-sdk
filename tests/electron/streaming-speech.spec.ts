@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, expect, it, vi } from 'vitest';
-import type { CodexSpeechSessionEvent, CodexSpeechTranscriptionResult, CodexPreparedSpeechSession } from 'ai-app-sdk/host';
+import type { CodexSpeechSessionEvent, CodexSpeechTranscriptionResult, CodexPreparedSpeechSession } from '@korus-dev/agent-ui-sdk/host';
 import { registerCodexNativeIpc, type CodexNativeMainOptions } from '../../src/electron/codex-native-ipc';
 import { createCodexNativeRendererApi } from '../../src/electron/codex-native-renderer';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { TypedEventBus } from 'multi-agents-sdk/events';
+import { TypedEventBus } from '@korus-dev/multi-agent-sdk/events';
 import {
   connectIpcEventsToBus,
   registerIpcMainHandlers,

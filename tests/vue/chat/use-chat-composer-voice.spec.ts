@@ -2,7 +2,7 @@
 
 import { effectScope } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CodexNativeRendererApi } from 'ai-app-sdk/host';
+import type { CodexNativeRendererApi } from '@korus-dev/agent-ui-sdk/host';
 import type { BrowserAudioRecorder, RecordedAudio } from '../../../src/vue/audio/browser-audio-recorder';
 import { useCodexComposerVoice } from '../../../src/vue';
 import { useChatComposerVoice } from '../../../src/vue/chat/use-chat-composer-voice';

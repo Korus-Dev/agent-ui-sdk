@@ -1,6 +1,6 @@
 import { renderMarkdown } from './message-markdown'
 import { stripMessageContext } from './message-blocks'
-import type { CodexHostCapabilities } from 'ai-app-sdk/host'
+import type { CodexHostCapabilities } from '@korus-dev/agent-ui-sdk/host'
 import { getCodexGlobalHostCapabilities } from '../native-capabilities'
 
 const toolTagRegex = /<tool\s+(id|index)="[^"]*"><\/tool>/g

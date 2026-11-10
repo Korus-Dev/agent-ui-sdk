@@ -278,9 +278,9 @@
 <script setup lang="ts" generic="Payload = unknown">
 import { questionPayload, isQuestionRequest, isConfirmationRequest, type ConversationRequest as CodexSurfaceClientRequest } from '../chat/conversation-request';
 import { computed, nextTick, provide, ref, shallowReactive, watch } from 'vue';
-import { promptContentDispatchText } from 'multi-agents-sdk/prompt';
-import type { ConversationRenderStrategy as CodexConversationRenderStrategy, ClientAttachment as CodexRendererAttachment, Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, SurfaceMessage, ClientSendMessageOptions as CodexRendererSendMessageOptions } from 'multi-agents-sdk/ui-types';
-import type { CodexHostAttachment } from 'ai-app-sdk/host';
+import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt';
+import type { ConversationRenderStrategy as CodexConversationRenderStrategy, ClientAttachment as CodexRendererAttachment, Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, SurfaceMessage, ClientSendMessageOptions as CodexRendererSendMessageOptions } from '@korus-dev/multi-agent-sdk/ui-types';
+import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host';
 import type { CodexComposerMenuItem, CodexComposerMenuSelectableItem } from '../composer-menu';
 import type {
   CodexConversationPaneActions,
@@ -515,7 +515,7 @@ const emit = defineEmits<{
   deleteQueuedPrompt: [promptId: string];
   updateQueuedPrompt: [promptId: string, prompt: string, options?: CodexRendererSendMessageOptions];
   editGoal: [];
-  editTurn: [payload: { content: string; turnId: string; options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions }];
+  editTurn: [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk/ui-types').ClientSendMessageOptions }];
   forkTurn: [turnId: string];
   loadOlderHistory: [];
   loadTurnHistory: [turnId: string];
@@ -1483,7 +1483,7 @@ async function deleteTurn(turnId: string): Promise<void> {
   }
 }
 
-function editTurn(payload: { content: string; turnId: string; options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions }): void {
+function editTurn(payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk/ui-types').ClientSendMessageOptions }): void {
   if (dispatchControllerAction('editTurn', payload)) return;
   if (effectiveController.value) return;
   emit('editTurn', payload);

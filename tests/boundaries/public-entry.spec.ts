@@ -15,7 +15,7 @@ function runtimeGraph(entry: string, seen = new Set<string>()): Set<string> {
   const imports = ts.preProcessFile(emitted).importedFiles.map(item => item.fileName);
   for (const name of imports) {
     if (!name.startsWith('.')) {
-      expect(name).not.toMatch(/^(node:|electron(?:\/|$)|ws$|ai-app-sdk\/(native|electron|speech|browser)|multi-agents-sdk\/(surface(?:-bridge)?|codex|native|providers|backend)(?:\/|$))/);
+      expect(name).not.toMatch(/^(node:|electron(?:\/|$)|ws$|@korus-dev\/agent-ui-sdk\/(native|electron|speech|browser)|@korus-dev\/multi-agent-sdk\/(surface(?:-bridge)?|codex|native|providers|backend)(?:\/|$))/);
       continue;
     }
     const base = path.resolve(path.dirname(entry), name);
@@ -40,7 +40,7 @@ describe('public UI boundary', () => {
     for (const name of ['MarkdownPanel', 'SourcePreviewPanel', 'DiffPreviewPanel']) runtimeGraph(path.resolve(import.meta.dirname, `../../src/vue/documents/${name}.vue`), graph);
     const files = [...graph];
     for (const file of files) {
-      expect(readFileSync(file, 'utf8')).not.toMatch(/(?:from\s*|import\()['"]multi-agents-sdk\/(?:surface(?:-bridge)?|codex|native|providers)(?:['"/])/);
+      expect(readFileSync(file, 'utf8')).not.toMatch(/(?:from\s*|import\()['"]@korus-dev\/multi-agent-sdk\/(?:surface(?:-bridge)?|codex|native|providers)(?:['"/])/);
       expect(path.relative(path.resolve(import.meta.dirname, '../../src'), file)).not.toMatch(/(?:Korus|ConversationSidebar|Treemap)/i);
     }
     expect(Object.keys(ui).filter(name => /korus|sidebar|treemap/i.test(name))).toEqual([]);

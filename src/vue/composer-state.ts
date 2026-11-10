@@ -1,5 +1,5 @@
-import { normalizePromptContent, promptContentText } from 'multi-agents-sdk/prompt';
-import { type PromptPart as CodexPromptPart } from 'multi-agents-sdk/ui-types';
+import { normalizePromptContent, promptContentText } from '@korus-dev/multi-agent-sdk/prompt';
+import { type PromptPart as CodexPromptPart } from '@korus-dev/multi-agent-sdk/ui-types';
 
 export type CodexComposerState = {
   text: string;

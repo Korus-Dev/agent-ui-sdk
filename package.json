@@ -1,6 +1,5 @@
 {
   "version": "0.0.0",
-  "private": true,
   "type": "module",
   "license": "Apache-2.0",
   "files": [
@@ -10,13 +9,13 @@
     "native"
   ],
   "scripts": {
-    "build": "vite build && vue-tsc -p tsconfig.build.json && node scripts/package-katex-assets.mjs dist/styles.css dist/fonts && node scripts/verify-package-css.mjs dist/styles.css dist/vue/index.d.ts dist/fonts && node scripts/verify-native-assets.mjs",
-    "typecheck": "vue-tsc -p tsconfig.json --noEmit && npm run typecheck:composition",
-    "typecheck:composition": "vue-tsc -p tsconfig.composition.json --noEmit",
+    "build": "vite build && node scripts/typecheck.mjs vue -p tsconfig.build.json && node scripts/package-katex-assets.mjs dist/styles.css dist/fonts && node scripts/verify-package-css.mjs dist/styles.css dist/vue/index.d.ts dist/fonts && node scripts/verify-native-assets.mjs",
+    "typecheck": "node scripts/typecheck.mjs vue --noEmit && npm run typecheck:composition",
+    "typecheck:composition": "node scripts/typecheck.mjs vue -p tsconfig.composition.json --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
-  "name": "ai-app-sdk",
+  "name": "@korus-dev/agent-ui-sdk",
   "sideEffects": [
     "**/*.css"
   ],
@@ -60,7 +59,6 @@
     }
   },
   "dependencies": {
-    "multi-agents-sdk": "file:../multi-agents-sdk",
     "@pierre/highlights": "0.2.0",
     "@shikijs/langs": "4.3.1",
     "@shikijs/themes": "4.3.1",
@@ -72,7 +70,8 @@
     "marked-katex-extension": "5.1.10",
     "shiki": "4.3.1",
     "ws": "8.22.2",
-    "parse-git-diff": "0.0.20"
+    "parse-git-diff": "0.0.20",
+    "@korus-dev/multi-agent-sdk": "0.0.0"
   },
   "peerDependencies": {
     "vue": "^3.5.0",
@@ -106,5 +105,13 @@
     "jsdom": "29.1.1",
     "vue": "3.5.35",
     "vue-tsc": "3.3.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Korus-Dev/agent-ui-sdk.git"
   }
 }

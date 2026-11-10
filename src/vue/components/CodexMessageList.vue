@@ -102,7 +102,7 @@ import { questionPayload } from '../chat/conversation-request';
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowReactive, shallowRef, watch } from 'vue'
 import { touchedMessageActionsKey } from '../chat/message-action-state'
 import { questionResponsesKey } from '../chat/message-work-state'
-import type { ConversationRenderStrategy as CodexConversationRenderStrategy, Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill, Turn as CodexSurfaceTurn, SurfaceMessage } from 'multi-agents-sdk/ui-types';
+import type { ConversationRenderStrategy as CodexConversationRenderStrategy, Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill, Turn as CodexSurfaceTurn, SurfaceMessage } from '@korus-dev/multi-agent-sdk/ui-types';
 import type { ClientRequestResponse, CodexConversationLink, CodexConversationPresentation } from '../chat/contracts'
 import { resolveCodexConversationPresentation } from '../chat/contracts'
 import type { Message } from '../chat/types'
@@ -199,7 +199,7 @@ const emit = defineEmits<{
   'client-response': [response: ClientRequestResponse]
   'copy-message': [index: number]
   'delete-turn': [turnId: string]
-  'edit-turn': [payload: { content: string; turnId: string; options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions }]
+  'edit-turn': [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk/ui-types').ClientSendMessageOptions }]
   'fork-turn': [turnId: string]
   'load-older-messages': []
   'load-turn-history': [turnId: string]

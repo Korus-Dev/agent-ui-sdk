@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import ChatUserText from '../../../src/vue/chat/ChatUserText.vue';
 import { humanizeMentionName, parseCodexUserText } from '../../../src/vue/chat/user-text';
 import { SparklesIcon } from '../../../src/vue/shared/icons/app-icons';
-import type { CodexPromptMention, CodexSurfacePlugin, CodexSurfaceSkill } from 'multi-agents-sdk/surface';
+import type { CodexPromptMention, CodexSurfacePlugin, CodexSurfaceSkill } from '@korus-dev/multi-agent-sdk/surface';
 
 const gmail: CodexSurfacePlugin = {
   id: 'gmail@openai-curated-remote',

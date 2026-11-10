@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import type { CodexHostAttachment } from 'ai-app-sdk/host';
+import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host';
 import type {
   CodexRendererAttachment,
   CodexSurfaceAttachment,
-} from 'multi-agents-sdk/surface';
+} from '@korus-dev/multi-agent-sdk/surface';
 
 export type CodexElectronAttachmentRegistration = {
   type: CodexHostAttachment['type'];

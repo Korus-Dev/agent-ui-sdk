@@ -2,7 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { shallowRef } from 'vue';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
-import type { HarnessEvent, Session, SessionState } from 'multi-agents-sdk/consumer-types';
+import type { HarnessEvent, Session, SessionState } from '@korus-dev/multi-agent-sdk/consumer-types';
 import { ConversationPane, MessageList, createConversationPaneController, sessionStateToConversationPaneState, requestResponseFromClientResponse, requestResponseFromApproval, toChatMessage, type ClientAttachment, type ClientSendMessageOptions, type RendererAttachment, type RendererSendMessageOptions } from '../../src/vue';
 import { sessionPaneExample } from '../../examples/session-pane';
 import { sessionFixture, capabilitiesFixture, failedTurnFixture, timedFailedSessionFixture } from '../fixtures/consumer-session';

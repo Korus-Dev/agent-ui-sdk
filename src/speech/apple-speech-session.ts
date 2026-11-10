@@ -3,7 +3,7 @@ import { mkdtemp, copyFile, chmod, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
-import type { CodexSpeechSessionEvent, CodexSpeechSessionOptions, CodexSpeechTranscriptionResult } from 'ai-app-sdk/host';
+import type { CodexSpeechSessionEvent, CodexSpeechSessionOptions, CodexSpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host';
 import { resolveAppleSpeechAnalyzerPath } from './apple-speech-transcription';
 
 export type AppleSpeechSession = {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CodexNativeRendererApi } from 'ai-app-sdk/host';
+import type { CodexNativeRendererApi } from '@korus-dev/agent-ui-sdk/host';
 import {
   copyableMessageHtml,
   copyableMessageText,

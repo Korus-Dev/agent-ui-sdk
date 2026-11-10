@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CodexSurfacePlugin } from 'multi-agents-sdk/surface';
+import type { CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk/surface';
 import {
   filterComposerPlugins,
   pluginDescription,

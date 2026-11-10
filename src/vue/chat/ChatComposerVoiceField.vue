@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CodexSpeechTranscript } from 'ai-app-sdk/host'
+import type { CodexSpeechTranscript } from '@korus-dev/agent-ui-sdk/host'
 import ChatAudioLevelIndicator from './ChatAudioLevelIndicator.vue'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.

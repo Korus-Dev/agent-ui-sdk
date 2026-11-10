@@ -28,7 +28,7 @@
     "outDir": "dist",
     "sourceMap": true,
     "paths": {
-      "ai-app-sdk/host": [
+      "@korus-dev/agent-ui-sdk/host": [
         "./src/host/contracts.ts"
       ]
     }

@@ -6,7 +6,7 @@ import { defineComponent, h, nextTick, reactive, ref, toRaw } from 'vue';
 import CodexMessageList from '../../src/vue/components/CodexMessageList.vue';
 import CodexMessage from '../../src/vue/components/CodexMessage.vue';
 import type { Message } from '../../src/vue/chat/types';
-import type { CodexSurfaceTurn, SurfaceMessage } from 'multi-agents-sdk/surface';
+import type { CodexSurfaceTurn, SurfaceMessage } from '@korus-dev/multi-agent-sdk/surface';
 
 const messages: Message[] = [
   {

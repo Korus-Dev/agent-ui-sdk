@@ -9,7 +9,7 @@ import ChatRichTextEditor, { type CodexRichTextEditorExpose } from '../../src/vu
 import { codexCapabilities } from '../../src/vue/native/codex-capabilities';
 import { codexCommands } from '../../src/vue/native/codex-commands';
 import type { CodexCapabilities, CodexContextUsage, CodexFileSearchItem, CodexCommandSummary, CodexConversationPresentation, CodexModelOption, CodexSkillSummary, CodexChatTranscription } from '../../src/vue/chat/contracts';
-import type { CodexPromptPart, CodexSurfacePlugin } from 'multi-agents-sdk/surface';
+import type { CodexPromptPart, CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk/surface';
 import type { CodexComposerState } from '../../src/vue/composer-state';
 
 type ChatComposerProps = {
