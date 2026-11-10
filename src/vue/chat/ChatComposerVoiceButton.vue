@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { MicrophoneIcon, MicrophoneOffIcon } from '../icons/app-icons'
+import { MicrophoneIcon, MicrophoneOffIcon } from '../shared/icons/app-icons'
 import { ref, watch } from 'vue'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.

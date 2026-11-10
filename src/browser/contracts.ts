@@ -11,7 +11,7 @@ export type BrowserViewportBounds = BrowserBounds & {
 export const PRIMARY_BROWSER_ID = 'primary';
 export type BrowserAnnotation = {
   id: string;
-  agentId: string;
+  ownerId: string;
   browserId: string;
   url: string;
   kind: 'element' | 'area';

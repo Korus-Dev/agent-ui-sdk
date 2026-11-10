@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import type { CodexCommandSummary } from './contracts'
-import { CircleXIcon, ListDetailsIcon, TargetArrowIcon } from '../icons/app-icons'
+import { CircleXIcon, ListDetailsIcon, TargetArrowIcon } from '../shared/icons/app-icons'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 defineProps<{

@@ -346,7 +346,7 @@ import type { CodexComposerState } from '../composer-state';
 import type { CodexComposerMentionGroup, CodexComposerMentionItem } from '../chat/composer-mentions-custom';
 import { normalizeCodexComposerState } from '../composer-state';
 import { useConversationEscapeInterrupt } from '../chat/use-conversation-escape-interrupt';
-import { CircleXIcon, MessageQuestionIcon, X as XIcon } from '../icons/app-icons';
+import { CircleXIcon, MessageQuestionIcon, X as XIcon } from '../shared/icons/app-icons';
 import ChatQuestionRequest from '../chat/ChatQuestionRequest.vue';
 import ChatConfirmationRequest from '../chat/ChatConfirmationRequest.vue';
 import ChatComposerShelf from '../chat/ChatComposerShelf.vue';

@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import type { ThreadGoal } from './contracts';
-import { PencilIcon, TargetArrowIcon, Trash2Icon } from '../icons/app-icons';
+import { PencilIcon, TargetArrowIcon, Trash2Icon } from '../shared/icons/app-icons';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 defineProps<{

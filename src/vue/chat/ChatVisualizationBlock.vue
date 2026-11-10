@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { DashboardIcon, ExternalLinkIcon } from '../icons/app-icons'
+import { DashboardIcon, ExternalLinkIcon } from '../shared/icons/app-icons'
 import type { CodexConversationVisualization } from './visualization'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.

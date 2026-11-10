@@ -51,7 +51,7 @@
 <script setup lang="ts" generic="Payload = unknown">
 import { computed } from 'vue';
 import type { CodexModelOption, ReasoningEffort } from './contracts';
-import { BoltIcon, BrainIcon, ChevronDown, Info } from '../icons/app-icons';
+import { BoltIcon, BrainIcon, ChevronDown, Info } from '../shared/icons/app-icons';
 import type { CodexComposerMenuItem, CodexComposerMenuSelectableItem } from '../composer-menu';
 import CodexComposerMenu from '../components/CodexComposerMenu.vue';
 import CodexUltrafastIcon from './CodexUltrafastIcon.vue';

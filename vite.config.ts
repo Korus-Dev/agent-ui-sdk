@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 import fs from 'node:fs';
-import { sourceAliases } from '../source-aliases.ts';
+import { sourceAliases } from './source-aliases.ts';
 import metadata from './package.json' with { type: 'json' };
 const documentEntries = Object.fromEntries(fs.readdirSync(path.join(import.meta.dirname, 'src/documents')).filter(file => file.endsWith('.ts')).map(file => [`documents/${file.slice(0, -3)}`, path.join(import.meta.dirname, 'src/documents', file)]));
 const browserEntries = Object.fromEntries(fs.readdirSync(path.join(import.meta.dirname, 'src/browser')).filter(file => file.endsWith('.ts')).map(file => [`browser/${file.slice(0, -3)}`, path.join(import.meta.dirname, 'src/browser', file)]));

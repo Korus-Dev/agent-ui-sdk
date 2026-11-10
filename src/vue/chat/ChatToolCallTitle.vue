@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, useId, watch } from 'vue'
-import { CheckIcon, CopyIcon, ChevronDown, ChevronUp } from '../icons/app-icons'
+import { CheckIcon, CopyIcon, ChevronDown, ChevronUp } from '../shared/icons/app-icons'
 import ChatAnimatedDiffStat from './ChatAnimatedDiffStat.vue'
 import ChatCopyButton from './ChatCopyButton.vue'
 import { observeTextResize } from './text-resize'

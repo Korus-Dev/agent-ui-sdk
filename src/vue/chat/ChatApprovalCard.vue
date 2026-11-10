@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts" generic="Decision extends string">
-import { ShieldCheckIcon } from '../icons/app-icons'
+import { ShieldCheckIcon } from '../shared/icons/app-icons'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 defineProps<{

@@ -17,7 +17,7 @@ export const browserMessages = {
     "openDevTools": "Open DevTools",
     "clearBrowsingData": "Clear browsing data…",
     "clearDataTitle": "Clear browsing data?",
-    "clearDataMessage": "Clear all cookies, site data, browsing history and cache shared by all agents? This signs you out of websites and resets open browser pages. Extensions and their saved data will be kept.",
+    "clearDataMessage": "Clear shared cookies, site data, browsing history and cache? This signs you out of websites and resets open browser pages. Extensions and their saved data will be kept.",
     "clearDataConfirm": "Clear data",
     "bookmarks": "Bookmarks",
     "bookmarkPage": "Bookmark this page",

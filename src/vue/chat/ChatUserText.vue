@@ -72,7 +72,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
 import type { CodexPromptPart, CodexSurfacePlugin, CodexSurfaceSkill } from 'multi-agents-sdk/surface';
-import { PlugIcon, SparklesIcon } from '../icons/app-icons';
+import { PlugIcon, SparklesIcon } from '../shared/icons/app-icons';
 import ChatMentionChip from './ChatMentionChip.vue';
 import { parseAuthoredUserText, type CodexUserTextToken } from './user-text';
 import type { CodexComposerMentionGroup } from './composer-mentions-custom';

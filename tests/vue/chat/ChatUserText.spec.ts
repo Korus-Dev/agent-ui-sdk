@@ -5,7 +5,7 @@ import { h } from 'vue';
 import { describe, expect, it } from 'vitest';
 import ChatUserText from '../../../src/vue/chat/ChatUserText.vue';
 import { humanizeMentionName, parseCodexUserText } from '../../../src/vue/chat/user-text';
-import { SparklesIcon } from '../../../src/vue/icons/app-icons';
+import { SparklesIcon } from '../../../src/vue/shared/icons/app-icons';
 import type { CodexPromptMention, CodexSurfacePlugin, CodexSurfaceSkill } from 'multi-agents-sdk/surface';
 
 const gmail: CodexSurfacePlugin = {

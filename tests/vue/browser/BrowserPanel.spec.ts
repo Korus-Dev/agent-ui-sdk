@@ -36,7 +36,7 @@ afterEach(() => {
 });
 
 function mountPanel(
-  props: { agentId?: string; browserId?: string; initialUrl?: string; openRequestId?: number; document?: { path: string; title: string } } = {},
+  props: { ownerId?: string; browserId?: string; initialUrl?: string; openRequestId?: number; document?: { path: string; title: string } } = {},
   options: { deferDomReady?: boolean; attachTo?: Element; extensions?: import('../../../src/browser/ui-contracts').BrowserExtensionStatus[] } = {},
 ) {
   let listener: ((event: MainToRendererEvent) => void) | null = null;
@@ -68,7 +68,7 @@ function mountPanel(
     browserGoForward: vi.fn().mockResolvedValue({ url: 'https://forward.example/', title: 'Forward', canGoBack: true, canGoForward: false }),
     browserReload: vi.fn().mockResolvedValue({ url: 'https://reload.example/', title: 'Reload', canGoBack: true, canGoForward: true }),
     browserGetZoom: vi.fn().mockResolvedValue(100),
-    browserSetZoom: vi.fn(async (_agentId: string, _browserId: string, percent: number) => percent),
+    browserSetZoom: vi.fn(async (_ownerId: string, _browserId: string, percent: number) => percent),
     browserCopyScreenshot: vi.fn().mockResolvedValue(undefined),
     browserSetBounds: vi.fn().mockResolvedValue(undefined),
     browserViewportApplied: vi.fn().mockResolvedValue(undefined),
@@ -89,7 +89,7 @@ function mountPanel(
 
   const host: BrowserUiHost = { api, platform: 'desktop', guestPartition: () => 'persist:cpa-browser', extensionIcon: () => bitwardenIcon,
     onEvent: api.onEvent, onViewportRequest: api.onAppCommand };
-  const wrapper = mount(BrowserPanel, { attachTo: options.attachTo, global: { stubs: { ElPopover: ElPopoverStub } }, props: { agentId: 'agent-1', visible: true, ...props, host } });
+  const wrapper = mount(BrowserPanel, { attachTo: options.attachTo, global: { stubs: { ElPopover: ElPopoverStub } }, props: { ownerId: 'agent-1', visible: true, ...props, host } });
   const emitDomReady = () => wrapper.get('webview').element.dispatchEvent(new Event('dom-ready'));
   if (!options.deferDomReady) queueMicrotask(emitDomReady);
   return { api, browserOpen, emitDomReady, emitEvent: (event: MainToRendererEvent) => listener?.(event), emitCommand: (command: AppCommand) => commandListener?.(command), wrapper };
@@ -97,7 +97,7 @@ function mountPanel(
 
 describe('BrowserPanel', () => {
   it('opens an enabled extension in the owning browser and hides it for visualizations', async () => {
-    const { wrapper, api } = mountPanel({ agentId: 'agent-2', browserId: 'second-tab' }, { extensions: [{ id: 'nngceckbapebfimnlniiiahkandclblb', name: 'Bitwarden', enabled: true, version: '1', permissions: [] }] });
+    const { wrapper, api } = mountPanel({ ownerId: 'agent-2', browserId: 'second-tab' }, { extensions: [{ id: 'nngceckbapebfimnlniiiahkandclblb', name: 'Bitwarden', enabled: true, version: '1', permissions: [] }] });
     await flushPromises();
     expect(wrapper.find('[aria-label="Extensions"]').exists()).toBe(false);
     expect(wrapper.get('[aria-label="Open Bitwarden"] img').attributes('src')).toBe(bitwardenIcon);
@@ -151,8 +151,8 @@ describe('BrowserPanel', () => {
   it('applies targeted viewport requests through device controls and acknowledges layout, including reset', async () => {
     const { wrapper, api, emitCommand } = mountPanel();
     await flushPromises();
-    const request = { type: 'set-browser-viewport' as const, agentId: 'agent-1', browserId: 'primary', requestId: 'phone', viewport: { preset: 'phone' as const, width: 390, height: 844 } };
-    emitCommand({ ...request, agentId: 'someone-else' });
+    const request = { type: 'set-browser-viewport' as const, ownerId: 'agent-1', browserId: 'primary', requestId: 'phone', viewport: { preset: 'phone' as const, width: 390, height: 844 } };
+    emitCommand({ ...request, ownerId: 'someone-else' });
     emitCommand({ ...request, browserId: 'other-tab' });
     expect(api.browserViewportApplied).not.toHaveBeenCalled();
     expect(wrapper.find('.browser-panel__device-toolbar').exists()).toBe(false);
@@ -178,7 +178,7 @@ describe('BrowserPanel', () => {
     const { wrapper, api, emitCommand } = mountPanel();
     await flushPromises();
     await wrapper.setProps({ visible: false });
-    emitCommand({ type: 'set-browser-viewport', agentId: 'agent-1', browserId: 'primary', requestId: 'hidden', viewport: { preset: 'phone', width: 390, height: 844 } });
+    emitCommand({ type: 'set-browser-viewport', ownerId: 'agent-1', browserId: 'primary', requestId: 'hidden', viewport: { preset: 'phone', width: 390, height: 844 } });
     await flushPromises();
     expect(api.browserViewportApplied).toHaveBeenCalledWith('agent-1', 'primary', 'hidden', expect.stringContaining('Open'));
     expect(wrapper.find('.browser-panel__device-toolbar').exists()).toBe(false);
@@ -345,7 +345,7 @@ describe('BrowserPanel', () => {
       occurredAt: '2026-07-29T00:00:00.000Z',
       payload: {
         id: 'annotation-1',
-        agentId: 'agent-1',
+        ownerId: 'agent-1',
         browserId: 'primary',
         kind: 'element',
         url: 'http://localhost:3000/',
@@ -361,7 +361,7 @@ describe('BrowserPanel', () => {
       occurredAt: '2026-07-29T00:00:01.000Z',
       payload: {
         id: 'annotation-2',
-        agentId: 'agent-1',
+        ownerId: 'agent-1',
         browserId: 'primary',
         kind: 'area',
         url: 'http://localhost:3000/',
@@ -397,7 +397,7 @@ describe('BrowserPanel', () => {
       type: 'browser.annotationCreated',
       occurredAt: '2026-07-29T00:00:00.000Z',
       payload: {
-        id: 'annotation-1', agentId: 'agent-1', browserId: 'primary', kind: 'element', url: 'http://localhost:3000/', comment: 'Translate this.', rect: { x: 8, y: 16, width: 100, height: 40 },
+        id: 'annotation-1', ownerId: 'agent-1', browserId: 'primary', kind: 'element', url: 'http://localhost:3000/', comment: 'Translate this.', rect: { x: 8, y: 16, width: 100, height: 40 },
       },
     });
     await wrapper.vm.$nextTick();
@@ -417,7 +417,7 @@ describe('BrowserPanel', () => {
       type: 'browser.annotationCreated',
       occurredAt: '2026-07-29T00:00:00.000Z',
       payload: {
-        id: 'annotation-other', agentId: 'agent-2', browserId: 'secondary', kind: 'element', url: 'https://example.com/', comment: 'Ignore this.', rect: { x: 8, y: 16, width: 100, height: 40 },
+        id: 'annotation-other', ownerId: 'agent-2', browserId: 'secondary', kind: 'element', url: 'https://example.com/', comment: 'Ignore this.', rect: { x: 8, y: 16, width: 100, height: 40 },
       },
     });
     await wrapper.vm.$nextTick();
@@ -486,7 +486,7 @@ describe('BrowserPanel', () => {
     };
     await chooseClear();
     expect(api.browserClearBrowsingData).not.toHaveBeenCalled();
-    expect(confirmation).toHaveBeenCalledWith(expect.stringContaining('all agents'), 'Clear browsing data?', expect.objectContaining({ confirmButtonText: 'Clear data' }));
+    expect(confirmation).toHaveBeenCalledWith(expect.stringContaining('shared cookies'), 'Clear browsing data?', expect.objectContaining({ confirmButtonText: 'Clear data' }));
     confirmation.mockResolvedValue('confirm' as never);
     await chooseClear();
     expect(api.browserClearBrowsingData).toHaveBeenCalledExactlyOnceWith();
@@ -641,7 +641,7 @@ describe('BrowserPanel', () => {
     const { api, wrapper } = mountPanel();
     await flushPromises();
     const notifySuccess = vi.spyOn(ElMessage, 'success').mockImplementation(() => undefined as never);
-    api.browserCopyScreenshot.mockImplementation(async (_agentId, _browserId, rect) => {
+    api.browserCopyScreenshot.mockImplementation(async (_ownerId, _browserId, rect) => {
       try {
         serialize(rect);
       } catch (reason) {

@@ -11,7 +11,7 @@ export type BrowserViewportConfiguration = {
 };
 
 export type BrowserViewportRequest = {
-  agentId: string;
+  ownerId: string;
   browserId: string;
   requestId: string;
   viewport: BrowserViewportConfiguration;

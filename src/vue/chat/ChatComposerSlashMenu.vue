@@ -65,7 +65,7 @@ import { useCodexChatTranslate } from './chat-i18n';
 import type { CodexCommandSummary, CodexSkillSummary } from './contracts';
 import { commandDescription } from './composer-commands';
 import { skillDescription } from './composer-skills';
-import { SparklesIcon, TerminalIcon } from '../icons/app-icons';
+import { SparklesIcon, TerminalIcon } from '../shared/icons/app-icons';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{

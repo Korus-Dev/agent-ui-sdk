@@ -158,7 +158,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import type { AskUserAnswers, AskUserQuestion } from './contracts'
-import { Check, MessageQuestionIcon, PencilIcon, SquareCheck, SquareDashed, SquareX, X } from '../icons/app-icons'
+import { Check, MessageQuestionIcon, PencilIcon, SquareCheck, SquareDashed, SquareX, X } from '../shared/icons/app-icons'
 import ChatToolCallTitle from './ChatToolCallTitle.vue'
 import ChatComposerVoiceButton from './ChatComposerVoiceButton.vue'
 import ChatAudioLevelIndicator from './ChatAudioLevelIndicator.vue'

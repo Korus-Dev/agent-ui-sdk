@@ -20,7 +20,7 @@ import {
   ToolIcon,
   Trash2Icon,
   WorldSearchIcon,
-} from '../icons/app-icons'
+} from '../shared/icons/app-icons'
 import type { CodexToolPresentation } from './tool-presentation'
 import { parseToolStatusDescriptor } from './tool-status'
 import { isImageGenerationToolCall, type MessageToolCall } from './types'

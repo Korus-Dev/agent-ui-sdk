@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Download, Info, Maximize2 } from '../icons/app-icons'
+import { Download, Info, Maximize2 } from '../shared/icons/app-icons'
 import ChatCopyButton from './ChatCopyButton.vue'
 import ChatFoldTransition from './ChatFoldTransition.vue'
 import ChatImageLightbox from './ChatImageLightbox.vue'

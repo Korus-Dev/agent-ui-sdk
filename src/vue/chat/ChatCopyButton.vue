@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, ref } from 'vue'
-import { CheckIcon, CopyIcon } from '../icons/app-icons'
+import { CheckIcon, CopyIcon } from '../shared/icons/app-icons'
 import ChatIconButton from './ChatIconButton.vue'
 
 const props = withDefaults(defineProps<{

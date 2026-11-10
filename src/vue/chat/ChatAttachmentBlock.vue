@@ -59,7 +59,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { imageAspectRatio, useManagedImagePreview } from './host-image-previews'
 import { useCodexHostCapabilities } from '../native-capabilities'
-import { PaperclipIcon, PhotoIcon } from '../icons/app-icons'
+import { PaperclipIcon, PhotoIcon } from '../shared/icons/app-icons'
 import ChatImageLightbox from './ChatImageLightbox.vue'
 import type { CodexMessageImageOpenHandler } from './message-image'
 import type { MessageAttachment } from './types'

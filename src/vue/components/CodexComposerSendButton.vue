@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { PlayerPlayFilledIcon } from '../icons/app-icons';
+import { PlayerPlayFilledIcon } from '../shared/icons/app-icons';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{

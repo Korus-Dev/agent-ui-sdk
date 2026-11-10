@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown, ChevronUp } from '../icons/app-icons'
+import { ChevronDown, ChevronUp } from '../shared/icons/app-icons'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { ClientRequestResponse } from './contracts'
 import type { CodexConversationLink } from './contracts'

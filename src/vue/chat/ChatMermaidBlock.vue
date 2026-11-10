@@ -53,7 +53,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { renderMermaidSVG } from 'beautiful-mermaid'
-import { CodeIcon, EyeIcon, Maximize2, X } from '../icons/app-icons'
+import { CodeIcon, EyeIcon, Maximize2, X } from '../shared/icons/app-icons'
 import ChatIconButton from './ChatIconButton.vue'
 import { captureCodexPortalTheme, type CodexPortalTheme } from './portal-theme'
 

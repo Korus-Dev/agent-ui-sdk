@@ -2,7 +2,7 @@
   <article
     ref="surface"
     class="git-diff-preview-panel"
-    :class="{ 'git-diff-preview-panel--wrap': wordWrap, 'git-diff-preview-panel--map': view === 'map', 'git-diff-preview-panel--annotatable': annotatable }"
+    :class="{ 'git-diff-preview-panel--wrap': wordWrap, 'git-diff-preview-panel--overview': overview, 'git-diff-preview-panel--annotatable': annotatable }"
     :aria-busy="state === 'loading'"
   >
     <div
@@ -21,7 +21,7 @@
     >
       {{ parseError }}
     </div>
-    <slot v-else-if="files.length && view === 'map'" name="map" :files="files" :kinds="mapKinds" :setKinds="(kinds: FileKind[]) => mapKinds = kinds" :select="showFileDiff" />
+    <slot v-else-if="files.length && overview" name="overview" :files="files" :select="showFileDiff" />
     <div
       v-else-if="files.length"
       class="git-diff-preview-panel__files"
@@ -177,6 +177,7 @@ import { ChevronDown, ChevronRightIcon, FileArrowRightIcon } from '../shared/ico
 import { isLockfile, classifyFile, fileKinds, type FileKind } from '../../documents/files';
 import { fileKindColor, fileKindCount, fileKindLabel } from './file-kind-presentation';
 import CodeSelectionAnnotation from './CodeSelectionAnnotation.vue';
+import type { DiffOverviewSlot } from '../../documents/diff-overview';
 import type { CodeAnnotationInput } from './annotation-types';
 import { useCodeSelection, type CodeSelection } from './use-code-selection';
 
@@ -184,7 +185,7 @@ const props = withDefaults(defineProps<{
   translate?: BrowserTranslator;
   excludeLockfiles?: boolean;
   diff: string;
-  view?: 'diff' | 'map';
+  overview?: boolean;
   collapseAllSignal?: number;
   error?: string | null;
   expandAllSignal?: number;
@@ -201,7 +202,7 @@ const props = withDefaults(defineProps<{
   state?: 'idle' | 'loading' | 'error';
   wordWrap?: boolean;
 }>(), {
-  view: 'diff',
+  overview: false,
   collapseAllSignal: 0,
   error: null,
   expandAllSignal: 0,
@@ -215,10 +216,12 @@ const props = withDefaults(defineProps<{
   wordWrap: false,
 });
 
+defineSlots<{ overview(props: DiffOverviewSlot): unknown }>();
+
 const translate = provideDocumentTranslation(props.translate);
 const $t = translate;
 const emit = defineEmits<{
-  'update:view': [view: 'diff' | 'map'];
+  select: [path: string];
   allExpandedChange: [isAllExpanded: boolean];
   openFile: [filePath: string];
   annotate: [annotation: CodeAnnotationInput];
@@ -260,7 +263,7 @@ type DiffFileIconKind = 'javascript' | 'typescript' | 'vue' | 'code';
 
 const surface = ref<HTMLElement | null>(null);
 const code = useCodeSelection(surface);
-watch([() => props.diff, () => props.view], () => code.clear());
+watch([() => props.diff, () => props.overview], () => code.clear());
 
 /** The number a line goes by in the annotation: the old file's for a removed line, the new file's otherwise. */
 function codeLine(line: DiffLineView): string | undefined {
@@ -310,7 +313,6 @@ const files = computed(() => parsed.value.files.filter(file =>
   (!props.fileKindFilter || classifyFile(file.fullPath) === props.fileKindFilter)));
 
 const parseError = computed(() => parsed.value.error);
-const mapKinds = ref<FileKind[]>([]);
 const focusedFilePaths = ref<string[] | null>(null);
 const focusedLocation = ref<import('./annotation-types').CodeLocation>();
 watch(() => props.diff, () => { focusedLocation.value = undefined; });
@@ -320,7 +322,7 @@ function isFocusedLine(path: string, line: string | undefined, side: 'old' | 'ne
   return Boolean(location && location.path === path && (location.side ?? 'new') === side && Number.isFinite(number) && number >= location.line && number <= (location.endLine ?? location.line));
 }
 const displayedFiles = computed(() => focusedFilePaths.value ? files.value.filter(file => focusedFilePaths.value!.includes(file.fullPath)) : files.value);
-watch(() => props.view, view => { if (view === 'map') focusedFilePaths.value = null; });
+watch(() => props.overview, overview => { if (overview) focusedFilePaths.value = null; });
 const groups = computed<Array<{ kind: FileKind | null; files: DiffFileView[]; addedLines: number; removedLines: number }>>(() => {
   if (!props.groupByKind) return [{ kind: null, files: displayedFiles.value, addedLines: 0, removedLines: 0 }];
   return fileKinds
@@ -392,14 +394,13 @@ function toggleFile(fileKey: string): void {
   collapsedFileKeys.value = nextCollapsedKeys;
 }
 
-async function showFileDiff(path: string): Promise<void> { await showFiles([path]); }
+async function showFileDiff(path: string): Promise<void> { emit('select', path); await showFiles([path]); }
 
 async function showFiles(paths: string[], location?: import('./annotation-types').CodeLocation): Promise<void> {
   focusedFilePaths.value = paths;
   focusedLocation.value = location;
   collapsedFileKeys.value = new Set(files.value.filter(file => !paths.includes(file.fullPath)).map(file => file.key));
   collapsedGroups.value = new Set(fileKinds.filter(kind => !paths.some(path => classifyFile(path) === kind)));
-  emit('update:view', 'diff');
   await nextTick();
   const file = [...(surface.value?.querySelectorAll<HTMLElement>('[data-code-path]') ?? [])]
     .find(element => location ? element.dataset.codePath === location.path : paths.includes(element.dataset.codePath ?? ''));
@@ -553,7 +554,7 @@ function mapLine(line: Chunk['changes'][number]): DiffLineView {
   scrollbar-width: thin;
 }
 
-.git-diff-preview-panel--map { display: flex; flex-direction: column; }
+.git-diff-preview-panel--overview { display: flex; flex-direction: column; }
 
 .git-diff-preview-panel__files {
   display: grid;

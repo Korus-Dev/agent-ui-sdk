@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
-import { ChevronLeftIcon, ChevronRightIcon, X } from '../icons/app-icons'
+import { ChevronLeftIcon, ChevronRightIcon, X } from '../shared/icons/app-icons'
 import { imageGalleryKey, imageGalleryMessageKey, type GalleryImage } from './image-gallery'
 import { useHostImageSource } from './host-image-previews'
 import ChatIconButton from './ChatIconButton.vue'

@@ -13,14 +13,14 @@ export type BrowserPaneOptions = {
   sharedPartition: string;
   preservedOrigins?: string[];
   annotationEditor?: { preload: string; load(window: BrowserWindow, query: Record<string, string>): Promise<void> };
-  onGuestReady?(agentId: string, browserId: string, contents: WebContents, window: BrowserWindow): Promise<void>;
-  onGuestSelected?(agentId: string, browserId: string): void;
+  onGuestReady?(ownerId: string, browserId: string, contents: WebContents, window: BrowserWindow): Promise<void>;
+  onGuestSelected?(ownerId: string, browserId: string): void;
   onAnnotation(annotation: BrowserAnnotation): void;
   onViewportRequest?(request: BrowserViewportRequest, window: BrowserWindow): void;
 };
 
 type HostedBrowserPane = {
-  agentId: string;
+  ownerId: string;
   annotationEnabled: boolean;
   annotationOverlay: BrowserWindow | null;
   annotationRequest: Promise<void> | null;
@@ -60,28 +60,28 @@ export class BrowserPane {
 
   async open(
     browserWindow: BrowserWindow,
-    agentId: string,
+    ownerId: string,
     browserId: string,
     url: string,
     fileRoot: string,
     guestWebContentsId: number,
   ): Promise<BrowserState> {
-    const pane = await this.createPane(browserWindow, agentId, browserId, fileRoot, true, guestWebContentsId);
-    if (url.trim()) return this.navigate(agentId, browserId, url);
+    const pane = await this.createPane(browserWindow, ownerId, browserId, fileRoot, true, guestWebContentsId);
+    if (url.trim()) return this.navigate(ownerId, browserId, url);
     await pane.webContents.loadURL('about:blank');
     return { ...this.state(pane), url: '', title: '' };
   }
 
   async openVisualization(
     browserWindow: BrowserWindow,
-    agentId: string,
+    ownerId: string,
     browserId: string,
     filePath: string,
     title: string,
     guestWebContentsId: number,
   ): Promise<BrowserState> {
     const document = await readVisualizationDocument(filePath, title);
-    const pane = await this.createPane(browserWindow, agentId, browserId, '', false, guestWebContentsId);
+    const pane = await this.createPane(browserWindow, ownerId, browserId, '', false, guestWebContentsId);
     pane.presentedTitle = title.trim() || 'Visualization';
     pane.presentedUrl = '';
     await pane.webContents.loadURL(document);
@@ -90,22 +90,22 @@ export class BrowserPane {
 
   private async createPane(
     browserWindow: BrowserWindow,
-    agentId: string,
+    ownerId: string,
     browserId: string,
     fileRoot: string,
     navigationEnabled: boolean,
     guestWebContentsId: number,
   ): Promise<HostedBrowserPane> {
     const guest = webContents.fromId(guestWebContentsId);
-    const expectedPartition = this.options.partitionFor(agentId, !navigationEnabled);
+    const expectedPartition = this.options.partitionFor(ownerId, !navigationEnabled);
     if (!Number.isSafeInteger(guestWebContentsId) || !guest
       || guest.isDestroyed()
       || guest.getType() !== 'webview'
       || guest.hostWebContents !== browserWindow.webContents
       || guest.session !== session.fromPartition(expectedPartition)) {
-      throw new Error('Browser guest is not attached to this window and agent.');
+      throw new Error('Browser guest is not attached to this window and owner.');
     }
-    const key = browserPaneKey(agentId, browserId);
+    const key = browserPaneKey(ownerId, browserId);
     const previous = this.panes.get(key);
     if (previous?.webContents === guest) {
       await this.cancelAnnotationMode(previous);
@@ -116,9 +116,9 @@ export class BrowserPane {
       await this.attachExtensions(previous);
       return previous;
     }
-    await this.close(agentId, browserId);
+    await this.close(ownerId, browserId);
     const pane: HostedBrowserPane = {
-      agentId,
+      ownerId,
       annotationEnabled: false,
       annotationOverlay: null,
       annotationRequest: null,
@@ -183,7 +183,7 @@ export class BrowserPane {
       return;
     }
     if (pane.extensionsAttached) return;
-    await this.options.onGuestReady?.(pane.agentId, pane.browserId, pane.webContents, pane.browserWindow);
+    await this.options.onGuestReady?.(pane.ownerId, pane.browserId, pane.webContents, pane.browserWindow);
     pane.extensionsAttached = true;
   }
 
@@ -207,8 +207,8 @@ export class BrowserPane {
     shared.flushStorageData();
   }
 
-  async navigate(agentId: string, browserId: string, url: string): Promise<BrowserState> {
-    const pane = this.requirePane(agentId, browserId);
+  async navigate(ownerId: string, browserId: string, url: string): Promise<BrowserState> {
+    const pane = this.requirePane(ownerId, browserId);
     const target = normalizeBrowserUrl(url, pane.fileRoot);
     try {
       await pane.webContents.loadURL(target);
@@ -222,57 +222,57 @@ export class BrowserPane {
     return this.state(pane);
   }
 
-  async goBack(agentId: string, browserId: string): Promise<BrowserState> {
-    const pane = this.requirePane(agentId, browserId);
+  async goBack(ownerId: string, browserId: string): Promise<BrowserState> {
+    const pane = this.requirePane(ownerId, browserId);
     const webContents = pane.webContents;
     if (webContents.navigationHistory.canGoBack()) webContents.navigationHistory.goBack();
     return this.waitForNavigation(pane);
   }
 
-  async goForward(agentId: string, browserId: string): Promise<BrowserState> {
-    const pane = this.requirePane(agentId, browserId);
+  async goForward(ownerId: string, browserId: string): Promise<BrowserState> {
+    const pane = this.requirePane(ownerId, browserId);
     const webContents = pane.webContents;
     if (webContents.navigationHistory.canGoForward()) webContents.navigationHistory.goForward();
     return this.waitForNavigation(pane);
   }
 
-  async reload(agentId: string, browserId: string): Promise<BrowserState> {
-    const pane = this.requirePane(agentId, browserId);
+  async reload(ownerId: string, browserId: string): Promise<BrowserState> {
+    const pane = this.requirePane(ownerId, browserId);
     const webContents = pane.webContents;
     webContents.reload();
     return this.waitForNavigation(pane);
   }
 
-  openDevTools(agentId: string, browserId: string): void {
-    this.requirePane(agentId, browserId).webContents.openDevTools({ mode: 'detach' });
+  openDevTools(ownerId: string, browserId: string): void {
+    this.requirePane(ownerId, browserId).webContents.openDevTools({ mode: 'detach' });
   }
 
-  getZoom(agentId: string, browserId: string): number {
-    return Math.round(this.requirePane(agentId, browserId).webContents.getZoomFactor() * 100);
+  getZoom(ownerId: string, browserId: string): number {
+    return Math.round(this.requirePane(ownerId, browserId).webContents.getZoomFactor() * 100);
   }
 
-  setZoom(agentId: string, browserId: string, percent: number): number {
+  setZoom(ownerId: string, browserId: string, percent: number): number {
     if (!Number.isInteger(percent) || percent < 50 || percent > 300) {
       throw new Error('Browser zoom must be between 50% and 300%.');
     }
-    this.requirePane(agentId, browserId).webContents.setZoomFactor(percent / 100);
+    this.requirePane(ownerId, browserId).webContents.setZoomFactor(percent / 100);
     return percent;
   }
 
-  async copyScreenshot(agentId: string, browserId: string, rect?: BrowserBounds): Promise<void> {
+  async copyScreenshot(ownerId: string, browserId: string, rect?: BrowserBounds): Promise<void> {
     if (rect !== undefined && (
       typeof rect !== 'object' || rect === null ||
       ![rect.x, rect.y, rect.width, rect.height].every(Number.isSafeInteger) ||
       rect.x < 0 || rect.y < 0 || rect.width < 1 || rect.height < 1 ||
       rect.x + rect.width > 10_000 || rect.y + rect.height > 10_000
     )) throw new Error('Invalid browser screenshot area.');
-    const image = await this.requirePane(agentId, browserId).webContents.capturePage(rect);
+    const image = await this.requirePane(ownerId, browserId).webContents.capturePage(rect);
     if (image.isEmpty()) throw new Error('The browser screenshot is empty.');
     clipboard.writeImage(image);
   }
 
-  setBounds(agentId: string, browserId: string, bounds: BrowserViewportBounds): void {
-    const pane = this.requirePane(agentId, browserId);
+  setBounds(ownerId: string, browserId: string, bounds: BrowserViewportBounds): void {
+    const pane = this.requirePane(ownerId, browserId);
     pane.bounds = {
       x: Math.max(0, Math.round(bounds.x)),
       y: Math.max(0, Math.round(bounds.y)),
@@ -286,19 +286,19 @@ export class BrowserPane {
     this.syncAnnotationOverlayBounds(pane);
   }
 
-  setVisible(agentId: string, browserId: string, visible: boolean): void {
-    const pane = this.requirePane(agentId, browserId);
+  setVisible(ownerId: string, browserId: string, visible: boolean): void {
+    const pane = this.requirePane(ownerId, browserId);
     pane.visible = visible;
-    if (visible && pane.navigationEnabled) this.options.onGuestSelected?.(agentId, browserId);
-    if (!visible) this.rejectViewportRequest(agentId, browserId, 'Browser pane was hidden.');
+    if (visible && pane.navigationEnabled) this.options.onGuestSelected?.(ownerId, browserId);
+    if (!visible) this.rejectViewportRequest(ownerId, browserId, 'Browser pane was hidden.');
     if (pane.annotationOverlay && !pane.annotationOverlay.isDestroyed()) {
       if (visible) pane.annotationOverlay.show();
       else pane.annotationOverlay.hide();
     }
   }
 
-  async setAnnotationMode(agentId: string, browserId: string, enabled: boolean): Promise<void> {
-    const pane = this.requirePane(agentId, browserId);
+  async setAnnotationMode(ownerId: string, browserId: string, enabled: boolean): Promise<void> {
+    const pane = this.requirePane(ownerId, browserId);
     pane.annotationEnabled = enabled;
     if (!enabled) {
       await this.cancelAnnotationMode(pane);
@@ -325,7 +325,7 @@ export class BrowserPane {
         this.options.onAnnotation({
           ...annotation,
           comment,
-          agentId: pane.agentId,
+          ownerId: pane.ownerId,
           browserId: pane.browserId,
         });
       })
@@ -346,13 +346,13 @@ export class BrowserPane {
     this.finishAnnotationOverlay(pane, typeof comment === 'string' ? comment.trim() || null : null);
   }
 
-  async clearAnnotations(agentId: string, browserId: string): Promise<void> {
-    this.requirePane(agentId, browserId);
+  async clearAnnotations(ownerId: string, browserId: string): Promise<void> {
+    this.requirePane(ownerId, browserId);
   }
 
-  async close(agentId: string, browserId: string): Promise<void> {
-    this.rejectViewportRequest(agentId, browserId, 'Browser pane was closed.');
-    const key = browserPaneKey(agentId, browserId);
+  async close(ownerId: string, browserId: string): Promise<void> {
+    this.rejectViewportRequest(ownerId, browserId, 'Browser pane was closed.');
+    const key = browserPaneKey(ownerId, browserId);
     const pane = this.panes.get(key);
     if (!pane) return;
     await this.cancelAnnotationMode(pane);
@@ -363,23 +363,23 @@ export class BrowserPane {
   }
 
   async closeAll(): Promise<void> {
-    await Promise.all([...this.panes.values()].map((pane) => this.close(pane.agentId, pane.browserId)));
+    await Promise.all([...this.panes.values()].map((pane) => this.close(pane.ownerId, pane.browserId)));
   }
 
   /** True when the pane exists and its guest lives in this window. Calls from any other window must not touch it. */
-  isHostedBy(agentId: string, browserId: string, window: BrowserWindow): boolean {
-    return this.panes.get(browserPaneKey(agentId, browserId))?.browserWindow === window;
+  isHostedBy(ownerId: string, browserId: string, window: BrowserWindow): boolean {
+    return this.panes.get(browserPaneKey(ownerId, browserId))?.browserWindow === window;
   }
 
   /** Closes the panes hosted by one window, for a window that closes or reloads while others keep theirs. */
-  async closeHostedBy(window: BrowserWindow, agentId?: string): Promise<void> {
+  async closeHostedBy(window: BrowserWindow, ownerId?: string): Promise<void> {
     await Promise.all([...this.panes.values()]
-      .filter((pane) => pane.browserWindow === window && (agentId === undefined || pane.agentId === agentId))
-      .map((pane) => this.close(pane.agentId, pane.browserId)));
+      .filter((pane) => pane.browserWindow === window && (ownerId === undefined || pane.ownerId === ownerId))
+      .map((pane) => this.close(pane.ownerId, pane.browserId)));
   }
 
   private async click(pane: HostedBrowserPane, input: Record<string, unknown>): Promise<unknown> {
-    if (!pane.visible) throw new Error('Open this agent’s Browser pane before clicking.');
+    if (!pane.visible) throw new Error('Open this Browser pane before clicking.');
     const selector = typeof input.selector === 'string' ? input.selector.trim() : undefined;
     const selectorOnly = Boolean(selector) && input.x === undefined && input.y === undefined;
     const pointOnly = input.selector === undefined && typeof input.x === 'number' && Number.isFinite(input.x)
@@ -421,8 +421,8 @@ export class BrowserPane {
     return { clicked: selectorOnly ? selector : target };
   }
 
-  async execute(agentId: string, browserId: string, command: string, arguments_: Record<string, unknown>): Promise<unknown> {
-    const pane = this.requirePane(agentId, browserId);
+  async execute(ownerId: string, browserId: string, command: string, arguments_: Record<string, unknown>): Promise<unknown> {
+    const pane = this.requirePane(ownerId, browserId);
     const webContents = pane.webContents;
     if (command === 'click') {
       const next = (this.clicks.get(webContents) ?? Promise.resolve()).catch(() => {}).then(() => this.click(pane, arguments_));
@@ -431,18 +431,18 @@ export class BrowserPane {
     }
     if (command === 'viewport') {
       const viewport = parseBrowserViewport(arguments_);
-      if (!pane.navigationEnabled || !pane.visible) throw new Error('Open this agent’s Browser pane before changing its viewport.');
+      if (!pane.navigationEnabled || !pane.visible) throw new Error('Open this Browser pane before changing its viewport.');
       const notify = this.options.onViewportRequest;
       if (!notify) throw new Error('Browser viewport controls are unavailable.');
       // Dimensions are CSS pixels, independent of a previous manual page zoom.
       pane.webContents.setZoomFactor(1);
-      this.rejectViewportRequest(agentId, browserId, 'Browser viewport request was superseded.');
+      this.rejectViewportRequest(ownerId, browserId, 'Browser viewport request was superseded.');
       return new Promise((resolve, reject) => {
-        const request = { agentId, browserId, requestId: crypto.randomUUID(), viewport };
-        const timer = setTimeout(() => this.rejectViewportRequest(agentId, browserId, 'Timed out resizing the browser viewport.'), 10_000);
-        this.viewportRequests.set(browserPaneKey(agentId, browserId), { request, resolve, reject, timer });
+        const request = { ownerId, browserId, requestId: crypto.randomUUID(), viewport };
+        const timer = setTimeout(() => this.rejectViewportRequest(ownerId, browserId, 'Timed out resizing the browser viewport.'), 10_000);
+        this.viewportRequests.set(browserPaneKey(ownerId, browserId), { request, resolve, reject, timer });
         try { notify(request, pane.browserWindow); } catch (error) {
-          this.rejectViewportRequest(agentId, browserId, error instanceof Error ? error.message : String(error));
+          this.rejectViewportRequest(ownerId, browserId, error instanceof Error ? error.message : String(error));
         }
       });
     }
@@ -464,13 +464,13 @@ export class BrowserPane {
     })()`, true);
   }
 
-  async viewportApplied(agentId: string, browserId: string, requestId: string, error?: string): Promise<void> {
-    const key = browserPaneKey(agentId, browserId);
+  async viewportApplied(ownerId: string, browserId: string, requestId: string, error?: string): Promise<void> {
+    const key = browserPaneKey(ownerId, browserId);
     const pending = this.viewportRequests.get(key);
     if (!pending || pending.request.requestId !== requestId) return;
-    if (error) { this.rejectViewportRequest(agentId, browserId, error); return; }
+    if (error) { this.rejectViewportRequest(ownerId, browserId, error); return; }
     try {
-      const metrics = await this.requirePane(agentId, browserId).webContents.executeJavaScript(
+      const metrics = await this.requirePane(ownerId, browserId).webContents.executeJavaScript(
         '({ width: window.innerWidth, height: window.innerHeight, devicePixelRatio: window.devicePixelRatio })',
       );
       if (this.viewportRequests.get(key) !== pending) return;
@@ -481,12 +481,12 @@ export class BrowserPane {
       this.viewportRequests.delete(key);
       pending.resolve({ preset: pending.request.viewport.preset, width: metrics.width, height: metrics.height, devicePixelRatio: metrics.devicePixelRatio });
     } catch (error) {
-      if (this.viewportRequests.get(key) === pending) this.rejectViewportRequest(agentId, browserId, error instanceof Error ? error.message : String(error));
+      if (this.viewportRequests.get(key) === pending) this.rejectViewportRequest(ownerId, browserId, error instanceof Error ? error.message : String(error));
     }
   }
 
-  private rejectViewportRequest(agentId: string, browserId: string, message: string): void {
-    const key = browserPaneKey(agentId, browserId);
+  private rejectViewportRequest(ownerId: string, browserId: string, message: string): void {
+    const key = browserPaneKey(ownerId, browserId);
     const pending = this.viewportRequests.get(key);
     if (!pending) return;
     clearTimeout(pending.timer);
@@ -503,7 +503,7 @@ export class BrowserPane {
 
   private async openAnnotationOverlay(
     pane: HostedBrowserPane,
-    annotation: Omit<BrowserAnnotation, 'agentId' | 'browserId'>,
+    annotation: Omit<BrowserAnnotation, 'ownerId' | 'browserId'>,
   ): Promise<string | null> {
     if (!this.options.annotationEditor) throw new Error('Browser annotation editor is unavailable.');
     this.finishAnnotationOverlay(pane, null);
@@ -622,8 +622,8 @@ export class BrowserPane {
     };
   }
 
-  private requirePane(agentId: string, browserId: string): HostedBrowserPane {
-    const pane = this.panes.get(browserPaneKey(agentId, browserId));
+  private requirePane(ownerId: string, browserId: string): HostedBrowserPane {
+    const pane = this.panes.get(browserPaneKey(ownerId, browserId));
     if (!pane || pane.webContents.isDestroyed()) throw new Error('Browser is not open.');
     return pane;
   }
@@ -717,8 +717,8 @@ button, input, select, textarea { font: inherit; }
 `;
 }
 
-export function browserPaneKey(agentId: string, browserId: string): string {
-  return JSON.stringify([agentId, browserId]);
+export function browserPaneKey(ownerId: string, browserId: string): string {
+  return JSON.stringify([ownerId, browserId]);
 }
 
 export function normalizeBrowserUrl(value: string, fileRoot?: string): string {
@@ -737,7 +737,7 @@ export function normalizeBrowserUrl(value: string, fileRoot?: string): string {
 
 function assertFileUrlInsideRoot(url: URL, fileRoot?: string): void {
   if (!fileRoot?.trim()) {
-    throw new Error('File URLs require an agent workspace.');
+    throw new Error('File URLs require a workspace.');
   }
 
   let canonicalRoot: string;
@@ -746,12 +746,12 @@ function assertFileUrlInsideRoot(url: URL, fileRoot?: string): void {
     canonicalRoot = realpathSync(expandHome(fileRoot));
     canonicalTarget = realpathSync(fileURLToPath(url));
   } catch {
-    throw new Error('File URLs must point to an existing file inside the agent workspace.');
+    throw new Error('File URLs must point to an existing file inside the workspace.');
   }
 
   const relative = path.relative(canonicalRoot, canonicalTarget);
   if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
-    throw new Error('File URLs must stay inside the agent workspace.');
+    throw new Error('File URLs must stay inside the workspace.');
   }
 }
 
@@ -760,7 +760,7 @@ function expandHome(value: string): string {
   return value.startsWith(`~${path.sep}`) ? path.join(os.homedir(), value.slice(2)) : value;
 }
 
-function parseAnnotation(value: unknown, url: string): Omit<BrowserAnnotation, 'agentId' | 'browserId'> | null {
+function parseAnnotation(value: unknown, url: string): Omit<BrowserAnnotation, 'ownerId' | 'browserId'> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   const rect = record.rect;

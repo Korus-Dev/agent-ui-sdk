@@ -120,11 +120,11 @@ const extensions = ref<BrowserExtensionStatus[]>([]);
 const activeExtensions = computed(() => extensions.value.filter(extension => extension.enabled && extension.version));
 async function refreshExtensions(): Promise<void> {
   if (props.document || !appApi) return;
-  const agentId = props.agentId;
-  try { const result = await appApi.browserExtensions(agentId, 'list'); if (!disposed && props.agentId === agentId) extensions.value = result.extensions; } catch { /* Browsing stays available if extension loading fails. */ }
+  const ownerId = props.ownerId;
+  try { const result = await appApi.browserExtensions(ownerId, 'list'); if (!disposed && props.ownerId === ownerId) extensions.value = result.extensions; } catch { /* Browsing stays available if extension loading fails. */ }
 }
 async function openExtension(id: string): Promise<void> {
-  try { await appApi?.browserExtensions(props.agentId, 'open', id, props.browserId); } catch (reason) { error.value = messageFor(reason); }
+  try { await appApi?.browserExtensions(props.ownerId, 'open', id, props.browserId); } catch (reason) { error.value = messageFor(reason); }
 }
 const bookmarks = computed(() => normalizeBrowserBookmarks(props.host.bookmarks?.()));
 async function saveBookmarks(bookmarks: BrowserBookmark[]): Promise<void> {
@@ -138,7 +138,7 @@ async function openBookmark(url: string): Promise<void> {
 
 const props = withDefaults(defineProps<{
   host: BrowserUiHost;
-  agentId: string;
+  ownerId: string;
   browserId?: string;
   initialUrl?: string;
   openRequestId?: number;
@@ -227,7 +227,7 @@ onMounted(async () => {
   const initialRequestId = props.openRequestId;
   unsubscribe = props.host.onEvent?.(handleEvent) ?? null;
   unsubscribeCommands = props.host.onViewportRequest?.(command => {
-    if (command.agentId === props.agentId && command.browserId === props.browserId) {
+    if (command.ownerId === props.ownerId && command.browserId === props.browserId) {
       void applyViewportRequest(command).catch(reason => { error.value = messageFor(reason); });
     }
   }) ?? null;
@@ -242,7 +242,7 @@ onMounted(async () => {
   if (guestFrame.value) resizeObserver.observe(guestFrame.value);
   try {
     await runNavigation(openInitialContent);
-    if (browserReady.value && !props.visible) await appApi?.browserSetVisible(props.agentId, props.browserId, false);
+    if (browserReady.value && !props.visible) await appApi?.browserSetVisible(props.ownerId, props.browserId, false);
   } catch (reason) {
     error.value = messageFor(reason);
   } finally {
@@ -264,12 +264,12 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleEscape);
   guestElement?.remove();
   guestElement = null;
-  void appApi?.browserClose(props.agentId, props.browserId);
+  void appApi?.browserClose(props.ownerId, props.browserId);
 });
 
 watch(() => props.visible, async (visible) => {
   if (!appApi || !browserReady.value) return;
-  await appApi.browserSetVisible(props.agentId, props.browserId, visible);
+  await appApi.browserSetVisible(props.ownerId, props.browserId, visible);
   if (visible) {
     void refreshExtensions();
     await nextTick();
@@ -297,7 +297,7 @@ async function openInitialContent(): Promise<BrowserState> {
   const guestId = await ensureGuest();
   if (props.document) {
     return api.browserOpenDocument(
-      props.agentId,
+      props.ownerId,
       props.browserId,
       props.document.path,
       props.document.title,
@@ -305,12 +305,12 @@ async function openInitialContent(): Promise<BrowserState> {
     );
   }
   address.value = props.initialUrl;
-  return api.browserOpen(props.agentId, props.browserId, address.value, guestId);
+  return api.browserOpen(props.ownerId, props.browserId, address.value, guestId);
 }
 
 async function ensureGuest(): Promise<number> {
   if (props.host.platform !== 'desktop') throw new Error(translate('surface.browserPanel.browserIsUnavailable'));
-  const partition = props.host.guestPartition(props.agentId, Boolean(props.document));
+  const partition = props.host.guestPartition(props.ownerId, Boolean(props.document));
   if (guestElement && guestPartition === partition && guestWebContentsId != null) return guestWebContentsId;
   guestElement?.remove();
   const guest = document.createElement('webview') as HTMLElement & { getWebContentsId?: () => number };
@@ -383,20 +383,20 @@ async function navigate(): Promise<void> {
     : !input || explicitScheme ? input
       : `https://www.google.com/search?q=${encodeURIComponent(input)}`;
   await runNavigation(async () => browserReady.value
-    ? requireBrowserApi().browserNavigate(props.agentId, props.browserId, target)
-    : requireBrowserApi().browserOpen(props.agentId, props.browserId, target, await ensureGuest()));
+    ? requireBrowserApi().browserNavigate(props.ownerId, props.browserId, target)
+    : requireBrowserApi().browserOpen(props.ownerId, props.browserId, target, await ensureGuest()));
 }
 
 async function goBack(): Promise<void> {
-  await runNavigation(() => requireBrowserApi().browserGoBack(props.agentId, props.browserId));
+  await runNavigation(() => requireBrowserApi().browserGoBack(props.ownerId, props.browserId));
 }
 
 async function goForward(): Promise<void> {
-  await runNavigation(() => requireBrowserApi().browserGoForward(props.agentId, props.browserId));
+  await runNavigation(() => requireBrowserApi().browserGoForward(props.ownerId, props.browserId));
 }
 
 async function reload(): Promise<void> {
-  await runNavigation(() => requireBrowserApi().browserReload(props.agentId, props.browserId));
+  await runNavigation(() => requireBrowserApi().browserReload(props.ownerId, props.browserId));
 }
 
 async function setZoom(percent: number): Promise<void> {
@@ -404,7 +404,7 @@ async function setZoom(percent: number): Promise<void> {
   const requestId = ++zoomRequestId;
   zoomPending.value = true;
   try {
-    const actualPercent = await requireBrowserApi().browserSetZoom(props.agentId, props.browserId, percent);
+    const actualPercent = await requireBrowserApi().browserSetZoom(props.ownerId, props.browserId, percent);
     if (requestId === zoomRequestId) zoomPercent.value = actualPercent;
     error.value = null;
   } catch (reason) {
@@ -426,7 +426,7 @@ watch(menuOpen, open => { if (open && browserReady.value) void syncZoom(); });
 async function syncZoom(): Promise<void> {
   const requestId = ++zoomRequestId;
   try {
-    const actualPercent = await requireBrowserApi().browserGetZoom(props.agentId, props.browserId);
+    const actualPercent = await requireBrowserApi().browserGetZoom(props.ownerId, props.browserId);
     if (!disposed && requestId === zoomRequestId) zoomPercent.value = actualPercent;
   } catch (reason) {
     if (!disposed && requestId === zoomRequestId) error.value = messageFor(reason);
@@ -436,7 +436,7 @@ async function syncZoom(): Promise<void> {
 async function selectMenuAction(itemId: string): Promise<void> {
   menuOpen.value = false;
   if (itemId === 'devtools') {
-    try { await requireBrowserApi().browserOpenDevTools(props.agentId, props.browserId); }
+    try { await requireBrowserApi().browserOpenDevTools(props.ownerId, props.browserId); }
     catch (reason) { error.value = messageFor(reason); }
   } else if (itemId === 'device-toolbar') {
     deviceToolbarVisible.value = !deviceToolbarVisible.value;
@@ -513,7 +513,7 @@ async function applyViewportRequest(request: BrowserViewportRequest): Promise<vo
   const api = requireBrowserApi();
   let failure: string | undefined;
   try {
-    if (!browserReady.value || disposed || !props.visible || props.document) throw new Error('Open this agent’s Browser pane before changing its viewport.');
+    if (!browserReady.value || disposed || !props.visible || props.document) throw new Error('Open this Browser pane before changing its viewport.');
     const configuration = request.viewport;
     deviceToolbarVisible.value = configuration.preset !== 'fit';
     devicePreset.value = configuration.preset === 'fit' ? 'responsive' : configuration.preset;
@@ -529,14 +529,14 @@ async function applyViewportRequest(request: BrowserViewportRequest): Promise<vo
     await syncBounds();
     await syncZoom();
   } catch (reason) { failure = messageFor(reason); }
-  await api.browserViewportApplied(props.agentId, props.browserId, request.requestId, failure);
+  await api.browserViewportApplied(props.ownerId, props.browserId, request.requestId, failure);
 }
 
 async function copyScreenshot(rect?: BrowserBounds): Promise<void> {
   if (screenshotPending.value) return;
   screenshotPending.value = true;
   try {
-    await requireBrowserApi().browserCopyScreenshot(props.agentId, props.browserId, rect);
+    await requireBrowserApi().browserCopyScreenshot(props.ownerId, props.browserId, rect);
     ElMessage.success(translate('surface.browserPanel.screenshotCopied'));
     error.value = null;
   } catch (reason) {
@@ -620,10 +620,10 @@ async function toggleAnnotation(): Promise<void> {
   annotationMode.value = enabled;
   try {
     const api = requireBrowserApi();
-    await api.browserSetAnnotationMode(props.agentId, props.browserId, enabled);
+    await api.browserSetAnnotationMode(props.ownerId, props.browserId, enabled);
     if (!enabled) {
       annotations.value = [];
-      await api.browserClearAnnotations(props.agentId, props.browserId);
+      await api.browserClearAnnotations(props.ownerId, props.browserId);
     }
   } catch (reason) {
     annotationMode.value = false;
@@ -643,7 +643,7 @@ async function syncBounds(): Promise<void> {
     height: Math.max(0, Math.min(rect.bottom, viewportRect.bottom) - y),
   };
   if (deviceToolbarVisible.value) bounds.contentOffset = { x: x - rect.left, y: y - rect.top };
-  await appApi?.browserSetBounds(props.agentId, props.browserId, bounds);
+  await appApi?.browserSetBounds(props.ownerId, props.browserId, bounds);
 }
 
 function syncBoundsAfterWindowResize(): void {
@@ -653,12 +653,12 @@ function syncBoundsAfterWindowResize(): void {
 function handleEvent(event: BrowserUiEvent): void {
   if (
     event.type !== 'browser.annotationCreated' ||
-    event.payload.agentId !== props.agentId ||
+    event.payload.ownerId !== props.ownerId ||
     event.payload.browserId !== props.browserId
   ) return;
   annotations.value = [...annotations.value, event.payload];
   annotationMode.value = true;
-  void requireBrowserApi().browserSetAnnotationMode(props.agentId, props.browserId, true).catch((reason) => {
+  void requireBrowserApi().browserSetAnnotationMode(props.ownerId, props.browserId, true).catch((reason) => {
     annotationMode.value = false;
     error.value = messageFor(reason);
   });
@@ -669,8 +669,8 @@ async function sendAnnotations(): Promise<void> {
   emit('send-prompt', annotationBatchPrompt(annotations.value));
   annotations.value = [];
   annotationMode.value = false;
-  await requireBrowserApi().browserSetAnnotationMode(props.agentId, props.browserId, false);
-  await requireBrowserApi().browserClearAnnotations(props.agentId, props.browserId);
+  await requireBrowserApi().browserSetAnnotationMode(props.ownerId, props.browserId, false);
+  await requireBrowserApi().browserClearAnnotations(props.ownerId, props.browserId);
 }
 
 function requireBrowserApi() {

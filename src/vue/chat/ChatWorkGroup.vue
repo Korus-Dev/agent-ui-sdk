@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { computed, inject, onScopeDispose, ref, watch } from 'vue'
-import { ChevronDown, ChevronRightIcon, Loader2Icon } from '../icons/app-icons'
+import { ChevronDown, ChevronRightIcon, Loader2Icon } from '../shared/icons/app-icons'
 import { useCodexChatTranslate } from './chat-i18n'
 import ChatFoldTransition from './ChatFoldTransition.vue'
 import { assistantWorkMessageIndexKey, assistantWorkTurnKey } from './message-work-state'

@@ -165,7 +165,7 @@ describe('browser pane helpers', () => {
     const settled = vi.fn();
     const result = pane.execute('agent-one', 'primary', 'viewport', { preset: 'phone' }).then(settled);
     const request = onViewportRequest.mock.calls[0]![0];
-    expect(request).toEqual({ agentId: 'agent-one', browserId: 'primary', requestId: expect.any(String), viewport: { preset: 'phone', width: 390, height: 844 } });
+    expect(request).toEqual({ ownerId: 'agent-one', browserId: 'primary', requestId: expect.any(String), viewport: { preset: 'phone', width: 390, height: 844 } });
     await pane.viewportApplied('agent-two', 'primary', request.requestId);
     await pane.viewportApplied('agent-one', 'primary', 'stale');
     expect(settled).not.toHaveBeenCalled();
@@ -250,7 +250,7 @@ describe('browser pane helpers', () => {
     for (const url of ['about:config', 'about:blank?x=1', 'data:text/html,hello']) {
       expect(() => normalizeBrowserUrl(url)).toThrow('Only http, https, and workspace file URLs');
     }
-    expect(() => normalizeBrowserUrl('file:///Users/nicolas/.ssh/id_rsa')).toThrow('require an agent workspace');
+    expect(() => normalizeBrowserUrl('file:///Users/nicolas/.ssh/id_rsa')).toThrow('require a workspace');
   });
 
   it('opens and returns to about:blank without blocking blank-page navigation', async () => {
@@ -309,8 +309,8 @@ describe('browser pane helpers', () => {
         title: `Title for ${localUrl}`,
       });
       expect(guest.loadURL).toHaveBeenCalledWith(localUrl);
-      expect(() => normalizeBrowserUrl(pathToFileURL(outsideFile).toString(), workspace)).toThrow('stay inside the agent workspace');
-      expect(() => normalizeBrowserUrl(pathToFileURL(linkedFile).toString(), workspace)).toThrow('stay inside the agent workspace');
+      expect(() => normalizeBrowserUrl(pathToFileURL(outsideFile).toString(), workspace)).toThrow('stay inside the workspace');
+      expect(() => normalizeBrowserUrl(pathToFileURL(linkedFile).toString(), workspace)).toThrow('stay inside the workspace');
 
       const navigation = guest.emitNavigation('will-navigate', pathToFileURL(outsideFile).toString());
       expect(navigation?.preventDefault).toHaveBeenCalledOnce();
@@ -644,7 +644,7 @@ describe('browser pane helpers', () => {
     pane.resolveAnnotation(token!, 'Keep this compact.');
     await vi.waitFor(() => expect(onAnnotation).toHaveBeenCalledWith(expect.objectContaining({
       id: 'annotation-one',
-      agentId: 'agent-one',
+      ownerId: 'agent-one',
       browserId: 'primary',
       comment: 'Keep this compact.',
     })));

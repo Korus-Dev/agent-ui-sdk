@@ -36,7 +36,7 @@ import type {
   CodexComposerMenuItem,
   CodexComposerMenuSelectableItem,
 } from '../composer-menu';
-import { HandStopIcon, ListDetailsIcon, PaperclipIcon, PlusIcon, ShieldCheckIcon, Sparkles, TargetArrowIcon } from '../icons/app-icons';
+import { HandStopIcon, ListDetailsIcon, PaperclipIcon, PlusIcon, ShieldCheckIcon, Sparkles, TargetArrowIcon } from '../shared/icons/app-icons';
 
 type ComposerMenuAction = { kind: 'approval'; preset: ApprovalPreset };
 

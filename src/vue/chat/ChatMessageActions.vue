@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowForkIcon, Loader2Icon, PencilIcon, QuoteIcon, RotateClockwiseIcon, Trash2Icon } from '../icons/app-icons'
+import { ArrowForkIcon, Loader2Icon, PencilIcon, QuoteIcon, RotateClockwiseIcon, Trash2Icon } from '../shared/icons/app-icons'
 import { computed } from 'vue'
 import { useCodexChatTranslate } from './chat-i18n'
 import ChatCopyButton from './ChatCopyButton.vue'

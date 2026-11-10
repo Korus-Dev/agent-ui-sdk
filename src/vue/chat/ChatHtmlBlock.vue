@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { CodeIcon, Download, EyeIcon } from '../icons/app-icons'
+import { CodeIcon, Download, EyeIcon } from '../shared/icons/app-icons'
 import { useCodexHostCapabilities } from '../native-capabilities'
 import ChatIconButton from './ChatIconButton.vue'
 import ChatCopyButton from './ChatCopyButton.vue'

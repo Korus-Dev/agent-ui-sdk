@@ -102,7 +102,7 @@
 import { computed, ref } from 'vue'
 import { useCodexChatTranslate } from './chat-i18n'
 import { useCodexToolPresentation } from './tool-presentation'
-import { ChevronDown, ChevronUp } from '../icons/app-icons'
+import { ChevronDown, ChevronUp } from '../shared/icons/app-icons'
 import type { ClientRequestResponse, CodexConversationLink } from './contracts'
 import ChatFoldTransition from './ChatFoldTransition.vue'
 import ChatToolConfirmation from './ChatToolConfirmation.vue'

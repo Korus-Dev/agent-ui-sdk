@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowDownIcon } from '../icons/app-icons';
+import { ArrowDownIcon } from '../shared/icons/app-icons';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 withDefaults(defineProps<{

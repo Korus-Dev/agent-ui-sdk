@@ -84,3 +84,22 @@ export type CodexHostCapabilities = {
 export type CodexNativeRendererApi = CodexHostCapabilities;
 
 export const codexNativeRendererGlobal = 'codexAppSdkNative';
+
+// Neutral public vocabulary; legacy names remain compatible.
+export type SpeechTranscriptionResult = CodexSpeechTranscriptionResult;
+export type SpeechTranscript = CodexSpeechTranscript;
+export type SpeechPreparationOptions = CodexSpeechPreparationOptions;
+export type SpeechSessionOptions = CodexSpeechSessionOptions;
+export type SpeechSession = CodexSpeechSession;
+export type PreparedSpeechSession = CodexPreparedSpeechSession;
+export type SpeechSessionEvent = CodexSpeechSessionEvent;
+export type StreamingTranscription = CodexStreamingTranscription;
+export type HostAttachment = CodexHostAttachment;
+export type HostAttachmentInput = CodexHostAttachmentInput;
+export type NativeAttachment = CodexNativeAttachment;
+export type NativeAttachmentInput = CodexNativeAttachmentInput;
+export type NativeClipboardContent = CodexNativeClipboardContent;
+export type HostCapabilities = CodexHostCapabilities;
+export type NativeRendererApi = CodexNativeRendererApi;
+
+export const nativeRendererGlobal = codexNativeRendererGlobal;

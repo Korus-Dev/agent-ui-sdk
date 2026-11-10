@@ -4,7 +4,7 @@ import type {
   CodexComposerMenuSelectableItem,
   CodexComposerMenuSubmenuItem,
 } from '../composer-menu';
-import { CheckIcon, ChevronRightIcon } from '../icons/app-icons';
+import { CheckIcon, ChevronRightIcon } from '../shared/icons/app-icons';
 
 const CodexComposerMenuItems = defineComponent({
   name: 'CodexComposerMenuItems',

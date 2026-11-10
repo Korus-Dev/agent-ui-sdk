@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
 import type { CodexSurfacePlugin } from 'multi-agents-sdk/surface';
-import { PlugIcon } from '../icons/app-icons';
+import { PlugIcon } from '../shared/icons/app-icons';
 import { pluginDescription, pluginDisplayName } from './composer-plugins';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.

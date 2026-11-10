@@ -44,7 +44,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ChatComposerDrawerRow from './ChatComposerDrawerRow.vue';
-import { PencilIcon, SteeringWheelIcon, TerminalIcon, Trash2Icon } from '../icons/app-icons';
+import { PencilIcon, SteeringWheelIcon, TerminalIcon, Trash2Icon } from '../shared/icons/app-icons';
 import type { QueuedChatPrompt } from './queued-prompts';
 import { parseAuthoredUserText } from './user-text';
 import { userMessageDisplayText } from './message-blocks';

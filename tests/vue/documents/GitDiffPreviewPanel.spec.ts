@@ -4,6 +4,33 @@ import { describe, expect, it } from 'vitest';
 import GitDiffPreviewPanel from '../../../src/vue/documents/DiffPreviewPanel.vue';
 
 describe('GitDiffPreviewPanel', () => {
+  it('delegates overview rendering and selection to the host without map state', async () => {
+    const fileDiff = (path: string) => `diff --git a/${path} b/${path}\n--- a/${path}\n+++ b/${path}\n@@ -1 +1 @@\n-old\n+new\n`;
+    let extension: { files: Array<{ fullPath: string; addedLines: number; removedLines: number }>; select: (path: string) => Promise<void> } | undefined;
+    const wrapper = mount(GitDiffPreviewPanel, {
+      props: { diff: fileDiff('src/a.ts') + fileDiff('src/b.ts'), overview: true },
+      slots: { overview: (props) => { extension = props; return 'Host overview'; } },
+    });
+    expect(wrapper.text()).toBe('Host overview');
+    expect(extension!.files.map(file => [file.fullPath, file.addedLines, file.removedLines])).toEqual([
+      ['src/a.ts', 1, 1], ['src/b.ts', 1, 1],
+    ]);
+    expect(Object.keys(extension!).filter(key => key !== 'key').sort()).toEqual(['files', 'select']);
+    await extension!.select('src/b.ts');
+    expect(wrapper.emitted('select')).toEqual([['src/b.ts']]);
+    await wrapper.setProps({ overview: false });
+    expect(wrapper.findAll('[data-code-path]').map(file => file.attributes('data-code-path'))).toEqual(['src/b.ts']);
+    await wrapper.setProps({ overview: true });
+    await wrapper.setProps({ overview: false });
+    expect(wrapper.findAll('[data-code-path]')).toHaveLength(2);
+    await wrapper.setProps({ overview: true, state: 'loading' });
+    expect(wrapper.text()).not.toContain('Host overview');
+    await wrapper.setProps({ state: 'error', error: 'Load failed' });
+    expect(wrapper.text()).toBe('Load failed');
+    await wrapper.setProps({ state: 'idle', diff: '' });
+    expect(wrapper.text()).not.toContain('Host overview');
+  });
+
   it('renders multiple files, hunks, line numbers, and line states', () => {
     const wrapper = mount(GitDiffPreviewPanel, {
       props: {

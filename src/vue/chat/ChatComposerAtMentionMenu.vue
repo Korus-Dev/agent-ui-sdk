@@ -72,7 +72,7 @@
 import { computed } from 'vue';
 import type { CodexFileSearchItem } from './contracts';
 import type { CodexSurfacePlugin } from 'multi-agents-sdk/surface';
-import { FileTextIcon, PlugIcon, SparklesIcon } from '../icons/app-icons';
+import { FileTextIcon, PlugIcon, SparklesIcon } from '../shared/icons/app-icons';
 import { pluginDescription, pluginDisplayName } from './composer-plugins';
 import type {
   CodexComposerMentionGroup,

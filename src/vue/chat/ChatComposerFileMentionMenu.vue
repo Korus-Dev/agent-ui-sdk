@@ -43,7 +43,7 @@
 import { nextTick, ref, watch } from 'vue';
 import { useCodexChatTranslate } from './chat-i18n';
 import type { CodexFileSearchItem } from './contracts';
-import { FileTextIcon } from '../icons/app-icons';
+import { FileTextIcon } from '../shared/icons/app-icons';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
