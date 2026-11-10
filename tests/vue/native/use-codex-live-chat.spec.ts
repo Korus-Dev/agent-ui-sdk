@@ -1,7 +1,7 @@
 import { effectScope, type EffectScope } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { CodexRealtimeEvent, CodexSurfaceEvent } from 'multi-agents-sdk/surface';
-import { useCodexLiveChat, type CodexLiveChatOptions } from '../../../src/vue/use-codex-live-chat';
+import { useCodexLiveChat, type CodexLiveChatOptions } from '../../../src/vue/native/use-codex-live-chat';
 
 const scopes: EffectScope[] = [];
 function deferred<T>() {

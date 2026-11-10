@@ -1,4 +1,4 @@
-import type { CodexSurfacePlugin } from 'multi-agents-sdk/surface';
+import type { Plugin as CodexSurfacePlugin } from 'multi-agents-sdk/ui-types';
 import type { CodexSkillSummary, PromptSkillInput } from './contracts';
 import { filterComposerSearchItems } from './composer-search';
 

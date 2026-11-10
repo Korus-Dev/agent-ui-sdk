@@ -12,26 +12,8 @@ export function sessionStateToConversationPaneState(
   capabilities: HarnessCapabilities,
   conversationKey?: string | number | null,
 ): ConversationPaneState {
-  const approvals: NonNullable<NonNullable<ConversationPaneState['thread']>['approvals']>[number][] = [];
-  const clientRequests: NonNullable<NonNullable<ConversationPaneState['thread']>['clientRequests']>[number][] = [];
-  for (const request of state.requests) {
-    if (request.kind === 'approval') {
-      approvals.push(request.approval);
-    } else if (request.kind === 'question') {
-      clientRequests.push({
-        id: request.id, kind: 'ask_user', conversationId: request.conversationId,
-        // Legacy presentation requires a string; absent turn identity stays empty.
-        turnId: request.turnId ?? '', itemId: request.itemId ?? request.question.itemId,
-        payload: { request: request.question },
-      });
-    } else {
-      clientRequests.push({
-        id: request.id, kind: 'confirm_tool', conversationId: request.conversationId,
-        turnId: request.turnId ?? null, itemId: request.itemId ?? request.id,
-        payload: { confirmation: request.confirmation },
-      });
-    }
-  }
+  const approvals = state.requests.flatMap(request => request.kind === 'approval' ? [request.approval] : []);
+  const clientRequests = state.requests.filter(request => request.kind !== 'approval');
   return {
     identity: {
       conversationKey, messages: state.messages, busy: state.busy,

@@ -1,12 +1,10 @@
+import { NativeConversationPane as CodexConversationPane, codexCapabilities, codexCommands, type CodexSurfaceController } from '../../../src/vue/native';
 // @vitest-environment jsdom
 
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { h, nextTick, reactive, ref, type Component } from 'vue';
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import {
-  CodexConversationPane,
-  codexCapabilities,
-  codexCommands,
   createCodexConversationPaneController,
   CodexMessage,
   CodexMessageList,
@@ -16,13 +14,12 @@ import {
   type CodexNativeAttachment,
   type CodexConversationPaneState,
   type CodexMessageTextSelection,
-  type CodexSurfaceController,
   type SurfaceMessage,
-} from '../../src/vue';
+} from '../../../src/vue';
 import type { CodexSurfaceClientRequest, CodexSurfaceSnapshot, CodexSurfaceTurn } from 'multi-agents-sdk/surface';
-import type { Message } from '../../src/vue/chat/types';
-import ChatComposerShelf from '../../src/vue/chat/ChatComposerShelf.vue';
-import CodexComposer from '../../src/vue/components/CodexComposer.vue';
+import type { Message } from '../../../src/vue/chat/types';
+import ChatComposerShelf from '../../../src/vue/chat/ChatComposerShelf.vue';
+import CodexComposer from '../../../src/vue/components/CodexComposer.vue';
 
 const messages: SurfaceMessage[] = [{
   id: 'assistant-1',
@@ -89,7 +86,7 @@ const routingMentionGroup = {
   items: [{ id: 'routing-mention', value: 'thread:routing', label: 'Routing thread' }],
 };
 
-describe('CodexConversationPane', () => {
+describe('NativeConversationPane', () => {
   it('discovers skills from the bound surface only when the picker opens', async () => {
     const surface = fakeSurfaceController();
     surface.state.skillCatalogStatus = 'notLoaded';
@@ -1195,7 +1192,7 @@ describe('CodexConversationPane', () => {
     expect(wrapper.find('[role="alert"]').exists()).toBe(false);
 
     await wrapper.setProps({ busy: true, modelValue: '' });
-    await wrapper.get('button[aria-label="Codex is working"]').trigger('click');
+    await wrapper.get('button[aria-label="Interrupt"]').trigger('click');
     expect(wrapper.emitted('interrupt')).toHaveLength(1);
   });
 

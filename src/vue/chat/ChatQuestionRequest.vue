@@ -8,9 +8,9 @@
 </template>
 
 <script setup lang="ts">
+import { questionPayload, type ConversationRequest as CodexSurfaceClientRequest } from './conversation-request';
 import { computed, inject } from 'vue'
 import { questionResponsesKey } from './message-work-state'
-import type { CodexSurfaceClientRequest } from 'multi-agents-sdk/surface'
 import ChatToolUserInputRequest from './ChatToolUserInputRequest.vue'
 import type { ClientRequestResponse } from './contracts'
 import type { MessageToolCall } from './types'
@@ -19,7 +19,7 @@ import type { MessageToolCall } from './types'
 const props = defineProps<{
   answeredClientRequestIds?: ReadonlySet<string>
   historical?: boolean
-  request: Extract<CodexSurfaceClientRequest, { kind: 'ask_user' }>
+  request: Extract<CodexSurfaceClientRequest, { kind: 'question' | 'ask_user' }>
 }>()
 
 const emit = defineEmits<{
@@ -34,10 +34,10 @@ function respond(response: ClientRequestResponse) {
 }
 
 const toolCall = computed<MessageToolCall>(() => ({
-  args: props.request.payload.request.questions,
+  args: questionPayload(props.request).questions,
   done: false,
   function: 'ask_user_question',
-  id: props.request.itemId,
+  id: props.request.itemId ?? questionPayload(props.request).itemId,
   itemId: props.request.itemId,
   result: responses?.get(props.request.id) ?? null,
   state: responses?.get(props.request.id)?.cancelled ? 'canceled' : 'running',
@@ -47,7 +47,7 @@ const toolCall = computed<MessageToolCall>(() => ({
     phase: 'running',
     params: {
       requestId: props.request.id,
-      questions: props.request.payload.request.questions,
+      questions: questionPayload(props.request).questions,
     },
   }),
   turnId: props.request.turnId,

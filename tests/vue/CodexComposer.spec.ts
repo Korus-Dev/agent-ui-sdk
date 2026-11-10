@@ -6,7 +6,8 @@ import { nextTick, reactive } from 'vue';
 import CodexComposer from '../../src/vue/components/CodexComposer.vue';
 import CodexComposerPluginMenu from '../../src/vue/chat/ChatComposerPluginMenu.vue';
 import ChatRichTextEditor, { type CodexRichTextEditorExpose } from '../../src/vue/chat/ChatRichTextEditor.vue';
-import { codexCommands } from '../../src/vue/chat/codex-commands';
+import { codexCapabilities } from '../../src/vue/native/codex-capabilities';
+import { codexCommands } from '../../src/vue/native/codex-commands';
 import type { CodexCapabilities, CodexContextUsage, CodexFileSearchItem, CodexCommandSummary, CodexConversationPresentation, CodexModelOption, CodexSkillSummary, CodexChatTranscription } from '../../src/vue/chat/contracts';
 import type { CodexPromptPart, CodexSurfacePlugin } from 'multi-agents-sdk/surface';
 import type { CodexComposerState } from '../../src/vue/composer-state';
@@ -81,7 +82,7 @@ const plugins: CodexSurfacePlugin[] = [{
 describe('ChatComposer', () => {
   it('requests skills only when the dollar suggestion context opens with an unloaded catalog', async () => {
     const wrapper = mount(CodexComposer, { attachTo: document.body, props: {
-      disabled: false, isSending: false, skills: [], skillCatalogStatus: 'notLoaded',
+      capabilities: codexCapabilities, disabled: false, isSending: false, skills: [], skillCatalogStatus: 'notLoaded',
     } });
     expect(wrapper.emitted('requestSkills')).toBeUndefined();
     await setEditorValue(wrapper, 'ordinary text');
@@ -878,7 +879,7 @@ describe('ChatComposer', () => {
     const wrapper = mountComposer({ isSending: true });
 
     expect(wrapper.get('.chat-composer__send').attributes()).not.toHaveProperty('disabled');
-    expect(wrapper.get('.chat-composer__send').attributes('aria-label')).toBe('Codex is working');
+    expect(wrapper.get('.chat-composer__send').attributes('aria-label')).toBe('Interrupt');
 
     await wrapper.get('.chat-composer__send').trigger('click');
 
@@ -1184,7 +1185,7 @@ describe('ChatComposer', () => {
 
   it.each([
     { catalog: 'default', commands: codexCommands, goalId: 'codex.goal' },
-    { catalog: 'empty', commands: [], goalId: 'codex.goal' },
+    { catalog: 'empty', commands: [], goalId: 'goal' },
     { catalog: 'host-defined', commands: [{ ...codexCommands.find(command => command.name === 'goal')!, id: 'host.goal' }], goalId: 'host.goal' },
     { catalog: 'name-only', commands: [{ id: 'host.objective', name: 'goal', composerMode: { label: 'Goal', placeholder: 'Describe the goal' } }], goalId: 'host.objective' },
   ])('switches between Goal and Plan using the goal capability with a $catalog catalog', async ({ commands, goalId }) => {
@@ -2069,6 +2070,7 @@ function mountComposer(overrides: Partial<ChatComposerProps & {
       disabled: false,
       isSending: false,
       placeholder: 'Ask for follow-up changes',
+      capabilities: codexCapabilities, commands: codexCommands,
       ...overrides,
     },
   });

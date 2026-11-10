@@ -1,3 +1,4 @@
+import type { ConversationRequest as CodexSurfaceClientRequest } from './conversation-request';
 export type ToolExecutionState = 'running' | 'completed' | 'error' | 'canceled';
 
 export type ToolStatusDescriptor = {
@@ -64,7 +65,7 @@ export type MessagePhase = 'commentary' | 'partial_answer' | 'final_answer';
 export type MessagePart =
   | { type: 'attachment'; attachment: MessageAttachment }
   | { type: 'media'; media: MessageMedia; phase?: MessagePhase }
-  | { type: 'question'; historical?: boolean; request: Extract<CodexSurfaceClientRequest, { kind: 'ask_user' }> }
+  | { type: 'question'; historical?: boolean; request: Extract<CodexSurfaceClientRequest, { kind: 'question' | 'ask_user' }> }
   | { type: 'reasoning'; summary: string; itemId?: string; summaryIndex?: number }
   | { type: 'text'; content: string; itemId?: string; phase?: MessagePhase }
   | { type: 'tool'; toolCall: MessageToolCall };
@@ -75,7 +76,7 @@ export type MessageSuggestedPrompt = {
 };
 
 export type Message = {
-  promptContent?: readonly import('multi-agents-sdk/surface').CodexPromptPart[];
+  promptContent?: readonly import('multi-agents-sdk/ui-types').PromptPart[];
   compactionStatus?: 'completed' | 'running';
   role: 'user' | 'assistant';
   content: string;
@@ -97,4 +98,3 @@ export type ChatModelOption = {
   internalId: string;
   label: string;
 };
-import type { CodexSurfaceClientRequest } from 'multi-agents-sdk/surface';

@@ -1,3 +1,4 @@
+import type { ConversationRequest as CodexSurfaceClientRequest } from './chat/conversation-request';
 import type {
   CodexConversationLink,
   CodexContextUsage,
@@ -20,17 +21,7 @@ import type { CodexComposerState } from './composer-state';
 import type { QueuedChatPrompt } from './chat/queued-prompts';
 import type { CodexComposerMentionGroup, CodexComposerMentionItem } from './chat/composer-mentions-custom';
 import type { CodexHostAttachment } from 'ai-app-sdk/host';
-import type {
-  CodexSurfaceApproval,
-  CodexSurfaceApprovalDecision,
-  CodexSurfaceApprovalScope,
-  CodexSurfaceClientRequest,
-  CodexSurfacePlugin,
-  CodexSurfaceTurn,
-  CodexRendererSendMessageOptions,
-  SurfaceMessage,
-  UpdateCodexConversationSettings,
-} from 'multi-agents-sdk/surface';
+import type { Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, ClientSendMessageOptions as CodexRendererSendMessageOptions, SurfaceMessage, UpdateConversationSettings as UpdateCodexConversationSettings } from 'multi-agents-sdk/ui-types';
 
 export type CodexConversationPaneIdentityState = {
   conversationKey?: string | number | null;
@@ -145,7 +136,7 @@ export type CodexConversationPaneActions<Payload = unknown> = {
   deleteQueuedPrompt?: PaneAction<[promptId: string]>;
   updateQueuedPrompt?: PaneAction<[promptId: string, prompt: string, options?: CodexRendererSendMessageOptions]>;
   editGoal?: PaneAction;
-  editTurn?: PaneAction<[payload: { content: string; turnId: string; options?: import('multi-agents-sdk/surface').CodexRendererSendMessageOptions }]>;
+  editTurn?: PaneAction<[payload: { content: string; turnId: string; options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions }]>;
   forkTurn?: PaneAction<[turnId: string]>;
   interrupt?: PaneAction;
   loadOlderHistory?: PaneAction;

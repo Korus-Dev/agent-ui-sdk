@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "build": "vite build && vue-tsc -p tsconfig.build.json && node scripts/package-katex-assets.mjs dist/styles.css dist/fonts && node scripts/verify-package-css.mjs dist/styles.css dist/vue/index.d.ts dist/fonts && node scripts/verify-native-assets.mjs",
-    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit && npm run typecheck:composition",
+    "typecheck:composition": "vue-tsc -p tsconfig.composition.json --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
@@ -52,6 +53,10 @@
     "./documents/*": {
       "types": "./dist/documents/*.d.ts",
       "import": "./dist/documents/*.js"
+    },
+    "./native": {
+      "types": "./dist/vue/native/index.d.ts",
+      "import": "./dist/vue/native/index.js"
     }
   },
   "dependencies": {
@@ -81,5 +86,25 @@
     "element-plus": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "description": "Reusable capability-driven Vue controls and optional native host adapters for agent applications.",
+  "devDependencies": {
+    "@types/node": "25.9.5",
+    "@vitest/coverage-v8": "4.1.10",
+    "typescript": "6.0.3",
+    "vite": "8.1.5",
+    "vitest": "4.1.10",
+    "@types/ws": "8.18.2",
+    "@vitejs/plugin-vue": "6.0.8",
+    "@vue/server-renderer": "3.5.35",
+    "@vue/test-utils": "2.4.11",
+    "electron": "43.1.1",
+    "element-plus": "2.14.1",
+    "jsdom": "29.1.1",
+    "vue": "3.5.35",
+    "vue-tsc": "3.3.7"
   }
 }

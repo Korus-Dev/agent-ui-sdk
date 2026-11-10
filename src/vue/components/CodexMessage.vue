@@ -182,7 +182,7 @@ import { useCodexChatTranslate } from '../chat/chat-i18n'
 import type { ClientRequestResponse, CodexConversationLink, CodexConversationPresentation } from '../chat/contracts'
 import { resolveCodexConversationPresentation } from '../chat/contracts'
 import type { Message } from '../chat/types'
-import type { CodexSurfacePlugin, CodexSurfaceSkill, SurfaceMessage } from 'multi-agents-sdk/surface'
+import type { Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill, SurfaceMessage } from 'multi-agents-sdk/ui-types';
 import type { MessageBlock, RenderedMessageBlock } from '../chat/message-blocks'
 import type {
   CodexMessageImage,
@@ -263,7 +263,7 @@ const emit = defineEmits<{
   'open-visualization': [visualization: CodexConversationVisualization]
   'copy-message': [index: number]
   'delete-turn': [turnId: string]
-  'edit-turn': [payload: { content: string; turnId: string; options?: import('multi-agents-sdk/surface').CodexRendererSendMessageOptions }]
+  'edit-turn': [payload: { content: string; turnId: string; options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions }]
   'fork-turn': [turnId: string]
   'quote-message': [index: number]
   'retry-turn': [turnId: string]
@@ -424,7 +424,7 @@ function cancelEdit() {
   isEditing.value = false
 }
 
-function saveEdit(content: string, options?: import('multi-agents-sdk/surface').CodexRendererSendMessageOptions) {
+function saveEdit(content: string, options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions) {
   const turnId = chatMessage.value.turnId
   if (!turnId) return
   emit('edit-turn', { content, turnId, ...(options ? { options } : {}) })

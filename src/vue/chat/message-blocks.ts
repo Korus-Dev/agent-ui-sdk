@@ -1,7 +1,8 @@
+import { questionPayload } from './conversation-request';
 import { getMessageToolCallArgs, getMessageToolCallName, type Message, type MessageAttachment, type MessageMedia, type MessagePhase, type MessageToolCall, type MessagePart } from './types'
 import { findInlineHtmlBlocks } from './inline-html'
 import { renderedChatMessage, type ChatMessageInput } from './renderer-message-adapter'
-import { promptContentText } from 'multi-agents-sdk/surface'
+import { promptContentText } from 'multi-agents-sdk/prompt';
 
 /** A later model work item supersedes earlier final text in the same turn. */
 export function withoutSupersededFinalAnswers(messages: readonly ChatMessageInput[]): ChatMessageInput[] {
@@ -219,7 +220,7 @@ function computeMessageBlocksFromParts(parts: MessagePart[], toolCalls: MessageT
 
     const nextPart = parts[index + 1]
     if (nextPart?.type === 'question'
-      && nextPart.request.payload.request.questions.some((question) => question.question.trim() === part.content.trim())) {
+      && questionPayload(nextPart.request).questions.some((question) => question.question.trim() === part.content.trim())) {
       continue
     }
 

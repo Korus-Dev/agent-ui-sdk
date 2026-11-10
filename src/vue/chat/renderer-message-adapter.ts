@@ -1,5 +1,6 @@
 import { computed, type ComputedRef } from 'vue';
-import { normalizePromptContent, type SurfaceMessage, type SurfaceMessagePart } from 'multi-agents-sdk/surface';
+import { normalizePromptContent } from 'multi-agents-sdk/prompt';
+import { type SurfaceMessage, type SurfaceMessagePart } from 'multi-agents-sdk/ui-types';
 import type { Message, MessagePart, MessageToolCall, ToolExecutionState } from './types';
 
 export type ChatMessageInput = Message | SurfaceMessage;

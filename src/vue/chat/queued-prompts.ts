@@ -1,7 +1,7 @@
 export type QueuedChatPrompt = {
   id: string;
   text: string;
-  options?: Pick<import('multi-agents-sdk/surface').SendCodexMessageOptions, 'content'>;
+  options?: Pick<import('multi-agents-sdk/ui-types').SendMessageOptions, 'content'>;
 };
 
 let nextQueuedPromptId = 0;

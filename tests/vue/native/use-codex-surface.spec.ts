@@ -6,7 +6,7 @@ import type {
   CodexSurfaceSnapshot,
   CreateCodexRendererConversationOptions,
 } from 'multi-agents-sdk/surface';
-import { useCodexSurface } from '../../../src/vue';
+import { useCodexSurface } from '../../../src/vue/native';
 
 describe('useCodexSurface', () => {
   it('starts with the exact idle state without registering disposal outside a scope', () => {

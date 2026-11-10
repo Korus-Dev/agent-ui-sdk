@@ -1,5 +1,5 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
-import type { CodexSurfaceTurnStatus } from 'multi-agents-sdk/surface'
+import type { TurnStatus as CodexSurfaceTurnStatus } from 'multi-agents-sdk/ui-types';
 import type { ClientRequestResponse } from './contracts'
 
 export const questionResponsesKey: InjectionKey<Map<string, ClientRequestResponse['payload']>> = Symbol('codex-app-sdk-question-responses')

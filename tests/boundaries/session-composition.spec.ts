@@ -108,8 +108,10 @@ describe('neutral session composition', () => {
   });
 
   it('preserves answered requests and optional history evidence in the rendered pane', async () => {
-    const inlineRequest = sessionStateToConversationPaneState(sessionFixture, capabilitiesFixture).thread?.clientRequests?.find(request => request.kind === 'ask_user');
-    if (!inlineRequest || inlineRequest.kind !== 'ask_user') throw new Error('Missing question fixture');
+    const question = sessionFixture.requests[1]!;
+    if (question.kind !== 'question') throw new Error('Missing question fixture');
+    const inlineRequest = { id: question.id, kind: 'ask_user' as const, conversationId: question.conversationId,
+      turnId: question.turnId!, itemId: question.question.itemId, payload: { request: question.question } };
     const snapshot = {
       ...sessionFixture,
       messages: [...sessionFixture.messages, {
@@ -156,7 +158,9 @@ describe('neutral session composition', () => {
     expect(pane.identity).toMatchObject({ conversationKey: 'session-key', busy: true, activeTurnId: 'turn-1', error: null });
     expect(pane.identity.turns?.[0]).toMatchObject({ id: 'turn-1', status: 'inProgress', durationMs: null, startedAt: null });
     expect(pane.thread?.approvals?.[0]).toBe(sessionFixture.requests[0]!.approval);
-    expect(pane.thread?.clientRequests).toMatchObject([{ id: 'question-1', kind: 'ask_user' }, { id: 'confirmation-1', kind: 'confirm_tool' }]);
+    expect(pane.thread?.clientRequests?.[0]).toBe(sessionFixture.requests[1]);
+    expect(pane.thread?.clientRequests?.[1]).toBe(sessionFixture.requests[2]);
+    expect(pane.thread?.clientRequests).toMatchObject([{ id: 'question-1', kind: 'question' }, { id: 'confirmation-1', kind: 'toolConfirmation' }]);
     expect(pane.capabilities).toMatchObject({ planMode: false, skills: false, approvals: true, approvalPresets: [] });
     expect(toChatMessage(sessionFixture.messages[1]!).toolCalls?.[0]).toMatchObject({ id: 'tool-1', state: 'running' });
   });

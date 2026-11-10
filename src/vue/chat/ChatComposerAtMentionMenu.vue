@@ -71,7 +71,7 @@
 <script setup lang="ts" generic="Payload = unknown">
 import { computed } from 'vue';
 import type { CodexFileSearchItem } from './contracts';
-import type { CodexSurfacePlugin } from 'multi-agents-sdk/surface';
+import type { Plugin as CodexSurfacePlugin } from 'multi-agents-sdk/ui-types';
 import { FileTextIcon, PlugIcon, SparklesIcon } from '../shared/icons/app-icons';
 import { pluginDescription, pluginDisplayName } from './composer-plugins';
 import type {

@@ -134,7 +134,7 @@ import { copyTextToClipboard } from './message-actions'
 import { useCodexChatTranslate } from './chat-i18n'
 import type { MessageBlock, RenderedMessageBlock } from './message-blocks'
 import type { ClientRequestResponse, CodexConversationLink } from './contracts'
-import type { CodexSurfacePlugin, CodexSurfaceSkill } from 'multi-agents-sdk/surface'
+import type { Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill } from 'multi-agents-sdk/ui-types';
 import type { CodexMessageImageOpenHandler } from './message-image'
 import type { CodexConversationVisualization } from './visualization'
 import type { CodexComposerMentionGroup, CodexComposerMentionItem } from './composer-mentions-custom'

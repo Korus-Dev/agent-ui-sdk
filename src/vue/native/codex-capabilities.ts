@@ -1,4 +1,4 @@
-import type { CodexCapabilities } from './contracts';
+import type { CodexCapabilities } from '../chat/contracts';
 
 export const codexCapabilities: CodexCapabilities = {
   models: true,

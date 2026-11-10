@@ -1,0 +1,54 @@
+{
+  "baseline": "67a7fd637c7ec929046318c11814d0a087bb0d98",
+  "fidelity": "Whole files moved and compared before adaptations. Both native hook destinations remain byte-identical to baseline.",
+  "moves": [
+    {
+      "from": "src/vue/use-codex-surface.ts",
+      "to": "src/vue/native/use-codex-surface.ts",
+      "sha256": "e334a665a8f94a59548eb50c23feb876400fc98cd431bd4d8df6706edef57216"
+    },
+    {
+      "from": "src/vue/use-codex-live-chat.ts",
+      "to": "src/vue/native/use-codex-live-chat.ts",
+      "sha256": "4d92f048772bed305ab34561befb53ba61c19b3a867c6313e76b10edcee50a46"
+    },
+    {
+      "from": "src/vue/chat/codex-capabilities.ts",
+      "to": "src/vue/native/codex-capabilities.ts",
+      "sha256": "c1573fac40fc2fd2f093847f43562f53fa731e9a68bffd3eec1c6034a78794f8"
+    },
+    {
+      "from": "src/vue/chat/codex-commands.ts",
+      "to": "src/vue/native/codex-commands.ts",
+      "sha256": "e5d98467d34a2ef4027c107d51e538725590f4b802b4dc6c9c48ed7842973fd8"
+    },
+    {
+      "from": "tests/vue/CodexConversationPane.spec.ts",
+      "to": "tests/vue/native/NativeConversationPane.spec.ts",
+      "sha256": "42c6777d3d62a711ee183bbe59eecadccc818a5c883890c81b1442632a03a873"
+    },
+    {
+      "from": "tests/vue/composables/use-codex-surface.spec.ts",
+      "to": "tests/vue/native/use-codex-surface.spec.ts",
+      "sha256": "cf8a4fb93d07e0cfcd1427e92e6b31ca93bf755a7b42748289c62c8a4797d5b6"
+    },
+    {
+      "from": "tests/vue/composables/use-codex-live-chat.spec.ts",
+      "to": "tests/vue/native/use-codex-live-chat.spec.ts",
+      "sha256": "abd953d15518e15644222f5ae80e9e3db567ba7bd701836c1fffa05be9098fbf"
+    }
+  ],
+  "adaptations": [
+    "Native catalog imports: ./contracts to ../chat/contracts only; native data unchanged.",
+    "Native pane test: relative import depth updated, component import switched to NativeConversationPane, native catalog/controller imports switched to /native, describe label updated; behavior assertions retained.",
+    "Native hook tests: import target switched to /native; behavior assertions retained.",
+    "composerCommandsWithGoals copied mechanically into chat/composer-goal-commands.ts then fallback changed to neutral goal command id/copy.",
+    "Generic pane removed native prop, state/action fallbacks, connection lifecycle and native discovery; async action runner renamed runControlledAction.",
+    "Generic leaf imports retargeted mechanically to /ui-types and /prompt; legacy public names retained as explicit type aliases only.",
+    "Canonical requests pass unchanged to leaf controls; UI-owned request union supports existing serialized legacy question/confirmation envelopes without synthetic IDs.",
+    "Generic composer test hosts supply capability/command fixtures explicitly; empty-catalog fallback expectation changes codex.goal to goal.",
+    "Reviewer copy cleanup: Composer uses shared Interrupt action label; approval preset description is provider-neutral. Existing interrupt/click assertions retained with neutral expected label; menu description assertion added.",
+    "Fresh-review compatibility fixes: native wrapper declares the generic runtime prop schema with undefined defaults, allowing Vue kebab-key/Boolean normalization without masking native fallbacks. Generic pane clears only action-origin errors on an actual host-enabled/explicit-error-null transition; composer-origin errors retain their own lifecycle. Real-template, SSR, explicit false/null/absent, and same-key rejected-send/steer recovery regressions added and included in composition typecheck.",
+    "History fallback parity: missing optional native loadTurnHistory or a falsy conversation key emits the original history intent, with no null/undefined key serialization. Regression cases cover method absence and null/undefined/empty/zero keys. Generic composer-menu fixture now explicitly supplies host capabilities/catalogs; ordering/action assertions unchanged."
+  ]
+}

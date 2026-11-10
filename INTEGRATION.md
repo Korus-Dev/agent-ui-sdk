@@ -22,7 +22,7 @@ The unused `ChartTreemapIcon` and other unused icon exports are removed. `src/vu
 
 ## Neutral public names
 
-Neutral exports are direct aliases of existing implementations/types, so legacy names remain valid during integration. The optional Electron preload entry uses the same alias rule. `nativeRendererGlobal` aliases the existing global key without changing its wire value. All `Codex*` host contract types also have corresponding names with `Codex` removed (`HostCapabilities`, `SpeechSession`, etc.). Browser/Electron/speech stay opt-in; Element Plus remains an optional peer. This package is private and is not a vendor publication target.
+Neutral exports are direct aliases of existing implementations/types, so legacy control/type names remain valid during integration. Native hooks and catalogs are available only from `ai-app-sdk/native`; their former root exports are removed. The optional Electron preload entry uses the same alias rule. `nativeRendererGlobal` aliases the existing global key without changing its wire value. All `Codex*` host contract types also have corresponding names with `Codex` removed (`HostCapabilities`, `SpeechSession`, etc.). Browser/Electron/speech stay opt-in; Element Plus remains an optional peer. This package is private and is not a vendor publication target.
 
 | Entry | Compatibility export | Neutral export |
 | --- | --- | --- |
@@ -101,8 +101,8 @@ Neutral exports are direct aliases of existing implementations/types, so legacy 
 | `src/vue/index.ts` | `CodexUserText` | `UserText` |
 | `src/vue/index.ts` | `CodexVisualizationBlock` | `VisualizationBlock` |
 | `src/vue/index.ts` | `CodexWorkGroup` | `WorkGroup` |
-| `src/vue/index.ts` | `codexCapabilities` | `capabilities` |
-| `src/vue/index.ts` | `codexCommands` | `commands` |
+| `src/vue/native/index.ts` | `codexCapabilities` | `codexCapabilities` |
+| `src/vue/native/index.ts` | `codexCommands` | `codexCommands` |
 | `src/vue/index.ts` | `defaultCodexConversationPresentation` | `defaultConversationPresentation` |
 | `src/vue/index.ts` | `resolveCodexConversationPresentation` | `resolveConversationPresentation` |
 | `src/vue/index.ts` | `defaultCodexChatTranslate` | `defaultChatTranslate` |
@@ -173,12 +173,12 @@ Neutral exports are direct aliases of existing implementations/types, so legacy 
 | `src/vue/index.ts` | `CodexToolVisibility` | `ToolVisibility` |
 | `src/vue/index.ts` | `CodexChatTranslate` | `ChatTranslate` |
 | `src/vue/index.ts` | `CodexQueuedPromptData` | `QueuedPromptData` |
-| `src/vue/index.ts` | `useCodexSurface` | `useNativeSurface` |
-| `src/vue/index.ts` | `CodexSurfaceController` | `NativeSurfaceController` |
-| `src/vue/index.ts` | `useCodexLiveChat` | `useNativeLiveChat` |
-| `src/vue/index.ts` | `CodexLiveChatOptions` | `NativeLiveChatOptions` |
-| `src/vue/index.ts` | `CodexLiveChatStatus` | `NativeLiveChatStatus` |
-| `src/vue/index.ts` | `CodexLiveChatTranscript` | `NativeLiveChatTranscript` |
+| `src/vue/native/index.ts` | `useCodexSurface` | `useNativeSurface` |
+| `src/vue/native/index.ts` | `CodexSurfaceController` | `NativeSurfaceController` |
+| `src/vue/native/index.ts` | `useCodexLiveChat` | `useNativeLiveChat` |
+| `src/vue/native/index.ts` | `CodexLiveChatOptions` | `NativeLiveChatOptions` |
+| `src/vue/native/index.ts` | `CodexLiveChatStatus` | `NativeLiveChatStatus` |
+| `src/vue/native/index.ts` | `CodexLiveChatTranscript` | `NativeLiveChatTranscript` |
 | `src/vue/index.ts` | `applyCodexTheme` | `applyTheme` |
 | `src/vue/index.ts` | `CodexThemeMode` | `ThemeMode` |
 | `src/vue/index.ts` | `CodexThemeOptions` | `ThemeOptions` |
@@ -265,16 +265,38 @@ Build and test configs use package-local `source-aliases.ts`, limited to this pa
 
 `sessionStateToConversationPaneState(state, capabilities, conversationKey?)` composes a controlled pane from `SessionState` and `HarnessCapabilities` imported as types from `multi-agents-sdk/consumer-types`. It passes canonical messages through without cloning: they already satisfy the pane's semantic message contract. The existing neutral `toChatMessage` adapter also accepts canonical `Message` and converts tool, reasoning, attachment and text parts for custom renderers. No provider dispatch or Korus integration is required.
 
-The adapter presents busy/error/active-turn state, goals, context usage, turn status and pending approval/question/confirmation requests. Turns pass through by identity, preserving supplied error, retry, timing, detail and usage fields. Unknown values remain unknown. Pending questions without a turn use the legacy presentation contract's empty turn string; confirmations use null. A confirmation with no item uses its request ID as the UI key. These presentation keys are never native identities. Plans and titles have no pane field and remain available to host chrome through the original snapshot.
+The adapter presents busy/error/active-turn state, goals, context usage, turn status and pending approval/question/confirmation requests. Turns pass through by identity, preserving supplied error, retry, timing, detail and usage fields. Unknown values remain unknown. Canonical question and confirmation requests pass through by identity with optional turn/item identity unchanged. `ConversationRequest` is a UI-owned union of canonical requests and existing serialized compatibility envelopes; leaf controls read both shapes without translating native identity. A confirmation renderer may use the request ID as a local tool-row key when no item ID exists; it never writes that key into the request. Plans and titles have no pane field and remain available to host chrome through the original snapshot.
 
 Capabilities drive controls. `native` and `prompted` plan modes enable the plan toggle; `unsupported` disables it. Opaque harness permission IDs are never converted into legacy approval presets; the preset list stays empty. A host can supply permission selection through its own composer menu and `driver.setPermission`. Attachment selection/resolution, catalogs and action bindings remain host-owned.
 
 [examples/session-pane.ts](examples/session-pane.ts) is a typed minimal binding of an opaque `Session` to the controller. It subscribes only to that session's `session.changed` events, exposes disposal, and wires submit/interrupt/request responses using the public `requestResponseFromClientResponse` and `requestResponseFromApproval` helpers. Both return `SessionRequestResponse`, which matches the neutral driver response without native identity. Its required `resolvePromptOptions` callback resolves host-owned attachment references and maps client model/reasoning fields into harness prompt selection; the example never treats a reference as a filesystem path. Hosts add actions/catalogs for any further capabilities they expose. The caller passes the resulting controller to `ConversationPane`.
 
-`ClientAttachment` and `ClientSendMessageOptions` are the preferred UI action types. `RendererAttachment` / `RendererSendMessageOptions` and original Codex spellings remain compatibility aliases. `useNativeSurface` / `useNativeLiveChat` name the native helpers explicitly, retaining `useCodexSurface` / `useCodexLiveChat`. The generic `useSurface` / `useLiveChat` aliases are removed: those implementations only support the native Codex bridge. The harness `/surface` and `/surface-bridge` remain explicit native compatibility entries, not the neutral session API.
+`ClientAttachment` and `ClientSendMessageOptions` are the preferred UI action types. `RendererAttachment` / `RendererSendMessageOptions` and original Codex spellings remain compatibility aliases. `useNativeSurface` / `useNativeLiveChat` name the native helpers explicitly, retaining `useCodexSurface` / `useCodexLiveChat`. All surface/live-chat hooks are exported only from `ai-app-sdk/native`. The generic `useSurface` / `useLiveChat` aliases are removed: those implementations only support the native Codex bridge. The harness `/surface` and `/surface-bridge` remain explicit native compatibility entries, not the neutral session API.
 
 Fixture-backed tests in `tests/boundaries/session-composition.spec.ts` verify canonical message rendering and identity, capability mapping, all three pending request kinds, busy/error updates, terminal tool state, controlled submit/interrupt intents, session event isolation, option resolution, approval/question responses and subscription disposal. The fixture is also mounted with a pending approval: clicking its actual Allow button routes through the pane, controller and reusable converter to `driver.respondToRequest`; the approval disappears on the next request-free snapshot. Converter tests cover answers, cancellation, each tool-confirmation decision, approval scopes and rejection of empty responses. `tsconfig.composition.json` typechecks the actual example, fixture and composition test in addition to source. This is separate from Vitest's transpile-only execution.
 
 The timed failure fixture verifies real error/retry evidence reaches the message list unchanged and an authoritative 12-second duration remains visible even when wall-clock timestamps span 18 seconds. The rendered Retry action routes to the controller; an update with unknown timing does not manufacture a duration.
 
 Optional `SessionState.answeredClientRequestIds` maps to the controller's answered set only when supplied; absence remains undefined and a supplied empty list remains a known empty set. `historyLoading` maps to `history.loading`; optional `historyState` supplies `hasOlder` and `loadingOlder`. Absent paging flags remain absent rather than becoming false. Tests verify rendered answered-question suppression, known paging/loading state, the conversation loading indicator and transitions back to absent history evidence.
+
+## Controlled root and native convenience
+
+The generic `ConversationPane`/`CodexConversationPane` has no `surface` prop, connection lifecycle, native state fallback or native method calls. All data and intent handlers come from host-controlled controller or prop/event inputs. `readPromptHistory` is an optional host loader on that same controlled interface; `requestSkills` emits a host intent when no controller action handles it. The root starts with unavailable capability flags and an empty command catalog. Host-supplied catalogs, capabilities and existing control behavior remain intact. The generic goal composer mode uses the neutral fallback ID `goal` when supported and not supplied by the host.
+
+For existing native convenience, import `NativeConversationPane`, `useNativeSurface`/`useCodexSurface`, `useNativeLiveChat`/`useCodexLiveChat`, native hook types, `codexCommands` and `codexCapabilities` from `ai-app-sdk/native`. The wrapper adapts the native snapshot/actions into the generic controlled pane and retains connection, error recovery, prompt recall/discovery, queue, approval/question and settings behavior. It forwards host overrides, slots and `focusComposer`. It owns native catalog defaults; generic controls never import those catalogs. Existing raw prop/event consumers without a native surface stay on the root controls.
+
+Exact consumer changes:
+
+- Root `ConversationPane` with `surface` → `/native` `NativeConversationPane` with the same native surface, or host-controlled root `ConversationPane` composed from neutral session state.
+- Root surface/live-chat hooks and their types → same named exports from `/native`. Native aliases are retained there; general harness session composition uses the root state adapter.
+- Root `codexCapabilities`/`capabilities` → `/native` `codexCapabilities` if native defaults are wanted; otherwise supply host capabilities explicitly.
+- Root `codexCommands`/`commands` → `/native` `codexCommands` if native commands are wanted; otherwise supply host catalogs explicitly.
+- Generic leaf contracts use `multi-agents-sdk/ui-types` or UI-owned request DTOs; prompt values/functions use pure `multi-agents-sdk/prompt`. Native `/surface` and `/surface-bridge` imports are confined to the opt-in native entry and existing Electron adapters.
+
+Korus `client/vue/src/components/ConversationPane.vue` uses a controller and has no native pane `surface` prop; its local `surface` ref and mention-slot `surface` metadata are unrelated to native state. The parent owns Korus import updates and packaging metadata. This change adds only the agreed `typecheck:composition` script and its invocation from normal `typecheck`, plus the native build entry.
+
+[docs/native-boundary-moves.json](docs/native-boundary-moves.json) records exact source/destination maps and SHA-256 baseline hashes from `67a7fd6`, with adaptation lists for the parent transfer manifest. All moved files were compared before adaptation; native hooks remain byte-identical. The complete 181-test pane suite moved to the native wrapper, retaining behavior assertions. Generic controlled/composition tests cover root defaults, known history booleans, canonical request identity and request rendering/responses. Runtime graph guards reject native/provider/surface-bridge imports from root and document panels; static guards also reject native surface type imports and retired app chrome/treemap exports. No coverage gate was lowered and no behavior assertion was dropped.
+
+The native wrapper declares the generic pane's runtime prop schema with defaults left undefined. Vue therefore normalizes kebab-case keys and bare Booleans before the controlled-state adapter reads them, while absent overrides leave native values intact; explicit false and nullable identifiers remain explicit overrides. Real-template and server-rendered regressions cover those boundaries. Host action errors clear only after an actual transition to enabled with an explicit upstream `error: null`; unrelated renders, omitted error evidence, ready-with-error and error-free-while-disabled retain them. Active composer/transcription errors have their own lifecycle and survive transport recovery. Same-key rejected-send and rejected-steer regressions cover this behavior, and normal composition typecheck includes these template fixtures/tests.
+
+Native history actions retain event fallbacks: absent optional turn-history support or a falsy conversation key emits the corresponding host intent instead of calling native history with a manufactured string key. Host menu fixtures explicitly supply their capability and command catalogs; root defaults remain neutral.

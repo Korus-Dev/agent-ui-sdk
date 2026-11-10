@@ -1,4 +1,4 @@
-import type { CodexCommandSummary } from './contracts';
+import type { CodexCommandSummary } from '../chat/contracts';
 
 export const codexCommands: readonly CodexCommandSummary[] = [
   {

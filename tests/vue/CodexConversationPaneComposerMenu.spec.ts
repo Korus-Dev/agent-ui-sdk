@@ -14,6 +14,13 @@ describe('CodexConversationPane composer menu', () => {
     const controller = createCodexConversationPaneController({
       state: {
         identity: { messages: [] },
+        capabilities: {
+          models: false, skills: false, reasoningEffort: false, serviceTier: false,
+          planMode: true, goals: true, approvals: true, approvalPresets: ['ask-for-approval'],
+          steerPrompt: false, interrupt: false, history: false,
+          deleteTurn: false, editTurn: false, retryTurn: false,
+        },
+        catalogs: { commands: [{ id: 'host.goal', name: 'goal', composerMode: { label: 'Goal' } }] },
         composer: {
           approvalPreset: 'ask-for-approval',
           leadingMenuItems: [permissions],

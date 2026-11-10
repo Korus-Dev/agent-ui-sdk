@@ -276,20 +276,10 @@
 </template>
 
 <script setup lang="ts" generic="Payload = unknown">
-import { computed, nextTick, onMounted, provide, ref, shallowReactive, watch } from 'vue';
-import { promptContentDispatchText } from 'multi-agents-sdk/surface';
-import type {
-  CodexConversationRenderStrategy,
-  CodexRendererAttachment,
-  CodexSurfaceApproval,
-  CodexSurfaceApprovalDecision,
-  CodexSurfaceApprovalScope,
-  CodexSurfacePlugin,
-  CodexSurfaceClientRequest,
-  CodexSurfaceTurn,
-  SurfaceMessage,
-  CodexRendererSendMessageOptions,
-} from 'multi-agents-sdk/surface';
+import { questionPayload, isQuestionRequest, isConfirmationRequest, type ConversationRequest as CodexSurfaceClientRequest } from '../chat/conversation-request';
+import { computed, nextTick, provide, ref, shallowReactive, watch } from 'vue';
+import { promptContentDispatchText } from 'multi-agents-sdk/prompt';
+import type { ConversationRenderStrategy as CodexConversationRenderStrategy, ClientAttachment as CodexRendererAttachment, Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, SurfaceMessage, ClientSendMessageOptions as CodexRendererSendMessageOptions } from 'multi-agents-sdk/ui-types';
 import type { CodexHostAttachment } from 'ai-app-sdk/host';
 import type { CodexComposerMenuItem, CodexComposerMenuSelectableItem } from '../composer-menu';
 import type {
@@ -331,8 +321,8 @@ import type {
   TurnGitDiff,
 } from '../chat/contracts';
 import { resolveCodexConversationPresentation } from '../chat/contracts';
-import { codexCapabilities } from '../chat/codex-capabilities';
-import { codexCommands, composerCommandsWithGoals } from '../chat/codex-commands';
+import { defaultCapabilities } from '../chat/default-capabilities';
+import { composerCommandsWithGoals } from '../chat/composer-goal-commands';
 import { codexConversationLinkFromHref } from '../chat/conversation-links';
 import {
   ingestCodexAttachments,
@@ -341,7 +331,6 @@ import {
   type CodexAttachmentIngester,
   type CodexAttachmentPicker,
 } from '../native-capabilities';
-import type { CodexSurfaceController } from '../use-codex-surface';
 import type { CodexComposerState } from '../composer-state';
 import type { CodexComposerMentionGroup, CodexComposerMentionItem } from '../chat/composer-mentions-custom';
 import { normalizeCodexComposerState } from '../composer-state';
@@ -370,7 +359,7 @@ const props = withDefaults(defineProps<{
   attachments?: readonly CodexHostAttachment[];
   autofocus?: boolean;
   capabilities?: CodexCapabilities;
-  /** Controlled state/actions adapter. When supplied, it takes precedence over legacy props and surface state. */
+  /** Controlled state/actions adapter. When supplied, it takes precedence over controlled prop inputs. */
   controller?: CodexConversationPaneControllerSource<Payload>;
   busy?: boolean;
   canDeleteTurn?: boolean;
@@ -418,6 +407,7 @@ const props = withDefaults(defineProps<{
   placeholder?: string;
   suggestedPrompt?: string;
   promptHistory?: readonly string[];
+  readPromptHistory?: () => readonly string[] | Promise<readonly string[]>;
   approvalPreset?: ApprovalPreset | null;
   planMode?: boolean;
   plugins?: readonly CodexSurfacePlugin[];
@@ -430,7 +420,6 @@ const props = withDefaults(defineProps<{
   showToolDetails?: boolean;
   skillCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   skills?: readonly CodexSkillSummary[];
-  surface?: CodexSurfaceController;
   transformMessage?: (message: Message | SurfaceMessage, index: number) => Message | SurfaceMessage;
   transcribeAudio?: CodexChatTranscription;
   toolVisibility?: CodexToolVisibility;
@@ -448,7 +437,7 @@ const props = withDefaults(defineProps<{
   canRetryTurn: true,
   disabled: undefined,
   emptyDescription: '',
-  emptyTitle: 'Start a conversation with Codex',
+  emptyTitle: 'Start a conversation',
   historyLoading: undefined,
   lazyMessages: undefined,
   initialMessageBatchSize: 50,
@@ -515,6 +504,7 @@ defineSlots<{
 
 const emit = defineEmits<{
   attach: [];
+  requestSkills: [];
   attachmentsChange: [attachments: readonly CodexHostAttachment[]];
   cancel: [];
   clientResponse: [response: ClientRequestResponse];
@@ -525,7 +515,7 @@ const emit = defineEmits<{
   deleteQueuedPrompt: [promptId: string];
   updateQueuedPrompt: [promptId: string, prompt: string, options?: CodexRendererSendMessageOptions];
   editGoal: [];
-  editTurn: [payload: { content: string; turnId: string; options?: import('multi-agents-sdk/surface').CodexRendererSendMessageOptions }];
+  editTurn: [payload: { content: string; turnId: string; options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions }];
   forkTurn: [turnId: string];
   loadOlderHistory: [];
   loadTurnHistory: [turnId: string];
@@ -576,7 +566,6 @@ const effectiveControllerActions = computed<CodexConversationPaneActions<Payload
   const controller = effectiveController.value;
   return controller ? resolveCodexConversationPaneValue(controller.actions) : undefined;
 });
-const surfaceState = computed(() => props.surface?.state);
 function controlledValue<T>(read: (state: CodexConversationPaneState) => T, fallback: () => T): T {
   const state = effectiveControllerState.value;
   return state ? read(state) : fallback();
@@ -616,6 +605,7 @@ const pendingControlledSubmission = ref<PendingControlledSubmission | null>(null
 let optimisticSubmissionSequence = 0;
 let deleteOperation = 0;
 const localError = ref<string | null>(null);
+const localErrorSource = ref<'action' | 'composer' | null>(null);
 const selectedAttachments = ref<CodexHostAttachment[]>([...effectiveAttachments.value]);
 const promptHistoryByConversation = new Map<string | number, readonly string[]>();
 const loadedPromptHistory = ref<readonly string[]>([]);
@@ -623,7 +613,7 @@ const promptHistoryLoading = ref(false);
 let promptHistoryRequest = 0;
 const authoritativeMessages = computed(() => controlledValue(
   (state) => state.identity.messages,
-  () => props.messages ?? surfaceState.value?.messages ?? [],
+  () => props.messages ?? [],
 ));
 const effectiveMessages = computed<readonly (Message | SurfaceMessage)[]>(() => {
   const messages = authoritativeMessages.value;
@@ -633,11 +623,11 @@ const effectiveMessages = computed<readonly (Message | SurfaceMessage)[]>(() => 
 });
 const effectiveActiveTurnId = computed(() => controlledValue(
   (state) => state.identity.activeTurnId,
-  () => (props.activeTurnId !== undefined ? props.activeTurnId : surfaceState.value?.activeTurnId),
+  () => props.activeTurnId,
 ));
 const effectiveTurns = computed(() => controlledValue(
   (state) => state.identity.turns,
-  () => props.turns ?? surfaceState.value?.turns ?? [],
+  () => props.turns ?? [],
 ));
 const canContinueInterruptedTurn = computed(() => (
   !effectiveBusy.value
@@ -661,7 +651,7 @@ const effectivePromptHistory = computed(() => mergePromptHistories(
 ));
 const effectiveAnsweredClientRequestIds = computed(() => controlledValue(
   (state) => state.thread?.answeredClientRequestIds,
-  () => props.answeredClientRequestIds ?? props.surface?.answeredClientRequestIds,
+  () => props.answeredClientRequestIds ?? undefined,
 ));
 // Equivalent question sets must not invalidate every row on each text delta.
 function retainRequestIds(previous: ReadonlySet<string> | undefined, ids: Iterable<string>): ReadonlySet<string> {
@@ -674,7 +664,7 @@ const displayAnsweredClientRequestIds = computed<ReadonlySet<string>>((previous)
 ]));
 const effectiveClientRequests = computed<readonly CodexSurfaceClientRequest[]>(() => controlledValue(
   (state) => state.thread?.clientRequests ?? [],
-  () => props.clientRequests ?? surfaceState.value?.clientRequests ?? [],
+  () => props.clientRequests ?? [],
 ));
 const supersededQuestionIds = computed<ReadonlySet<string>>(() => {
   const ids = new Set<string>();
@@ -682,7 +672,7 @@ const supersededQuestionIds = computed<ReadonlySet<string>>(() => {
   const messages = authoritativeMessages.value.map(renderedChatMessage);
   for (const [questionIndex, message] of messages.entries()) {
     for (const part of message.parts ?? []) {
-      if (part.type !== 'question' || part.request.payload.request.delivery !== 'async') continue;
+      if (part.type !== 'question' || questionPayload(part.request).delivery !== 'async') continue;
       const questionTurnId = part.request.turnId ?? message.turnId;
       const questionTurnIndex = questionTurnId ? turns.get(questionTurnId) : undefined;
       if (messages.some((candidate, userIndex) => {
@@ -701,11 +691,11 @@ const dismissedQuestionIds = computed<ReadonlySet<string>>(() => new Set([
   ...supersededQuestionIds.value,
 ]));
 const pendingQuestionRequests = computed(() => {
-  const requests: Extract<CodexSurfaceClientRequest, { kind: 'ask_user' }>[] = [];
+  const requests: Extract<CodexSurfaceClientRequest, { kind: 'question' | 'ask_user' }>[] = [];
   const seen = new Set<string>();
   for (const request of effectiveClientRequests.value) {
-    if (request.kind !== 'ask_user' || request.payload.request.delivery !== 'tool'
-      || request.payload.request.questions.length === 0
+    if (!isQuestionRequest(request) || questionPayload(request).delivery !== 'tool'
+      || questionPayload(request).questions.length === 0
       || displayAnsweredClientRequestIds.value.has(request.id)) continue;
     seen.add(request.id);
     requests.push(request);
@@ -715,7 +705,7 @@ const pendingQuestionRequests = computed(() => {
       if (
         part.type !== 'question'
         || part.historical === true
-        || part.request.payload.request.questions.length === 0
+        || questionPayload(part.request).questions.length === 0
         || seen.has(part.request.id)
         || displayAnsweredClientRequestIds.value.has(part.request.id)
         || dismissedQuestionIds.value.has(part.request.id)
@@ -727,10 +717,10 @@ const pendingQuestionRequests = computed(() => {
   return requests;
 });
 const expandedQuestionRequest = computed(() => (
-  pendingQuestionRequests.value.find((request) => request.payload.request.delivery === 'tool')
+  pendingQuestionRequests.value.find((request) => questionPayload(request).delivery === 'tool')
   ?? pendingQuestionRequests.value.find((request) => request.id === openedQuestionId.value)
   ?? pendingQuestionRequests.value.find((request) => {
-    if (request.payload.request.delivery !== 'async') return true;
+    if (questionPayload(request).delivery !== 'async') return true;
     const turn = effectiveTurns.value?.find((candidate) => candidate.id === request.turnId);
     return turn ? turn.status === 'inProgress' : request.turnId === effectiveActiveTurnId.value;
   })
@@ -739,16 +729,16 @@ const hiddenQuestionRequestIds = computed<ReadonlySet<string>>((previous) => ret
   pendingQuestionRequests.value.map((request) => request.id),
 ));
 const activeConfirmation = computed(() => effectiveClientRequests.value.find(
-  (request): request is Extract<CodexSurfaceClientRequest, { kind: 'confirm_tool' }> => (
-    request.kind === 'confirm_tool' && !displayAnsweredClientRequestIds.value.has(request.id)
+  (request): request is Extract<CodexSurfaceClientRequest, { kind: 'toolConfirmation' | 'confirm_tool' }> => (
+    isConfirmationRequest(request) && !displayAnsweredClientRequestIds.value.has(request.id)
   ),
 ));
 const activeComposerRequestItemIds = computed<ReadonlySet<string>>(() => new Set(
   effectiveClientRequests.value
-    .filter((request) => request.kind === 'confirm_tool'
+    .filter((request) => isConfirmationRequest(request)
       ? !displayAnsweredClientRequestIds.value.has(request.id)
-      : request.payload.request.delivery === 'tool')
-    .map((request) => request.itemId),
+      : questionPayload(request).delivery === 'tool')
+    .map((request) => request.itemId).filter((id): id is string => id !== undefined),
 ));
 function transformTranscriptMessage(message: Message | SurfaceMessage, index: number): Message | SurfaceMessage {
   const transformed = props.transformMessage?.(message, index) ?? message;
@@ -772,12 +762,12 @@ function transformTranscriptMessage(message: Message | SurfaceMessage, index: nu
 }
 const effectiveApprovals = computed(() => controlledValue(
   (state) => state.thread?.approvals ?? [],
-  () => props.approvals ?? surfaceState.value?.approvals ?? [],
+  () => props.approvals ?? [],
 ));
 const activeApproval = computed(() => effectiveApprovals.value[0]);
 const effectiveBusy = computed(() => controlledValue(
   (state) => state.identity.busy ?? false,
-  () => props.busy ?? surfaceState.value?.busy ?? false,
+  () => props.busy ?? false,
 ));
 const effectiveTranscriptBusy = computed(() => (
   effectiveBusy.value || pendingControlledSubmission.value !== null
@@ -793,62 +783,75 @@ const {
 });
 const effectiveConversationKey = computed(() => controlledValue(
   (state) => state.identity.conversationKey,
-  () => (props.conversationKey !== undefined ? props.conversationKey : surfaceState.value?.activeConversationId),
+  () => props.conversationKey,
 ));
 const effectiveContextUsage = computed(() => controlledValue(
   (state) => state.thread?.contextUsage,
-  () => (props.contextUsage !== undefined ? props.contextUsage : surfaceState.value?.contextUsage),
+  () => props.contextUsage,
 ));
 const effectiveDisabled = computed(() => controlledValue(
   (state) => state.identity.disabled ?? false,
-  () => props.disabled ?? (surfaceState.value ? surfaceState.value.status !== 'ready' : false),
+  () => props.disabled ?? false,
 ));
 const effectiveError = computed(() => (
   localError.value
   ?? controlledValue(
     (state) => state.identity.error,
-    () => props.error ?? surfaceState.value?.error ?? null,
+    () => props.error ?? null,
   )
   ?? null
 ));
+// Host-controlled recovery clears action failures only after an actual transition
+// to enabled and explicitly error-free. Composer errors have their own lifecycle.
+watch([
+  effectiveDisabled,
+  () => effectiveControllerState.value ? effectiveControllerState.value.identity.error : props.error,
+], ([disabled, error], [previousDisabled, previousError]) => {
+  if (disabled === false && error === null
+    && (previousDisabled !== false || previousError !== null)
+    && localErrorSource.value === 'action') {
+    localError.value = null;
+    localErrorSource.value = null;
+  }
+});
 const effectiveGoal = computed(() => controlledValue(
   (state) => state.thread?.goal ?? null,
-  () => (props.goal !== undefined ? props.goal : surfaceState.value?.goal ?? null),
+  () => props.goal ?? null,
 ));
 const effectiveHistoryLoading = computed(() => controlledValue(
   (state) => state.history?.loading ?? false,
-  () => props.historyLoading ?? surfaceState.value?.historyLoading ?? false,
+  () => props.historyLoading ?? false,
 ));
 const effectiveRenderStrategy = computed<CodexConversationRenderStrategy>(() => (
   props.renderStrategy ?? (props.lazyMessages === false ? 'eager' : 'lazy')
 ));
 const effectiveHasOlderHistory = computed(() => controlledValue(
   (state) => state.history?.hasOlder ?? false,
-  () => props.hasOlderHistory ?? surfaceState.value?.historyState?.hasOlder ?? false,
+  () => props.hasOlderHistory ?? false,
 ));
 const effectiveLoadingOlderHistory = computed(() => controlledValue(
   (state) => state.history?.loadingOlder ?? false,
-  () => props.loadingOlderHistory ?? surfaceState.value?.historyState?.loadingOlder ?? false,
+  () => props.loadingOlderHistory ?? false,
 ));
 const effectiveModelCatalogStatus = computed(() => controlledValue(
   (state) => state.catalogs?.modelCatalogStatus,
-  () => props.modelCatalogStatus ?? surfaceState.value?.modelCatalogStatus,
+  () => props.modelCatalogStatus,
 ));
 const effectiveModels = computed(() => controlledValue(
   (state) => state.catalogs?.models,
-  () => props.models ?? surfaceState.value?.models,
+  () => props.models,
 ));
 const effectiveApprovalPreset = computed(() => controlledValue(
   (state) => state.composer?.approvalPreset,
-  () => (props.approvalPreset !== undefined ? props.approvalPreset : surfaceState.value?.approvalPreset),
+  () => props.approvalPreset,
 ));
 const effectivePlanMode = computed(() => controlledValue(
   (state) => state.composer?.planMode,
-  () => props.planMode ?? surfaceState.value?.planMode,
+  () => props.planMode,
 ));
 const effectivePlugins = computed(() => controlledValue(
   (state) => state.catalogs?.plugins,
-  () => props.plugins ?? surfaceState.value?.plugins,
+  () => props.plugins,
 ));
 const effectiveMentionGroups = computed(() => controlledValue(
   (state) => state.catalogs?.mentionGroups,
@@ -857,54 +860,50 @@ const effectiveMentionGroups = computed(() => controlledValue(
 const effectivePresentation = computed(() => resolveCodexConversationPresentation(props.presentation));
 const effectiveQueuedPrompts = computed(() => controlledValue(
   (state) => state.thread?.queuedPrompts ?? [],
-  () => props.queuedPrompts ?? surfaceState.value?.queuedPrompts ?? [],
+  () => props.queuedPrompts ?? [],
 ));
 const effectiveSelectedModelId = computed(() => controlledValue(
   (state) => state.composer?.selectedModelId,
-  () => (props.selectedModelId !== undefined ? props.selectedModelId : surfaceState.value?.selectedModelId),
+  () => props.selectedModelId,
 ));
 const effectiveSelectedReasoningEffort = computed(() => controlledValue(
   (state) => state.composer?.selectedReasoningEffort,
-  () => (props.selectedReasoningEffort !== undefined
-    ? props.selectedReasoningEffort
-    : surfaceState.value?.selectedReasoningEffort),
+  () => props.selectedReasoningEffort,
 ));
 const effectiveSelectedServiceTier = computed(() => controlledValue(
   (state) => state.composer?.selectedServiceTier,
-  () => (props.selectedServiceTier !== undefined
-    ? props.selectedServiceTier
-    : surfaceState.value?.selectedServiceTier),
+  () => props.selectedServiceTier,
 ));
 const effectiveSkillCatalogStatus = computed(() => controlledValue(
   (state) => state.catalogs?.skillCatalogStatus,
-  () => props.skillCatalogStatus ?? surfaceState.value?.skillCatalogStatus,
+  () => props.skillCatalogStatus,
 ));
 const effectiveSkills = computed(() => controlledValue(
   (state) => state.catalogs?.skills,
-  () => props.skills ?? surfaceState.value?.skills,
+  () => props.skills,
 ));
 const effectiveTurnGitDiff = computed(() => controlledValue(
   (state) => state.thread?.turnGitDiff,
-  () => (props.turnGitDiff !== undefined ? props.turnGitDiff : surfaceState.value?.turnGitDiff),
+  () => props.turnGitDiff,
 ));
 const effectiveAttachEnabled = computed(() => controlledValue(
   (state) => state.policy?.attachEnabled ?? true,
   () => props.attachEnabled !== false,
 ));
 const effectiveCapabilities = computed<CodexCapabilities>(() => ({
-  ...codexCapabilities,
+  ...defaultCapabilities,
   ...(effectiveControllerState.value
     ? effectiveControllerState.value.capabilities
     : props.capabilities),
   approvalPresets: effectiveControllerState.value?.capabilities?.approvalPresets
     ?? (effectiveControllerState.value
-      ? codexCapabilities.approvalPresets
-      : props.approvalPresets ?? surfaceState.value?.approvalPresets ?? props.capabilities?.approvalPresets)
-    ?? codexCapabilities.approvalPresets,
+      ? defaultCapabilities.approvalPresets
+      : props.approvalPresets ?? props.capabilities?.approvalPresets)
+    ?? defaultCapabilities.approvalPresets,
 }));
 const effectiveCommands = computed(() => controlledValue(
   (state) => state.catalogs?.commands ?? [],
-  () => props.commands ?? codexCommands,
+  () => props.commands ?? [],
 ));
 const effectiveFiles = computed(() => controlledValue(
   (state) => state.catalogs?.files ?? [],
@@ -1073,20 +1072,10 @@ watch(effectiveQueuedPrompts, (prompts) => {
 
 watch([
   effectiveConversationKey,
-  () => surfaceState.value?.activeConversationId,
   () => effectiveControllerActions.value?.readPromptHistory,
   configuredPromptHistory,
+  () => props.readPromptHistory,
 ], () => { void loadPromptHistory(); }, { immediate: true });
-
-watch(() => [surfaceState.value?.status, surfaceState.value?.error] as const, ([status, error]) => {
-  if (status === 'ready' && error == null) localError.value = null;
-});
-
-onMounted(() => {
-  if (props.surface && props.surface.state.status === 'idle') {
-    void runSurfaceAction(() => props.surface!.connect());
-  }
-});
 
 async function loadPromptHistory(): Promise<void> {
   const request = ++promptHistoryRequest;
@@ -1101,16 +1090,12 @@ async function loadPromptHistory(): Promise<void> {
     return;
   }
 
-  const controlledLoader = effectiveControllerActions.value?.readPromptHistory;
-  const surface = props.surface;
-  const conversationId = surfaceState.value?.activeConversationId;
-  if (!controlledLoader && !conversationId) return;
+  const controlledLoader = effectiveControllerActions.value?.readPromptHistory ?? props.readPromptHistory;
+  if (!controlledLoader) return;
 
   promptHistoryLoading.value = true;
   try {
-    const prompts = controlledLoader
-      ? await controlledLoader()
-      : (await surface!.readConversationPromptHistory(conversationId!)).prompts;
+    const prompts = await controlledLoader();
     if (request !== promptHistoryRequest || effectiveConversationKey.value !== key) return;
     const bounded = [...prompts].slice(-100);
     promptHistoryByConversation.set(key, bounded);
@@ -1153,7 +1138,7 @@ function submit(prompt: string, composerOptions?: Pick<CodexRendererSendMessageO
     const controlledSubmit = effectiveControllerActions.value?.submit;
     if (controlledSubmit) {
       const optimisticMessageId = beginControlledSubmission(prompt, selectedAttachments.value, options?.content);
-      void runSurfaceAction(
+      void runControlledAction(
         () => Promise.resolve(controlledSubmit(prompt, options)),
         () => {
           clearPendingControlledSubmission(optimisticMessageId);
@@ -1166,12 +1151,6 @@ function submit(prompt: string, composerOptions?: Pick<CodexRendererSendMessageO
   }
   if (options) emit('submit', prompt, options);
   else emit('submit', prompt);
-  if (props.surface) {
-    void runSurfaceAction(
-      () => props.surface!.sendMessage(prompt, options),
-      () => { locallyDismissedQuestionIds.value = previousDismissedQuestions; },
-    );
-  }
   replaceAttachments([]);
 }
 
@@ -1180,7 +1159,7 @@ function dismissPendingQuestions(): ReadonlySet<string> {
   locallyDismissedQuestionIds.value = new Set([
     ...previous,
     ...pendingQuestionRequests.value
-      .filter((request) => request.payload.request.delivery === 'async')
+      .filter((request) => questionPayload(request).delivery === 'async')
       .map((request) => request.id),
   ]);
   openedQuestionId.value = null;
@@ -1200,7 +1179,6 @@ function continueInterruptedTurn(): void {
   if (dispatchControllerAction('continueInterruptedTurn')) return;
   if (effectiveController.value) return;
   emit('continueInterruptedTurn');
-  if (props.surface) void runSurfaceAction(() => props.surface!.continueInterruptedTurn());
 }
 
 function beginControlledSubmission(
@@ -1257,20 +1235,12 @@ function clearPendingControlledSubmission(messageId: string | null): void {
 function loadTurnHistory(turnId: string): void {
   if (dispatchControllerAction('loadTurnHistory', turnId)) return;
   if (effectiveController.value) return;
-  if (props.surface?.loadTurnHistory && effectiveConversationKey.value) {
-    void runSurfaceAction(() => props.surface!.loadTurnHistory!(turnId, String(effectiveConversationKey.value)));
-    return;
-  }
   emit('loadTurnHistory', turnId);
 }
 
 function loadOlderHistory(): void {
   if (dispatchControllerAction('loadOlderHistory')) return;
   if (effectiveController.value) return;
-  if (props.surface && effectiveConversationKey.value) {
-    void runSurfaceAction(() => props.surface!.loadOlderConversationHistory(String(effectiveConversationKey.value)));
-    return;
-  }
   emit('loadOlderHistory');
 }
 
@@ -1451,10 +1421,7 @@ function updateDraft(value: string): void {
 
 async function requestSkills(): Promise<void> {
   if (dispatchControllerAction('requestSkills')) return;
-  if (effectiveController.value || !props.surface?.listSkills) return;
-  const state = props.surface.state;
-  const cwd = state.conversations.find(conversation => conversation.id === state.activeConversationId)?.cwd;
-  await runSurfaceAction(() => props.surface!.listSkills!(cwd ? { cwd } : {}));
+  if (!effectiveController.value) emit('requestSkills');
 }
 
 function updateComposerState(state: CodexComposerState): void {
@@ -1471,14 +1438,12 @@ function cancel(): void {
   if (dispatchControllerAction('cancel')) return;
   if (effectiveController.value) return;
   emit('cancel');
-  if (props.surface) void runSurfaceAction(() => props.surface!.interrupt());
 }
 
 function respondToClientRequest(response: ClientRequestResponse): void {
   if (dispatchControllerAction('clientResponse', response)) return;
   if (effectiveController.value) return;
   emit('clientResponse', response);
-  if (props.surface) void runSurfaceAction(() => props.surface!.respondToClientRequest(response));
 }
 
 function copyMessage(index: number): void {
@@ -1509,51 +1474,43 @@ async function deleteTurn(turnId: string): Promise<void> {
         waitForControlledState = true;
         return;
       }
-      await runSurfaceAction(() => result);
+      await runControlledAction(() => result);
       return;
     }
     emit('deleteTurn', turnId);
-    if (props.surface) {
-      await runSurfaceAction(() => props.surface!.deleteTurn(turnId));
-    }
   } finally {
     if (!waitForControlledState && deleteOperation === operation) deletingTurnId.value = null;
   }
 }
 
-function editTurn(payload: { content: string; turnId: string; options?: import('multi-agents-sdk/surface').CodexRendererSendMessageOptions }): void {
+function editTurn(payload: { content: string; turnId: string; options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions }): void {
   if (dispatchControllerAction('editTurn', payload)) return;
   if (effectiveController.value) return;
   emit('editTurn', payload);
-  if (props.surface) void runSurfaceAction(() => props.surface!.editTurn(payload.turnId, payload.content, payload.options));
 }
 
 function forkTurn(turnId: string): void {
   if (dispatchControllerAction('forkTurn', turnId)) return;
   if (effectiveController.value) return;
   emit('forkTurn', turnId);
-  if (props.surface) void runSurfaceAction(() => props.surface!.forkTurn(turnId));
 }
 
 function retryTurn(turnId: string): void {
   if (dispatchControllerAction('retryTurn', turnId)) return;
   if (effectiveController.value) return;
   emit('retryTurn', turnId);
-  if (props.surface) void runSurfaceAction(() => props.surface!.retryTurn(turnId));
 }
 
 function sendFollowUp(prompt: string): void {
   if (dispatchControllerAction('sendFollowUp', prompt)) return;
   if (effectiveController.value) return;
   emit('sendFollowUp', prompt);
-  if (props.surface) void runSurfaceAction(() => props.surface!.sendMessage(prompt));
 }
 
 function clearGoal(): void {
   if (dispatchControllerAction('clearGoal')) return;
   if (effectiveController.value) return;
   emit('clearGoal');
-  if (props.surface) void runSurfaceAction(() => props.surface!.clearGoal());
 }
 
 function deleteQueuedPrompt(promptId: string): void {
@@ -1561,7 +1518,6 @@ function deleteQueuedPrompt(promptId: string): void {
   if (dispatchControllerAction('deleteQueuedPrompt', promptId)) return;
   if (effectiveController.value) return;
   emit('deleteQueuedPrompt', promptId);
-  if (props.surface) void runSurfaceAction(() => props.surface!.deleteQueuedPrompt(promptId));
 }
 
 function editQueuedPrompt(promptId: string): void {
@@ -1579,7 +1535,6 @@ function updateQueuedPrompt(promptId: string, prompt: string, options?: CodexRen
   if (effectiveController.value) return;
   if (options) emit('updateQueuedPrompt', promptId, prompt, options);
   else emit('updateQueuedPrompt', promptId, prompt);
-  if (props.surface) void runSurfaceAction(() => (options ? props.surface!.updateQueuedPrompt(promptId, prompt, options) : props.surface!.updateQueuedPrompt(promptId, prompt)));
 }
 
 function steerQueuedPrompt(promptId: string, prompt?: string, options?: CodexRendererSendMessageOptions): void {
@@ -1591,11 +1546,6 @@ function steerQueuedPrompt(promptId: string, prompt?: string, options?: CodexRen
   if (prompt === undefined) emit('steerQueuedPrompt', promptId);
   else if (options) emit('steerQueuedPrompt', promptId, prompt, options);
   else emit('steerQueuedPrompt', promptId, prompt);
-  if (props.surface) {
-    void runSurfaceAction(() => prompt === undefined
-      ? props.surface!.steerQueuedPrompt(promptId)
-      : (options ? props.surface!.steerQueuedPrompt(promptId, prompt, options) : props.surface!.steerQueuedPrompt(promptId, prompt)));
-  }
 }
 
 function interrupt(): void {
@@ -1603,7 +1553,6 @@ function interrupt(): void {
   if (dispatchControllerAction('interrupt')) return;
   if (effectiveController.value) return;
   emit('interrupt');
-  if (props.surface) void runSurfaceAction(() => props.surface!.interrupt());
 }
 
 function steer(prompt: string, composerOptions?: Pick<CodexRendererSendMessageOptions, 'inputMethod' | 'content'>): void {
@@ -1623,7 +1572,7 @@ function steer(prompt: string, composerOptions?: Pick<CodexRendererSendMessageOp
     const controlledSteer = effectiveControllerActions.value?.steer;
     if (controlledSteer) {
       const previousDismissedQuestions = dismissPendingQuestions();
-      void runSurfaceAction(
+      void runControlledAction(
         () => Promise.resolve(controlledSteer(prompt, options)),
         () => { locallyDismissedQuestionIds.value = previousDismissedQuestions; },
       );
@@ -1631,13 +1580,9 @@ function steer(prompt: string, composerOptions?: Pick<CodexRendererSendMessageOp
     replaceAttachments([]);
     return;
   }
-  const previousDismissedQuestions = dismissPendingQuestions();
+  dismissPendingQuestions();
   if (options) emit('steer', prompt, options);
   else emit('steer', prompt);
-  if (props.surface) void runSurfaceAction(
-    () => props.surface!.steerMessage(prompt, options),
-    () => { locallyDismissedQuestionIds.value = previousDismissedQuestions; },
-  );
   replaceAttachments([]);
 }
 
@@ -1648,7 +1593,6 @@ function selectApprovalPreset(preset: ApprovalPreset): void {
     return;
   }
   emit('selectApprovalPreset', preset);
-  if (props.surface) void runSurfaceAction(() => props.surface!.updateConversationSettings({ approvalPreset: preset }));
 }
 
 function resolveApproval(
@@ -1659,35 +1603,30 @@ function resolveApproval(
   if (dispatchControllerAction('resolveApproval', approvalId, decision, scope)) return;
   if (effectiveController.value) return;
   emit('resolveApproval', approvalId, decision, scope);
-  if (props.surface) void runSurfaceAction(() => props.surface!.resolveApproval(approvalId, decision, scope));
 }
 
 function updateModelId(modelId: string): void {
   if (dispatchControllerAction('updateSettings', { modelId })) return;
   if (effectiveController.value) return;
   emit('update:modelId', modelId);
-  if (props.surface) void runSurfaceAction(() => props.surface!.updateConversationSettings({ modelId }));
 }
 
 function updatePlanMode(planMode: boolean): void {
   if (dispatchControllerAction('updateSettings', { planMode })) return;
   if (effectiveController.value) return;
   emit('update:planMode', planMode);
-  if (props.surface) void runSurfaceAction(() => props.surface!.updateConversationSettings({ planMode }));
 }
 
 function updateReasoningEffort(reasoningEffort: ReasoningEffort): void {
   if (dispatchControllerAction('updateSettings', { reasoningEffort })) return;
   if (effectiveController.value) return;
   emit('update:reasoningEffort', reasoningEffort);
-  if (props.surface) void runSurfaceAction(() => props.surface!.updateConversationSettings({ reasoningEffort }));
 }
 
 function updateServiceTier(serviceTier: string | null): void {
   if (dispatchControllerAction('updateSettings', { serviceTier })) return;
   if (effectiveController.value) return;
   emit('update:serviceTier', serviceTier);
-  if (props.surface) void runSurfaceAction(() => props.surface!.updateConversationSettings({ serviceTier }));
 }
 
 function menuSelect(item: CodexComposerMenuSelectableItem<unknown>): void {
@@ -1717,11 +1656,11 @@ function dispatchControllerAction(
     | ((...actionArgs: never[]) => void | Promise<void>)
     | undefined;
   if (!action) return false;
-  void runSurfaceAction(() => Promise.resolve(action(...args as never[])));
+  void runControlledAction(() => Promise.resolve(action(...args as never[])));
   return true;
 }
 
-async function runSurfaceAction(action: () => Promise<unknown>, onError?: () => void): Promise<void> {
+async function runControlledAction(action: () => Promise<unknown>, onError?: () => void): Promise<void> {
   localError.value = null;
   try {
     await action();
@@ -1732,10 +1671,12 @@ async function runSurfaceAction(action: () => Promise<unknown>, onError?: () => 
 }
 
 function setLocalError(error: unknown): void {
+  localErrorSource.value = 'action';
   localError.value = error instanceof Error ? error.message : String(error);
 }
 
 function handleComposerError(error: string | null): void {
+  localErrorSource.value = error === null ? null : 'composer';
   localError.value = error;
   emit('error', error);
 }

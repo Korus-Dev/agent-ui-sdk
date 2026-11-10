@@ -17,7 +17,7 @@ export const approvalPresetOptions: readonly ApprovalPresetOption[] = [
   {
     id: 'approve-for-me',
     label: 'Approve for me',
-    description: 'Let Codex approve safe tool calls for the active session.',
+    description: 'Automatically approve safe tool calls for this session.',
   },
   {
     id: 'full-access',

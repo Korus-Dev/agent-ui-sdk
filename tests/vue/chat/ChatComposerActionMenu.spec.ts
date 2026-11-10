@@ -39,6 +39,7 @@ describe('ChatComposerActionMenu', () => {
     expect(wrapper.text()).toContain('Approval');
     expect(wrapper.text()).toContain('Ask for approval');
     expect(wrapper.text()).toContain('Approve for me');
+    expect(wrapper.text()).toContain('Automatically approve safe tool calls for this session.');
     expect(wrapper.text()).toContain('Full access');
     expect(wrapper.find('.codex-composer-menu-list__chevron').exists()).toBe(true);
     const approvalItems = wrapper.findAll('[role="menuitemradio"]');

@@ -1,5 +1,5 @@
 import type { CodexSpeechTranscriptionResult as NativeSpeechTranscriptionResult } from 'ai-app-sdk/host';
-import type { CodexSurfaceServiceTier } from 'multi-agents-sdk/surface';
+import type { ServiceTier as CodexSurfaceServiceTier } from 'multi-agents-sdk/ui-types';
 
 export type ApprovalPreset = 'ask-for-approval' | 'approve-for-me' | 'full-access';
 

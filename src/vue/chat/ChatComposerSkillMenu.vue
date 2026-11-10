@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
 import { useCodexChatTranslate } from './chat-i18n';
-import type { CodexSurfacePlugin } from 'multi-agents-sdk/surface';
+import type { Plugin as CodexSurfacePlugin } from 'multi-agents-sdk/ui-types';
 import type { CodexSkillSummary } from './contracts';
 import { skillDescription, skillDisplayName } from './composer-skills';
 import { SparklesIcon } from '../shared/icons/app-icons';

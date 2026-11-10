@@ -149,7 +149,6 @@
           :interrupt-armed="interruptArmed"
           :submit-label="sendButtonLabel"
           :title="sendButtonTitle"
-          interrupt-label="Codex is working"
           @click="handleSendButtonClick"
         />
         <slot name="after" />
@@ -161,10 +160,11 @@
 <script setup lang="ts" generic="Payload = unknown">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import type { CodexContextUsage, CodexFileSearchItem, ApprovalPreset, CodexCapabilities, CodexCommandSummary, CodexModelOption, CodexSkillSummary, CodexChatTranscription, CodexConversationPresentation, ReasoningEffort } from '../chat/contracts';
-import { promptContentDispatchText, promptContentText, trimPromptContent, replacePromptContentRange, type CodexPromptPart, type CodexRendererSendMessageOptions, type CodexSurfacePlugin } from 'multi-agents-sdk/surface';
+import { promptContentDispatchText, promptContentText, trimPromptContent, replacePromptContentRange } from 'multi-agents-sdk/prompt';
+import { type PromptPart as CodexPromptPart, type ClientSendMessageOptions as CodexRendererSendMessageOptions, type Plugin as CodexSurfacePlugin } from 'multi-agents-sdk/ui-types';
 import { resolveCodexConversationPresentation } from '../chat/contracts';
-import { codexCapabilities } from '../chat/codex-capabilities';
-import { codexCommands, composerCommandsWithGoals } from '../chat/codex-commands';
+import { defaultCapabilities } from '../chat/default-capabilities';
+import { composerCommandsWithGoals } from '../chat/composer-goal-commands';
 import { recalledPromptContent } from '../chat/user-text';
 import { createComposerPromptHistory } from '../chat/composer-prompt-history';
 import CodexComposerSendButton from './CodexComposerSendButton.vue';
@@ -271,9 +271,9 @@ const {
 let restoringComposerState = false;
 let lastEmittedComposerState: CodexComposerState | null = null;
 let composerRestoreRevision = 0;
-const effectiveCodexCapabilities = computed(() => props.capabilities ?? codexCapabilities);
+const effectiveCodexCapabilities = computed(() => props.capabilities ?? defaultCapabilities);
 const effectivePresentation = computed(() => resolveCodexConversationPresentation(props.presentation));
-const effectiveCommands = computed(() => composerCommandsWithGoals(props.commands ?? codexCommands, effectiveCodexCapabilities.value.goals));
+const effectiveCommands = computed(() => composerCommandsWithGoals(props.commands ?? [], effectiveCodexCapabilities.value.goals));
 const activeCommand = computed(() => (
   effectiveCommands.value.find((command) => command.id === activeCommandId.value) ?? null
 ));
@@ -283,7 +283,7 @@ const goalCommand = computed(() => (
 const goalMode = computed(() => Boolean(goalCommand.value && activeCommandId.value === goalCommand.value.id));
 const effectivePlanMode = computed(() => Boolean(effectiveCodexCapabilities.value.planMode && props.planMode && !goalMode.value));
 const effectivePlaceholder = computed(() => activeCommand.value?.composerMode?.placeholder
-  ?? (props.suggestedPrompt?.trim() ? props.suggestedPrompt : props.placeholder ?? 'Ask Codex…'));
+  ?? (props.suggestedPrompt?.trim() ? props.suggestedPrompt : props.placeholder ?? 'Ask a question…'));
 const voiceVisible = computed(() => (
   effectivePresentation.value.composer.voice
   && Boolean(props.transcribeAudio || hostCapabilities?.capabilities.transcription)

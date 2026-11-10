@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { computed, inject, provide, ref, shallowReactive, watch } from 'vue'
-import type { CodexSurfaceTurnStatus, SurfaceMessage } from 'multi-agents-sdk/surface'
+import type { TurnStatus as CodexSurfaceTurnStatus, SurfaceMessage } from 'multi-agents-sdk/ui-types';
 import {
   computeMessageBlocks,
   hasExplicitAssistantWorkPhases,

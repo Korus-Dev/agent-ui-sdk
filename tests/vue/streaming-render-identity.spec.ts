@@ -9,7 +9,7 @@ import type {
   SurfaceMessage,
 } from 'multi-agents-sdk/surface';
 import { effectScope } from 'vue';
-import { CodexConversationPane, useCodexSurface } from '../../src/vue';
+import { NativeConversationPane as CodexConversationPane, useCodexSurface } from '../../src/vue/native';
 function answer(id: string, text: string, status: SurfaceMessage['status'] = 'complete'): SurfaceMessage {
   return { id, role: 'assistant', status, turnId: `turn-${id}`, parts: [{ type: 'text', text }] };
 }

@@ -98,16 +98,11 @@
 </template>
 
 <script setup lang="ts">
+import { questionPayload } from '../chat/conversation-request';
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowReactive, shallowRef, watch } from 'vue'
 import { touchedMessageActionsKey } from '../chat/message-action-state'
 import { questionResponsesKey } from '../chat/message-work-state'
-import type {
-  CodexConversationRenderStrategy,
-  CodexSurfacePlugin,
-  CodexSurfaceSkill,
-  CodexSurfaceTurn,
-  SurfaceMessage,
-} from 'multi-agents-sdk/surface'
+import type { ConversationRenderStrategy as CodexConversationRenderStrategy, Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill, Turn as CodexSurfaceTurn, SurfaceMessage } from 'multi-agents-sdk/ui-types';
 import type { ClientRequestResponse, CodexConversationLink, CodexConversationPresentation } from '../chat/contracts'
 import { resolveCodexConversationPresentation } from '../chat/contracts'
 import type { Message } from '../chat/types'
@@ -204,7 +199,7 @@ const emit = defineEmits<{
   'client-response': [response: ClientRequestResponse]
   'copy-message': [index: number]
   'delete-turn': [turnId: string]
-  'edit-turn': [payload: { content: string; turnId: string; options?: import('multi-agents-sdk/surface').CodexRendererSendMessageOptions }]
+  'edit-turn': [payload: { content: string; turnId: string; options?: import('multi-agents-sdk/ui-types').ClientSendMessageOptions }]
   'fork-turn': [turnId: string]
   'load-older-messages': []
   'load-turn-history': [turnId: string]
@@ -248,7 +243,7 @@ watch(() => props.messages, (messages) => {
     for (const part of message.parts ?? []) {
       if (part.type !== 'question') continue
       requestIds.add(part.request.id)
-      const restored = Object.fromEntries(part.request.payload.request.questions
+      const restored = Object.fromEntries(questionPayload(part.request).questions
         .filter((question) => answers[question.id])
         .map((question) => [question.id, answers[question.id]!]))
       if (Object.keys(restored).length > 0) questionResponses.set(part.request.id, { answers: restored })

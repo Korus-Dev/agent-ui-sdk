@@ -1,4 +1,5 @@
-import { normalizePromptContent, promptContentText, type CodexPromptPart } from 'multi-agents-sdk/surface';
+import { normalizePromptContent, promptContentText } from 'multi-agents-sdk/prompt';
+import { type PromptPart as CodexPromptPart } from 'multi-agents-sdk/ui-types';
 
 export type CodexComposerState = {
   text: string;

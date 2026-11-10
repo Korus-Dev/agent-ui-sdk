@@ -1,6 +1,7 @@
 import { Lexer } from 'marked';
 import { codexConversationLinkFromHref } from './conversation-links';
-import { normalizePromptContent, type CodexPromptMention, type CodexPromptPart, type CodexSurfacePlugin, type CodexSurfaceSkill } from 'multi-agents-sdk/surface';
+import { normalizePromptContent } from 'multi-agents-sdk/prompt';
+import { type PromptMention as CodexPromptMention, type PromptPart as CodexPromptPart, type Plugin as CodexSurfacePlugin, type Skill as CodexSurfaceSkill } from 'multi-agents-sdk/ui-types';
 import { skillDisplayName, skillMatchesMention } from './composer-skills';
 import { pluginMatchesMention } from './composer-plugins';
 import {
