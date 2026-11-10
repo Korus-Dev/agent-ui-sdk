@@ -23,6 +23,7 @@ export function sessionStateToConversationPaneState(
   conversationKey?: string | number | null,
   controls?: SessionConversationControls,
 ): ConversationPaneState {
+  const selection = { ...state.selection, ...controls?.selection };
   const approvals = state.requests.flatMap(request => request.kind === 'approval' ? [request.approval] : []);
   const clientRequests = state.requests.filter(request => request.kind !== 'approval');
   return {
@@ -38,16 +39,16 @@ export function sessionStateToConversationPaneState(
     },
     history: state.historyLoading === undefined && state.historyState === undefined
       ? undefined : { loading: state.historyLoading, ...state.historyState },
-    ...(controls === undefined ? {} : {
+    ...(controls === undefined && state.selection === undefined ? {} : {
       catalogs: {
-        models: controls.models?.map(model => ({ ...model, id: model.model, displayName: model.displayName ?? model.model })),
-        modelCatalogStatus: controls.modelCatalogStatus ?? (controls.models === undefined ? 'notLoaded' : 'loaded'),
+        models: controls?.models?.map(model => ({ ...model, id: model.model, displayName: model.displayName ?? model.model })),
+        modelCatalogStatus: controls?.modelCatalogStatus ?? (controls?.models === undefined ? 'notLoaded' : 'loaded'),
       },
       composer: {
-        planMode: controls.planMode,
-        selectedModelId: controls.selection?.model,
-        selectedReasoningEffort: controls.selection?.reasoningEffort,
-        selectedServiceTier: controls.selection?.serviceTier,
+        planMode: controls?.planMode,
+        selectedModelId: selection.model,
+        selectedReasoningEffort: selection.reasoningEffort,
+        selectedServiceTier: selection.serviceTier,
       },
     }),
     capabilities: {

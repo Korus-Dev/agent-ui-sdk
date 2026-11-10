@@ -8,6 +8,7 @@ import { requestResponseFromApproval, requestResponseFromClientResponse, type Se
 import { createQueuedChatPrompt } from './chat/queued-prompts';
 import { approvalPresetOptions } from './chat/approval-presets';
 import type { CodexComposerMenuItem } from './composer-menu';
+import { ShieldCheckIcon } from './shared/icons/app-icons';
 
 /** Renderer-safe, session-bound operations. A host may implement these over IPC. */
 export type SessionConversationClient = {
@@ -63,11 +64,15 @@ export function createSessionConversationController(options: SessionConversation
     const value = { ...controls(), ...patch };
     // The host can control preferences; otherwise retain only this binding's settings.
     if (options.onControlsChange) await options.onControlsChange(value);
-    else local.value = { ...local.value, ...patch };
+    else {
+      const next = { ...local.value, ...patch };
+      if (next.permission === state().permission) delete next.permission;
+      local.value = next;
+    }
   };
   const promptOptions = (input?: ClientSendMessageOptions): ClientSendMessageOptions => {
     const current = controls();
-    const selected = current.selection;
+    const selected = { ...state().selection, ...current.selection };
     return { ...input,
       ...(selected?.model == null ? {} : { model: selected.model }),
       ...(selected?.reasoningEffort == null ? {} : { reasoningEffort: selected.reasoningEffort }),
@@ -122,17 +127,31 @@ export function createSessionConversationController(options: SessionConversation
       else void drain();
     }
   }, { flush: 'sync' });
+  const stopSelection = watch(() => state().selection, selection => {
+    if (!selection || !local.value.selection) return;
+    const pending = Object.fromEntries(Object.entries(local.value.selection)
+      .filter(([key, value]) => selection[key as keyof typeof selection] !== value));
+    const { selection: _acknowledged, ...rest } = local.value;
+    local.value = Object.keys(pending).length ? { ...rest, selection: pending } : rest;
+  }, { flush: 'sync' });
+  const stopPermission = watch(() => state().permission, permission => {
+    if (permission !== undefined && local.value.permission === permission) {
+      const { permission: _acknowledged, ...rest } = local.value;
+      local.value = rest;
+    }
+  }, { flush: 'sync' });
   const permissions = (): CodexComposerMenuItem[] => capabilities().permissions.length ? [{
-    id: 'session-permissions', type: 'submenu', label: 'Approval mode',
+    id: 'session-permissions', type: 'submenu', label: 'Permissions', icon: ShieldCheckIcon,
+    submenuAlignment: 'bottom', submenuWidth: 'wide',
     items: capabilities().permissions.map((permission, index) => {
       const copy = approvalPresetOptions.find(preset => preset.id === permission.id);
       return { id: `session-permission:${index}`, type: 'radio',
         label: copy?.label ?? permission.id.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[-_]/g, ' ').replace(/^./, char => char.toUpperCase()),
         description: copy?.description ?? (permission.dangerous ? 'Allows tools to run without approval.' : undefined),
-        checked: controls().permission === permission.id,
+        checked: (controls().permission ?? state().permission) === permission.id,
       };
     }),
-  }] : [];
+  }, { id: 'session-permissions-divider', type: 'separator' }] : [];
   const actions: Actions = {
     readImagePreview: async reference => {
       requireOpen();
@@ -176,7 +195,7 @@ export function createSessionConversationController(options: SessionConversation
     retryTurn: async id => { await call(options.client.retryTurn, id); },
     sendFollowUp: async prompt => { await submit(prompt); },
     updateSettings: async settings => { await updateControls({
-      selection: { ...controls().selection,
+      selection: { ...state().selection, ...controls().selection,
         ...(settings.modelId === undefined ? {} : { model: settings.modelId }),
         ...(settings.reasoningEffort === undefined ? {} : { reasoningEffort: settings.reasoningEffort }),
         ...(settings.serviceTier === undefined ? {} : { serviceTier: settings.serviceTier }),
@@ -203,5 +222,5 @@ export function createSessionConversationController(options: SessionConversation
     },
     actions,
   });
-  return { controller: { ...controller, actions }, queuedPrompts: queue, dispose() { disposed = true; stop(); } };
+  return { controller: { ...controller, actions }, queuedPrompts: queue, dispose() { disposed = true; stop(); stopSelection(); stopPermission(); } };
 }

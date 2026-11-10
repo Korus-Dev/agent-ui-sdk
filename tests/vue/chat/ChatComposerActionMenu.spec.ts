@@ -36,7 +36,8 @@ describe('ChatComposerActionMenu', () => {
 
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
 
-    expect(wrapper.text()).toContain('Approval');
+    expect(wrapper.get('.codex-composer-menu-list__submenu > button').text()).toBe('Permissions');
+    expect(wrapper.get('.codex-composer-menu-list__submenu > button > svg').classes()).toContain('tabler-icon-shield-check');
     expect(wrapper.text()).toContain('Ask for approval');
     expect(wrapper.text()).toContain('Approve for me');
     expect(wrapper.text()).toContain('Automatically approve safe tool calls for this session.');
@@ -54,6 +55,16 @@ describe('ChatComposerActionMenu', () => {
 
     expect(wrapper.emitted('selectApprovalPreset')).toStrictEqual([['approve-for-me']]);
     expect(wrapper.find('.chat-composer-action-menu').exists()).toBe(false);
+  });
+
+  it.each([false, true])('separates approval once when the host supplies a divider: %s', async (hostDivider) => {
+    const wrapper = mountMenu({ showApprovalMenu: true, showGoalMode: true,
+      leadingMenuItems: hostDivider ? [{ id: 'app-commands', type: 'separator' }] : [],
+    });
+    await wrapper.get('.chat-composer-action-menu__button').trigger('click');
+    const children = [...wrapper.get('.chat-composer-action-menu').element.children];
+    expect(children[1]!.classList.contains('codex-composer-menu-list__separator')).toBe(true);
+    expect(children.filter(child => child.classList.contains('codex-composer-menu-list__separator'))).toHaveLength(1);
   });
 
   it.each([
@@ -112,7 +123,8 @@ describe('ChatComposerActionMenu', () => {
 
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
 
-    expect(wrapper.text()).toContain('Approval');
+    expect(wrapper.get('.codex-composer-menu-list__submenu > button').text()).toBe('Permissions');
+    expect(wrapper.get('.codex-composer-menu-list__submenu > button > svg').classes()).toContain('tabler-icon-shield-check');
     expect(wrapper.text()).toContain('Ask for approval');
     expect(wrapper.text()).toContain('Approve for me');
     expect(wrapper.text()).toContain('Full access');
@@ -162,7 +174,7 @@ describe('ChatComposerActionMenu', () => {
       const label = button?.querySelector('.codex-composer-menu-list__label')?.textContent?.trim();
       return label ? [label] : [];
     });
-    expect(labels).toStrictEqual(['Approval', 'Permissions', 'Goal mode', 'Plan mode', 'Refresh']);
+    expect(labels).toStrictEqual(['Permissions', 'Permissions', 'Goal mode', 'Plan mode', 'Refresh']);
   });
 
   it('enables attachment selection only when the host supports it', async () => {

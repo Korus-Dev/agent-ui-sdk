@@ -84,7 +84,9 @@ const menuItems = computed<CodexComposerMenuItem<ComposerMenuAction | Payload>[]
     items.push({
       id: 'approval',
       type: 'submenu',
-      label: 'Approval',
+      label: 'Permissions',
+      submenuAlignment: 'bottom',
+      submenuWidth: 'wide',
       icon: ShieldCheckIcon,
       items: approvalPresetOptions.map((option) => ({
         id: `approval:${option.id}`,
@@ -97,6 +99,7 @@ const menuItems = computed<CodexComposerMenuItem<ComposerMenuAction | Payload>[]
         payload: { kind: 'approval', preset: option.id },
       })),
     });
+    items.push({ id: 'group-approval', type: 'separator' });
   }
 
   items.push(...props.leadingMenuItems);
@@ -137,7 +140,9 @@ const menuItems = computed<CodexComposerMenuItem<ComposerMenuAction | Payload>[]
     });
   }
 
-  return items;
+  const grouped = items.filter((item, index) => item.type !== 'separator' || items[index - 1]?.type !== 'separator');
+  if (grouped.at(-1)?.type === 'separator') grouped.pop();
+  return grouped;
 });
 
 function approvalIcon(preset: ApprovalPreset): Component {

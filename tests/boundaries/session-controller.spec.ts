@@ -26,6 +26,10 @@ describe('standard session conversation', () => {
     const { binding, pane, composer, client, state } = fixture();
     expect(pane.get('.chat-model-selector__button').text()).toContain('model High');
     await pane.get('[aria-label="Composer actions"]').trigger('click');
+    const permissionTrigger = pane.get('.codex-composer-menu-list__submenu > button');
+    expect(permissionTrigger.text()).toBe('Permissions');
+    expect(permissionTrigger.get('svg').classes()).toContain('tabler-icon-shield-check');
+    expect(pane.get('.chat-composer-action-menu').element.children[1]!.classList.contains('codex-composer-menu-list__separator')).toBe(true);
     await pane.findAll('button').find(button => button.text().includes('Plan mode'))!.trigger('click');
     expect(composer().props('planMode')).toBe(true);
     composer().vm.$emit('send', 'Explain'); await flushPromises();
@@ -42,6 +46,46 @@ describe('standard session conversation', () => {
     const actions = binding.controller.actions;
     await actions.menuSelect?.({ id: 'session-permission:1', type: 'radio', label: 'Full access', checked: false });
     expect(client.setPermission).toHaveBeenCalledWith('full-access');
+    binding.dispose(); pane.unmount();
+  });
+
+  it('selects the backend permission on load and follows native changes after a pending choice is acknowledged', async () => {
+    const { binding, pane, state } = fixture();
+    state.value = { ...state.value, permission: 'ask-for-approval' };
+    await pane.get('[aria-label="Composer actions"]').trigger('click');
+    const checked = () => pane.findAll('[role="menuitemradio"][aria-checked="true"]').map(item => item.text());
+    expect(checked()).toEqual([expect.stringContaining('Ask for approval')]);
+    await binding.controller.actions.menuSelect?.({ id: 'session-permission:1', type: 'radio', label: 'Full access', checked: false });
+    await flushPromises();
+    expect(checked()).toEqual([expect.stringContaining('Full access')]);
+    state.value = { ...state.value, permission: 'full-access' }; await flushPromises();
+    state.value = { ...state.value, permission: 'ask-for-approval' }; await flushPromises();
+    expect(checked()).toEqual([expect.stringContaining('Ask for approval')]);
+    state.value = { ...state.value, permission: null }; await flushPromises();
+    expect(checked()).toEqual([]);
+    binding.dispose(); pane.unmount();
+  });
+
+  it('uses provider-restored model selection, retains pending edits, and adopts acknowledged native changes', async () => {
+    const state = shallowRef<SessionState>({ ...sessionFixture, busy: false, requests: [],
+      selection: { model: 'terra', reasoningEffort: 'low', serviceTier: 'default' } });
+    const models = [
+      { id: 'sol-catalog', model: 'sol', displayName: 'Sol', isDefault: true },
+      { id: 'terra-catalog', model: 'terra', displayName: 'Terra' },
+    ].map(model => ({ ...model, supportedReasoningEfforts: [{ reasoningEffort: 'low', description: 'Quick' }, { reasoningEffort: 'high', description: 'Deep' }] }));
+    const sendPrompt = vi.fn(async () => {});
+    const binding = createSessionConversationController({ state, capabilities: { ...capabilitiesFixture, models: true, reasoningEffort: true },
+      conversationKey: 'resumed', controls: { models }, client: { sendPrompt } });
+    const pane = mount(ConversationPane, { props: { controller: binding.controller, escapeInterrupt: false } });
+    expect(pane.get('.chat-model-selector__button').text()).toBe('Terra Low');
+    await binding.controller.actions.submit?.('Continue');
+    expect(sendPrompt).toHaveBeenCalledWith('Continue', expect.objectContaining({ model: 'terra', reasoningEffort: 'low', serviceTier: 'default' }));
+    await binding.controller.actions.updateSettings?.({ modelId: 'sol' }); await flushPromises();
+    state.value = { ...state.value }; await flushPromises();
+    expect(pane.get('.chat-model-selector__button').text()).toBe('Sol Low');
+    state.value = { ...state.value, selection: { model: 'sol', reasoningEffort: 'low', serviceTier: 'default' } }; await flushPromises();
+    state.value = { ...state.value, selection: { model: 'terra', reasoningEffort: 'high', serviceTier: 'default' } }; await flushPromises();
+    expect(pane.get('.chat-model-selector__button').text()).toBe('Terra High');
     binding.dispose(); pane.unmount();
   });
 
