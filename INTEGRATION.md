@@ -173,12 +173,12 @@ Neutral exports are direct aliases of existing implementations/types, so legacy 
 | `src/vue/index.ts` | `CodexToolVisibility` | `ToolVisibility` |
 | `src/vue/index.ts` | `CodexChatTranslate` | `ChatTranslate` |
 | `src/vue/index.ts` | `CodexQueuedPromptData` | `QueuedPromptData` |
-| `src/vue/index.ts` | `useCodexSurface` | `useSurface` |
-| `src/vue/index.ts` | `CodexSurfaceController` | `SurfaceController` |
-| `src/vue/index.ts` | `useCodexLiveChat` | `useLiveChat` |
-| `src/vue/index.ts` | `CodexLiveChatOptions` | `LiveChatOptions` |
-| `src/vue/index.ts` | `CodexLiveChatStatus` | `LiveChatStatus` |
-| `src/vue/index.ts` | `CodexLiveChatTranscript` | `LiveChatTranscript` |
+| `src/vue/index.ts` | `useCodexSurface` | `useNativeSurface` |
+| `src/vue/index.ts` | `CodexSurfaceController` | `NativeSurfaceController` |
+| `src/vue/index.ts` | `useCodexLiveChat` | `useNativeLiveChat` |
+| `src/vue/index.ts` | `CodexLiveChatOptions` | `NativeLiveChatOptions` |
+| `src/vue/index.ts` | `CodexLiveChatStatus` | `NativeLiveChatStatus` |
+| `src/vue/index.ts` | `CodexLiveChatTranscript` | `NativeLiveChatTranscript` |
 | `src/vue/index.ts` | `applyCodexTheme` | `applyTheme` |
 | `src/vue/index.ts` | `CodexThemeMode` | `ThemeMode` |
 | `src/vue/index.ts` | `CodexThemeOptions` | `ThemeOptions` |
@@ -252,9 +252,29 @@ Neutral exports are direct aliases of existing implementations/types, so legacy 
 | `src/electron/preload.ts` | `createCodexSurfaceRendererApi` | `createSurfaceRendererApi` |
 | `src/electron/preload.ts` | `CodexNativeRendererApi` | `NativeRendererApi` |
 | `src/electron/preload.ts` | `CodexSurfaceRendererApi` | `SurfaceRendererApi` |
+| `src/vue/index.ts` | `CodexClientAttachment` | `ClientAttachment` |
+| `src/vue/index.ts` | `CodexClientSendMessageOptions` | `ClientSendMessageOptions` |
 
 ## Audit and validation boundaries
 
 The composed pane keeps optimistic state, submission wiring, goal intents and the existing escape-interrupt composable. These are control behavior and capability-driven; no provider-name branch, host filesystem/storage policy or host workflow was found to extract. Goal, turn git info and visualization blocks render props and emit intent; visualization `path` is an opaque host-owned target and is never loaded by the block.
 
-Build and test configs use package-local `source-aliases.ts`, limited to this package's optional host/speech entries and sibling harness surface/events development entries. They do not import the parent's shared aliases. Typechecking resolves the installed workspace dependencies. Final builds, broad coverage and real browser integration are parent-owned serial gates.
+Build and test configs use package-local `source-aliases.ts`, limited to this package's optional host/speech entries and sibling harness surface/events/consumer-types development entries. They do not import the parent's shared aliases. Typechecking resolves the installed workspace dependencies. Final builds, broad coverage and real browser integration are parent-owned serial gates.
+
+## Neutral session composition
+
+`sessionStateToConversationPaneState(state, capabilities, conversationKey?)` composes a controlled pane from `SessionState` and `HarnessCapabilities` imported as types from `multi-agents-sdk/consumer-types`. It passes canonical messages through without cloning: they already satisfy the pane's semantic message contract. The existing neutral `toChatMessage` adapter also accepts canonical `Message` and converts tool, reasoning, attachment and text parts for custom renderers. No provider dispatch or Korus integration is required.
+
+The adapter presents busy/error/active-turn state, goals, context usage, turn status and pending approval/question/confirmation requests. Turns pass through by identity, preserving supplied error, retry, timing, detail and usage fields. Unknown values remain unknown. Pending questions without a turn use the legacy presentation contract's empty turn string; confirmations use null. A confirmation with no item uses its request ID as the UI key. These presentation keys are never native identities. Plans and titles have no pane field and remain available to host chrome through the original snapshot.
+
+Capabilities drive controls. `native` and `prompted` plan modes enable the plan toggle; `unsupported` disables it. Opaque harness permission IDs are never converted into legacy approval presets; the preset list stays empty. A host can supply permission selection through its own composer menu and `driver.setPermission`. Attachment selection/resolution, catalogs and action bindings remain host-owned.
+
+[examples/session-pane.ts](examples/session-pane.ts) is a typed minimal binding of an opaque `Session` to the controller. It subscribes only to that session's `session.changed` events, exposes disposal, and wires submit/interrupt/request responses using the public `requestResponseFromClientResponse` and `requestResponseFromApproval` helpers. Both return `SessionRequestResponse`, which matches the neutral driver response without native identity. Its required `resolvePromptOptions` callback resolves host-owned attachment references and maps client model/reasoning fields into harness prompt selection; the example never treats a reference as a filesystem path. Hosts add actions/catalogs for any further capabilities they expose. The caller passes the resulting controller to `ConversationPane`.
+
+`ClientAttachment` and `ClientSendMessageOptions` are the preferred UI action types. `RendererAttachment` / `RendererSendMessageOptions` and original Codex spellings remain compatibility aliases. `useNativeSurface` / `useNativeLiveChat` name the native helpers explicitly, retaining `useCodexSurface` / `useCodexLiveChat`. The generic `useSurface` / `useLiveChat` aliases are removed: those implementations only support the native Codex bridge. The harness `/surface` and `/surface-bridge` remain explicit native compatibility entries, not the neutral session API.
+
+Fixture-backed tests in `tests/boundaries/session-composition.spec.ts` verify canonical message rendering and identity, capability mapping, all three pending request kinds, busy/error updates, terminal tool state, controlled submit/interrupt intents, session event isolation, option resolution, approval/question responses and subscription disposal. The fixture is also mounted with a pending approval: clicking its actual Allow button routes through the pane, controller and reusable converter to `driver.respondToRequest`; the approval disappears on the next request-free snapshot. Converter tests cover answers, cancellation, each tool-confirmation decision, approval scopes and rejection of empty responses. `tsconfig.composition.json` typechecks the actual example, fixture and composition test in addition to source. This is separate from Vitest's transpile-only execution.
+
+The timed failure fixture verifies real error/retry evidence reaches the message list unchanged and an authoritative 12-second duration remains visible even when wall-clock timestamps span 18 seconds. The rendered Retry action routes to the controller; an update with unknown timing does not manufacture a duration.
+
+Optional `SessionState.answeredClientRequestIds` maps to the controller's answered set only when supplied; absence remains undefined and a supplied empty list remains a known empty set. `historyLoading` maps to `history.loading`; optional `historyState` supplies `hasOlder` and `loadingOlder`. Absent paging flags remain absent rather than becoming false. Tests verify rendered answered-question suppression, known paging/loading state, the conversation loading indicator and transitions back to absent history evidence.

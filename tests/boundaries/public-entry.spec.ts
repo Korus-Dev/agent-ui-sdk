@@ -30,7 +30,10 @@ describe('public UI boundary', () => {
     expect(ui.Composer).toBe(ui.CodexComposer);
     expect(ui.ConversationPane).toBe(ui.CodexConversationPane);
     expect(ui.MessageList).toBe(ui.CodexMessageList);
-    expect(ui.useSurface).toBe(ui.useCodexSurface);
+    expect(ui.useNativeSurface).toBe(ui.useCodexSurface);
+    expect(ui.useNativeLiveChat).toBe(ui.useCodexLiveChat);
+    expect(ui).not.toHaveProperty('useSurface');
+    expect(ui).not.toHaveProperty('useLiveChat');
     expect(ui.createConversationPaneController).toBe(ui.createCodexConversationPaneController);
     expect(ui.capabilities).toBe(ui.codexCapabilities);
     expect(ui).not.toHaveProperty('CodexConversationSidebar');

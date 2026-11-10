@@ -340,13 +340,23 @@ export type { ChatMessageInput as MessageInput } from './chat/renderer-message-a
 export type { CodexToolVisibility as ToolVisibility } from './chat/tool-visibility';
 export type { CodexChatTranslate as ChatTranslate } from './chat/chat-i18n';
 export type { QueuedChatPrompt as QueuedPromptData } from './chat/queued-prompts';
-export { useCodexSurface as useSurface, type CodexSurfaceController as SurfaceController } from './use-codex-surface';
-export { useCodexLiveChat as useLiveChat, type CodexLiveChatOptions as LiveChatOptions, type CodexLiveChatStatus as LiveChatStatus, type CodexLiveChatTranscript as LiveChatTranscript } from './use-codex-live-chat';
+/** Native surface compatibility; use sessionStateToConversationPaneState for neutral sessions. */
+export { useCodexSurface as useNativeSurface, type CodexSurfaceController as NativeSurfaceController } from './use-codex-surface';
+/** Native Codex realtime compatibility; not a general harness live-chat API. */
+export { useCodexLiveChat as useNativeLiveChat, type CodexLiveChatOptions as NativeLiveChatOptions, type CodexLiveChatStatus as NativeLiveChatStatus, type CodexLiveChatTranscript as NativeLiveChatTranscript } from './use-codex-live-chat';
 export { applyCodexTheme as applyTheme, type CodexThemeMode as ThemeMode, type CodexThemeOptions as ThemeOptions } from './codex-theme';
 export { codexConversationLinkFromHref as conversationLinkFromHref, parseCodexEditorFileReference as parseEditorFileReference, type CodexEditorFileReference as EditorFileReference } from './chat/conversation-links';
 export { getCodexGlobalHostCapabilities as getGlobalHostCapabilities, getCodexNativeRendererApi as getNativeRendererApi, ingestCodexAttachments as ingestAttachments, pickCodexAttachments as pickAttachments, provideCodexHostCapabilities as provideHostCapabilities, useCodexHostCapabilities as useHostCapabilities, type CodexAttachmentIngester as AttachmentIngester, type CodexAttachmentPicker as AttachmentPicker } from './native-capabilities';
 export type { CodexHostCapabilities as HostCapabilities, CodexHostAttachment as HostAttachment, CodexHostAttachmentInput as HostAttachmentInput, CodexNativeAttachment as NativeAttachment, CodexNativeAttachmentInput as NativeAttachmentInput, CodexNativeClipboardContent as NativeClipboardContent, CodexNativeRendererApi as NativeRendererApi } from 'ai-app-sdk/host';
-export type { CodexRendererAttachment as RendererAttachment, CodexRendererSendMessageOptions as RendererSendMessageOptions, CodexSurfaceAttachment as SurfaceAttachment, SendCodexMessageOptions as SendMessageOptions } from 'multi-agents-sdk/surface';
+/** @deprecated Prefer ClientAttachment and ClientSendMessageOptions for UI actions. */
+export type { CodexRendererAttachment as RendererAttachment, CodexRendererSendMessageOptions as RendererSendMessageOptions } from 'multi-agents-sdk/surface';
+/** Native surface compatibility types. */
+export type { CodexSurfaceAttachment as SurfaceAttachment, SendCodexMessageOptions as SendMessageOptions } from 'multi-agents-sdk/surface';
 export { codexCustomBlocksKey as customBlocksKey, type CodexCustomBlocks as CustomBlocks } from './chat/custom-blocks';
 
 export type { DiffOverviewFile, DiffOverviewSlot } from '../documents/diff-overview';
+
+export { sessionStateToConversationPaneState } from './session-conversation-pane';
+export type { CodexClientAttachment as ClientAttachment, CodexClientSendMessageOptions as ClientSendMessageOptions } from 'multi-agents-sdk/surface';
+
+export { requestResponseFromClientResponse, requestResponseFromApproval, type SessionRequestResponse } from './session-request-response';
