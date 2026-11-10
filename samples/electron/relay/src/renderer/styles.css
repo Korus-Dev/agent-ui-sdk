@@ -1,3 +1,163 @@
+:root {
+  color: #172033;
+  background: #f6f7f8;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+.relay-status,
+.relay-sign-in {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 36px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 15% 14%, rgb(42 110 242 / 8%), transparent 28%),
+    radial-gradient(circle at 88% 86%, rgb(20 146 118 / 8%), transparent 30%),
+    #f6f7f8;
+}
+
+.relay-status__mark,
+.relay-sign-in__mark,
+.relay-brand__mark {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, #235fdb, #1746a3);
+  box-shadow: 0 8px 22px rgb(35 95 219 / 24%);
+  font-weight: 850;
+}
+
+.relay-status__mark {
+  width: 72px;
+  height: 72px;
+  border-radius: 21px;
+  font-size: 34px;
+}
+
+.relay-status__mark--loading {
+  animation: relay-pulse 1.1s ease-in-out infinite alternate;
+}
+
+.relay-status h1 {
+  margin: 24px 0 0;
+  font-size: 32px;
+  letter-spacing: -0.035em;
+}
+
+.relay-status p {
+  max-width: 520px;
+  margin: 10px 0 0;
+  color: #657084;
+  line-height: 1.55;
+}
+
+.relay-status button,
+.relay-sign-in__card > button {
+  min-height: 48px;
+  margin-top: 24px;
+  padding: 10px 22px;
+  color: #fff;
+  background: #235fdb;
+  border: 0;
+  border-radius: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+@keyframes relay-pulse {
+  to { transform: translateY(-3px) scale(1.03); }
+}
+
+.relay-sign-in__card {
+  display: grid;
+  justify-items: center;
+  width: min(620px, 100%);
+  padding: 50px;
+  background: #fff;
+  border: 1px solid #e1e5ea;
+  border-radius: 24px;
+  box-shadow: 0 24px 72px rgb(23 32 51 / 10%);
+}
+
+.relay-sign-in__mark {
+  width: 78px;
+  height: 78px;
+  border-radius: 22px;
+  font-size: 36px;
+}
+
+.relay-sign-in__eyebrow {
+  margin: 24px 0 0;
+  color: #235fdb !important;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.relay-sign-in h1 {
+  margin: 8px 0 0;
+  font-size: 40px;
+  letter-spacing: -0.045em;
+}
+
+.relay-sign-in p {
+  max-width: 480px;
+  margin: 14px 0 0;
+  color: #657084;
+  line-height: 1.55;
+}
+
+.relay-sign-in__error {
+  padding: 10px 14px;
+  color: #9d2f24 !important;
+  background: #fff0ed;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.relay-shell {
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "operations conversation";
+  grid-template-columns: clamp(390px, 36vw, 520px) minmax(0, 1fr);
+  grid-template-rows: 68px minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
 .operations-board__header {
   position: relative;
   z-index: 2;

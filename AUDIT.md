@@ -12,7 +12,7 @@ Compared against `codex-app-sdk` at `564f7f6` and the release/quality convention
 | Provider runtime, protocol/schema generation, authentication internals and replicas | Owned by sibling SDKs, not copied into UI runtime |
 | Conversation sidebar | Intentionally host-owned; samples supply navigation |
 | Component lab and browser regressions | Present; checked against original scenarios and run locally |
-| Basic Electron, Spark, Relay | Retrofitted around neutral session state/actions and harness selection; shared implementation avoids three copies of bridge plumbing |
+| Basic Electron, Spark, Relay | Basic copies multi-agent-sample with standard runtime homes; Spark preserves its original UI and Relay its login/operations UI, with isolated homes and CLI backend selection |
 | Codex project scaffolder | Separate package in original repository; not transferred. User explicitly excluded a scaffolder for this release |
 | Mutation runner | Original package-specific configuration is not portable; not copied. Coverage and observable owning-boundary checks retained |
 | Original release history | Not copied as this package history; initial standalone 0.25.0 changelog created |
@@ -87,3 +87,7 @@ Compared against `codex-app-sdk` at `564f7f6` and the release/quality convention
 - `packages/electron/tests`: 8 files reviewed; 8 have same-name destinations.
 
 The basename inventory is an extraction completeness check, not a claim of byte-identical behavior. Existing neutralization and host-boundary adaptations are covered by the retained tests. The entry-point migration adds root-forwarder asset discovery for the bundled speech helper; its regression is covered alongside legacy installed layouts. Other changes preserve library behavior.
+
+## Sample refinement
+
+Launch commands are `dev:basic`, `dev:spark` and `dev:relay`, accepting `-- --backend <provider>`. Basic was mechanically copied from multi-agent-sample before entry-import/backend adaptations; its sidebar and styles remain exact. Spark App/components/styles and Relay login/styles were mechanically copied from the original repository and verified before adapters changed. Spark and Relay styles remain byte-identical; their isolated homes are per sample/backend, while Basic intentionally uses standard runtime homes.

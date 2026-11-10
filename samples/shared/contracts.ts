@@ -1,9 +1,11 @@
 import type { HarnessCapabilities, HarnessProvider, HarnessDriver, ModelOption, SessionState } from '@korus-dev/multi-agent-sdk';
 import type { ClientSendMessageOptions, SessionRequestResponse } from '@korus-dev/agent-ui-sdk';
 export type Conversation = { id: string; provider: HarnessProvider; state: SessionState; capabilities: HarnessCapabilities; models: ModelOption[] };
-export type Snapshot = { conversations: Conversation[] };
+export type SampleAuthentication = { connected: boolean; pending: boolean; error: string | null; loginCommand?: string };
+export type Snapshot = { backend: HarnessProvider; authentication: SampleAuthentication | null; conversations: Conversation[] };
 export type Commands = {
-  create: [provider: HarnessProvider];
+  create: [provider?: HarnessProvider];
+  authenticate: [action: 'check' | 'login' | 'logout'];
   send: [id: string, prompt: string, options?: ClientSendMessageOptions];
   steer: [id: string, prompt: string, options?: ClientSendMessageOptions];
   interrupt: [id: string];

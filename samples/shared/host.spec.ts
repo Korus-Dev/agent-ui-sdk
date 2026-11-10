@@ -1,23 +1,45 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { HarnessDriver, HarnessEvent, HarnessProvider, HarnessOptions, Session } from '@korus-dev/multi-agent-sdk';
-import { createSampleHost } from './host';
+import { createSampleHost, type SampleHostConfiguration } from './host';
 import { capabilitiesFixture, sessionFixture } from '../../tests/fixtures/consumer-session';
 
-function fixture() {
+function fixture(configuration?: SampleHostConfiguration) {
   const listeners = new Set<(event: HarnessEvent) => void>();
   const driver = {
     open: vi.fn(() => Object.freeze({}) as Session),
     readSession: vi.fn(() => structuredClone(sessionFixture)),
     getCapabilities: () => capabilitiesFixture,
     onEvent: (listener: (event: HarnessEvent) => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; },
+    authenticate: vi.fn(async () => ({ connected: false })),
     sendPrompt: vi.fn(async () => ({})), respondToRequest: vi.fn(async () => {}),
     release: vi.fn(async () => {}), close: vi.fn(async () => {}),
   };
   const factory = vi.fn((_provider: HarnessProvider, _options: HarnessOptions) => driver as unknown as HarnessDriver);
-  const host = createSampleHost({ client: { name: 'sample-test' } }, '/workspace', factory);
+  const host = createSampleHost({ client: { name: 'sample-test' } }, '/workspace', factory, undefined, undefined, configuration);
   return { host, factory, driver, listeners };
 }
 describe('neutral sample host', () => {
+  it('releases the chat driver before native sign-in and opens the chosen backend only after completion', async () => {
+    const order: string[] = [];
+    let connected = false;
+    const f = fixture({ backend: 'codex', login: async () => { order.push('login'); connected = true; } });
+    f.driver.authenticate.mockImplementation(async (...args: unknown[]) => { if ((args[0] as { action?: string })?.action === 'logout') connected = false; return { connected }; });
+    f.driver.close.mockImplementation(async () => { order.push('close'); });
+    f.driver.open.mockImplementation(() => { order.push('open'); return Object.freeze({}) as Session; });
+    try {
+      await f.host.call('authenticate', 'check');
+      expect(f.host.snapshot().authentication?.connected).toBe(false);
+      expect(f.driver.open).not.toHaveBeenCalled();
+      await f.host.call('authenticate', 'login');
+      expect(order).toEqual(['close', 'login', 'open']);
+      expect(f.host.snapshot().authentication?.connected).toBe(true);
+      expect(f.host.snapshot().conversations[0]?.provider).toBe('codex');
+      await f.host.call('authenticate', 'logout');
+      expect(f.driver.release).toHaveBeenCalledOnce();
+      expect(f.host.snapshot().conversations).toEqual([]);
+    } finally { await f.host.close(); }
+  });
+
   it.each(['codex','claude','cursor','antigravity'] as const)('binds %s state and prompts without exposing native handles', async provider => {
     const f = fixture();
     try {

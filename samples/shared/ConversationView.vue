@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount } from 'vue';
-import { ConversationPane, createSessionConversationController } from '@korus-dev/agent-ui-sdk';
+import { ConversationPane, createSessionConversationController, resolveConversationPaneValue, type Capabilities, type ConversationPresentation } from '@korus-dev/agent-ui-sdk';
 import type { Conversation, SampleBridge } from './contracts';
-const props = defineProps<{ conversation: Conversation; bridge: SampleBridge; focused?: boolean }>();
+const props = defineProps<{ conversation: Conversation; bridge: SampleBridge; focused?: boolean; capabilities?: Capabilities; presentation?: ConversationPresentation; placeholder?: string }>();
 const id = props.conversation.id;
 const binding = createSessionConversationController({
   conversationKey: id,
@@ -25,8 +25,13 @@ const binding = createSessionConversationController({
     editTurn: (turn, text, options) => props.bridge.call('editTurn', id, turn, text, options),
   },
 });
-const presentation = computed(() => props.focused ? { composer: { actionMenu: false }, shelf: { goal: false, turnGitDiff: false } } : undefined);
+const presentation = computed(() => props.presentation ?? (props.focused ? { composer: { actionMenu: false }, shelf: { goal: false, turnGitDiff: false } } : undefined));
+const controller = { ...binding.controller, state: () => {
+  const state = resolveConversationPaneValue(binding.controller.state);
+  return { ...state, composer: { ...state.composer, ...(props.placeholder === undefined ? {} : { placeholder: props.placeholder }) }, capabilities: props.capabilities ?? state.capabilities,
+    policy: props.focused ? { ...state.policy, attachEnabled: false, canDeleteTurn: false, canEditTurn: false, canRetryTurn: false, canForkTurn: false } : state.policy };
+} };
 onBeforeUnmount(binding.dispose);
 defineExpose({ submit: (prompt: string) => binding.controller.actions.submit?.(prompt) });
 </script>
-<template><ConversationPane :controller="binding.controller" :presentation="presentation" /></template>
+<template><ConversationPane :controller="controller" :presentation="presentation"><template v-if="$slots.empty" #empty="slotProps"><slot name="empty" v-bind="slotProps" /></template></ConversationPane></template>

@@ -1,5 +1,5 @@
 # Relay Electron sample
 
-Run `npm run dev:relay` from the repository root. The shared renderer and trusted host live in `samples/shared`; the launcher selects this product shape.
+Run `npm run dev:relay -- --backend codex` from the repository root. Backend values are `codex`, `claude`, `cursor` and `antigravity`; Codex is the default.
 
-Select an installed, authenticated harness when creating a conversation. UI state and requests use the neutral session contract; native handles and provider construction remain in the main process. See the [sample guide](../../../docs/guide/samples.md).
+Configuration, authentication, workspace and Electron data are isolated under `~/.agent-ui-sdk/samples/relay/<backend>/`. Sign in with this sample profile rather than your standard runtime home. See the [sample guide](../../../docs/guide/samples.md).

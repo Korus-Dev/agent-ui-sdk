@@ -32,12 +32,12 @@ The root import contains Vue controls. Named optional entries keep trusted host 
 
 | Sample | Run |
 | --- | --- |
-| Basic Electron: multiple conversations | `npm run dev:electron` |
+| Basic Electron: multiple conversations | `npm run dev:basic` |
 | Spark: focused chat and theming | `npm run dev:spark` |
 | Relay: business board and MCP tools | `npm run dev:relay` |
 | Component lab: mocked visual scenarios | `npm run dev:lab` |
 
-Select a harness when creating a conversation in the application samples. Install and authenticate that runtime first. The [sample guide](docs/guide/samples.md) explains host boundaries and commands. Lab scenarios use deterministic mocked state.
+Pass `-- --backend claude` (or `codex`, `cursor`, `antigravity`) to a sample launch command; Codex is the default. Spark and Relay use isolated homes under `~/.agent-ui-sdk/samples/`; Basic uses the runtime’s standard home. The [sample guide](docs/guide/samples.md) explains host boundaries and commands. Lab scenarios use deterministic mocked state.
 
 ## Development
 

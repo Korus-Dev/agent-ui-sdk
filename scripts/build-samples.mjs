@@ -8,3 +8,7 @@ const { build: bundle } = await import('esbuild');
 await bundle({ entryPoints: ['samples/shared/electron.ts'], outdir: 'dist-samples/main', platform: 'node', target: 'node22', format: 'esm', bundle: true, packages: 'external' });
 await bundle({ entryPoints: ['samples/shared/preload.cts'], outfile: 'dist-samples/main/preload.cjs', platform: 'node', format: 'cjs', bundle: true, external: ['electron'] });
 execFileSync(process.execPath, ['scripts/typecheck.mjs', 'vue', '-p', 'samples/shared/tsconfig.json', '--noEmit'], { stdio: 'inherit' });
+
+await build({ configFile: 'samples/electron/basic/vite.config.ts' });
+await bundle({ entryPoints: ['samples/electron/basic/electron/main.ts'], tsconfig: 'tsconfig.json', outfile: 'dist-samples/basic/main/main.mjs', platform: 'node', target: 'node22', format: 'esm', bundle: true, packages: 'external' });
+await bundle({ entryPoints: ['samples/electron/basic/electron/preload.ts'], tsconfig: 'tsconfig.json', outfile: 'dist-samples/basic/main/preload.cjs', platform: 'node', format: 'cjs', bundle: true, external: ['electron'] });

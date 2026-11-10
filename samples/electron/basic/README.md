@@ -1,5 +1,7 @@
 # Basic Electron sample
 
-Run `npm run dev:electron` from the repository root. The shared renderer and trusted host live in `samples/shared`; the launcher selects this product shape.
+Run `npm run dev:basic -- --backend codex` from the repository root. Supported backends are `codex`, `claude`, `cursor` and `antigravity`; Codex is the default.
 
-Select an installed, authenticated harness when creating a conversation. UI state and requests use the neutral session contract; native handles and provider construction remain in the main process. See the [sample guide](../../../docs/guide/samples.md).
+Basic uses the runtime’s standard home, authentication and configuration. Sign in with that runtime’s normal CLI first. It lists existing active chats, resumes their history and starts new conversations.
+
+Use `SAMPLE_FOLDER` to choose a working directory. See the [sample guide](../../../docs/guide/samples.md).
