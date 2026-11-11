@@ -5,6 +5,8 @@
 - Explicit package exports with extensionless optional entry points.
 - Provider-neutral component, presentation and host capability names, using Multi Agent SDK 0.26.0 neutral contracts.
 - One capability-driven conversation pane for every harness; removed legacy provider-specific panes, hooks, catalogs and Electron execution bridges.
+- The conversation pane takes neutral `requests` (`AgentRequest[]`) and answers them through `respond(AgentRequestResponse)`. Settings changes go through `updateSettings(Partial<HarnessDefaults>)` and `setPlanMode`; without a controller, the pane emits `update:permission` alongside the other `update:*` events.
+- Session conversation bindings apply a permission change once, through the session, and never pass it to `onControlsChange`.
 - Host preload globals, IPC channels and generic theme selectors use the canonical host and Agent UI vocabulary.
 
 ## 0.25.0

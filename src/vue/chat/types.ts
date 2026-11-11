@@ -65,7 +65,7 @@ export type MessagePhase = 'commentary' | 'partial_answer' | 'final_answer';
 export type MessagePart =
   | { type: 'attachment'; attachment: MessageAttachment }
   | { type: 'media'; media: MessageMedia; phase?: MessagePhase }
-  | { type: 'question'; historical?: boolean; request: Extract<ClientRequest, { kind: 'question' | 'ask_user' }> }
+  | { type: 'question'; historical?: boolean; request: Extract<ClientRequest, { kind: 'question' }> }
   | { type: 'reasoning'; summary: string; itemId?: string; summaryIndex?: number }
   | { type: 'text'; content: string; itemId?: string; phase?: MessagePhase }
   | { type: 'tool'; toolCall: MessageToolCall };

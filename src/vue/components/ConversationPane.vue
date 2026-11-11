@@ -532,12 +532,12 @@ const emit = defineEmits<{
   openVisualization: [visualization: ConversationVisualization];
   quoteMessage: [index: number];
   retryTurn: [turnId: string];
-  selectApprovalPreset: [preset: ApprovalPreset];
   sendFollowUp: [prompt: string];
   submit: [prompt: string, options?: ReferenceSendPromptOptions];
   steer: [prompt: string, options?: ReferenceSendPromptOptions];
   steerQueuedPrompt: [promptId: string, prompt?: string, options?: ReferenceSendPromptOptions];
   'update:modelId': [modelId: string];
+  'update:permission': [permission: string];
   'update:composerState': [state: ComposerState];
   'update:modelValue': [value: string];
   'update:planMode': [enabled: boolean];
@@ -698,7 +698,7 @@ const dismissedQuestionIds = computed<ReadonlySet<string>>(() => new Set([
   ...supersededQuestionIds.value,
 ]));
 const pendingQuestionRequests = computed(() => {
-  const requests: Extract<ConversationRequest, { kind: 'question' | 'ask_user' }>[] = [];
+  const requests: Extract<ConversationRequest, { kind: 'question' }>[] = [];
   const seen = new Set<string>();
   for (const request of effectiveClientRequests.value) {
     if (!isQuestionRequest(request) || questionPayload(request).delivery !== 'tool'
@@ -736,7 +736,7 @@ const hiddenQuestionRequestIds = computed<ReadonlySet<string>>((previous) => ret
   pendingQuestionRequests.value.map((request) => request.id),
 ));
 const activeConfirmation = computed(() => effectiveClientRequests.value.find(
-  (request): request is Extract<ConversationRequest, { kind: 'toolConfirmation' | 'confirm_tool' }> => (
+  (request): request is Extract<ConversationRequest, { kind: 'toolConfirmation' }> => (
     isConfirmationRequest(request) && !displayAnsweredClientRequestIds.value.has(request.id)
   ),
 ));
@@ -1612,7 +1612,7 @@ function steer(prompt: string, composerOptions?: Pick<ReferenceSendPromptOptions
 function selectApprovalPreset(preset: ApprovalPreset): void {
   if (dispatchControllerAction('updateSettings', { permission: preset })) return;
   if (effectiveController.value) return;
-  emit('selectApprovalPreset', preset);
+  emit('update:permission', preset);
 }
 
 function resolveApproval(

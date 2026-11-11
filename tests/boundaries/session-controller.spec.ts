@@ -142,6 +142,20 @@ describe('standard session conversation', () => {
     binding.dispose(); pane.unmount();
   });
 
+  it('applies a permission change once, through the session, even when the host controls preferences', async () => {
+    const state = shallowRef<SessionState>({ ...sessionFixture, busy: false, requests: [], permission: 'ask-for-approval' });
+    const setPermission = vi.fn(async (..._args: unknown[]) => {});
+    const onControlsChange = vi.fn(async (..._args: unknown[]) => {});
+    const binding = createSessionConversationController({ state, conversationKey: 'chat', onControlsChange, client: { sendPrompt: vi.fn(async () => {}), setPermission },
+      capabilities: { ...capabilitiesFixture, models: true, permissions: [{ id: 'ask-for-approval' }, { id: 'full-access', dangerous: true }] } });
+    await binding.controller.actions.updateSettings?.({ permission: 'full-access' });
+    expect(setPermission).toHaveBeenCalledExactlyOnceWith('full-access');
+    expect(onControlsChange).not.toHaveBeenCalled();
+    await binding.controller.actions.updateSettings?.({ model: 'sol' });
+    expect(onControlsChange).toHaveBeenCalledExactlyOnceWith(expect.not.objectContaining({ permission: expect.anything() }));
+    binding.dispose();
+  });
+
   it('queues busy submissions in the shelf, supports editing/steering and drains one turn at a time', async () => {
     const { binding, pane, state, client, composer } = fixture(true);
     composer().vm.$emit('send', 'First follow-up'); composer().vm.$emit('send', 'Second follow-up');

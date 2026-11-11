@@ -13,7 +13,7 @@ import type { MessageToolCall } from './types'
 import ChatToolConfirmation from './ChatToolConfirmation.vue'
 
 const props = defineProps<{
-  request: Extract<ClientRequest, { kind: 'toolConfirmation' | 'confirm_tool' }>
+  request: Extract<ClientRequest, { kind: 'toolConfirmation' }>
 }>()
 defineEmits<{ 'client-response': [response: ClientRequestResponse] }>()
 

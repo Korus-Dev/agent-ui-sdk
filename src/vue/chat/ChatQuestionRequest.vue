@@ -19,7 +19,7 @@ import type { MessageToolCall } from './types'
 const props = defineProps<{
   answeredClientRequestIds?: ReadonlySet<string>
   historical?: boolean
-  request: Extract<ClientRequest, { kind: 'question' | 'ask_user' }>
+  request: Extract<ClientRequest, { kind: 'question' }>
 }>()
 
 const emit = defineEmits<{

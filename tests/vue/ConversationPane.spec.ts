@@ -2804,7 +2804,7 @@ describe('ConversationPane with provider fixtures', () => {
     await flushPromises();
 
     expect(wrapper.emitted('interrupt')).toStrictEqual([[]]);
-    expect(wrapper.emitted('selectApprovalPreset')).toStrictEqual([['full-access']]);
+    expect(wrapper.emitted('update:permission')).toStrictEqual([['full-access']]);
     expect(wrapper.emitted('respond')).toStrictEqual([
       [{ id: 'routing-approval', outcome: { kind: 'decision', decision: 'allow' } }],
     ]);
@@ -2858,7 +2858,7 @@ describe('ConversationPane with provider fixtures', () => {
       routingMentionGroup,
     );
     expect(wrapper.emitted('interrupt')).toBeUndefined();
-    expect(wrapper.emitted('selectApprovalPreset')).toBeUndefined();
+    expect(wrapper.emitted('update:permission')).toBeUndefined();
     expect(wrapper.emitted('respond')).toBeUndefined();
     expect(wrapper.emitted('update:modelId')).toBeUndefined();
     expect(wrapper.emitted('update:planMode')).toBeUndefined();
@@ -2881,7 +2881,7 @@ describe('ConversationPane with provider fixtures', () => {
     await flushPromises();
 
     expect(updateSettings).toHaveBeenCalledWith({ permission: 'approve-for-me' });
-    expect(wrapper.emitted('selectApprovalPreset')).toBeUndefined();
+    expect(wrapper.emitted('update:permission')).toBeUndefined();
   });
 
   it('keeps composer settings and decisions controller-owned when actions are absent', async () => {
@@ -2902,7 +2902,7 @@ describe('ConversationPane with provider fixtures', () => {
     await flushPromises();
 
     expect(wrapper.emitted('interrupt')).toBeUndefined();
-    expect(wrapper.emitted('selectApprovalPreset')).toBeUndefined();
+    expect(wrapper.emitted('update:permission')).toBeUndefined();
     expect(wrapper.emitted('respond')).toBeUndefined();
     expect(wrapper.emitted('update:modelId')).toBeUndefined();
     expect(wrapper.emitted('update:planMode')).toBeUndefined();

@@ -54,7 +54,7 @@ describe('neutral sample host', () => {
       await f.host.call('send', id, 'Hello', { selection: { model: 'provider-model', reasoningEffort: 'low', serviceTier: null } });
       expect(f.driver.sendPrompt).toHaveBeenCalledWith(f.driver.open.mock.results[0]!.value, 'Hello', { selection: { selection: { model: 'provider-model', reasoningEffort: 'low', serviceTier: null } } });
       const session = f.driver.open.mock.results[0]!.value as Session;
-      for (const listener of f.listeners) listener({ type: 'session.changed', session, state: { ...sessionFixture, title: 'Updated by provider' } });
+      for (const listener of f.listeners) listener({ type: 'session.changed', session, revision: 1, state: { ...sessionFixture, title: 'Updated by provider' } });
       expect(f.host.snapshot().conversations[0]!.state.title).toBe('Updated by provider');
       expect(snapshots.length).toBeGreaterThan(1);
       await f.host.call('release', id);

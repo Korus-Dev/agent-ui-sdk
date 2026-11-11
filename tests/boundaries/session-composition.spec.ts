@@ -65,9 +65,9 @@ describe('neutral session composition', () => {
     expect(driver.sendPrompt).toHaveBeenCalledWith(session, 'Explain', promptOptions);
     await actions.interrupt?.();
     expect(driver.interrupt).toHaveBeenCalledWith(session, 'turn-1');
-    receive({ type: 'session.changed', session: otherSession, state: { ...sessionFixture, error: 'Ignore me' } });
+    receive({ type: 'session.changed', session: otherSession, revision: 1, state: { ...sessionFixture, error: 'Ignore me' } });
     expect(state().identity.error).toBeNull();
-    receive({ type: 'session.changed', session, state: { ...sessionFixture, error: 'Disconnected' } });
+    receive({ type: 'session.changed', session, revision: 1, state: { ...sessionFixture, error: 'Disconnected' } });
     expect(state().identity.error).toBe('Disconnected');
     await actions.respond?.({ id: 'approval-1', outcome: { kind: 'decision', decision: 'allow_conversation' } });
     expect(driver.respondToRequest).toHaveBeenLastCalledWith(session, { id: 'approval-1', outcome: { kind: 'decision', decision: 'allow_conversation' } });
@@ -82,7 +82,7 @@ describe('neutral session composition', () => {
     await allow!.trigger('click');
     await flushPromises();
     expect(driver.respondToRequest).toHaveBeenLastCalledWith(session, { id: 'approval-1', outcome: { kind: 'decision', decision: 'allow' } });
-    receive({ type: 'session.changed', session, state: { ...sessionFixture, requests: [] } });
+    receive({ type: 'session.changed', session, revision: 1, state: { ...sessionFixture, requests: [] } });
     await pane.vm.$nextTick();
     expect(pane.find('.agent-ui-approval-prompt').exists()).toBe(false);
     binding.dispose();

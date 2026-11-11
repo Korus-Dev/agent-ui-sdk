@@ -60,16 +60,18 @@ export function createSessionConversationController(options: SessionConversation
     if (!method) throw new Error('This conversation operation is not connected.');
     return method.apply(options.client, args);
   };
-  const updateControls = async (patch: Partial<SessionConversationControls>) => {
+  const updateControls = async (patch: Partial<Omit<SessionConversationControls, 'permission'>>) => {
     requireOpen();
-    const value = { ...controls(), ...patch };
+    const { permission: _session, ...value } = { ...controls(), ...patch };
     // The host can control preferences; otherwise retain only this binding's settings.
     if (options.onControlsChange) await options.onControlsChange(value);
-    else {
-      const next = { ...local.value, ...patch };
-      if (next.permission === state().permission) delete next.permission;
-      local.value = next;
-    }
+    else local.value = { ...local.value, ...patch };
+  };
+  // The session owns permission. The local value only shows the choice until the session reports it.
+  const applyPermission = async (permission: string) => {
+    await call(options.client.setPermission, permission);
+    const { permission: _pending, ...rest } = local.value;
+    local.value = state().permission === permission ? rest : { ...rest, permission };
   };
   const promptOptions = (input?: ReferenceSendPromptOptions): ReferenceSendPromptOptions => {
     const current = controls();
@@ -194,24 +196,17 @@ export function createSessionConversationController(options: SessionConversation
     editTurn: async ({ turnId, content, options: input }) => { await call(options.client.editTurn, turnId, content, input); },
     retryTurn: async id => { await call(options.client.retryTurn, id); },
     sendFollowUp: async prompt => { await submit(prompt); },
-    updateSettings: async defaults => {
-      if (defaults.permission !== undefined) await call(options.client.setPermission, defaults.permission);
-      await updateControls({
-        selection: { ...state().selection, ...controls().selection,
-          ...(defaults.model === undefined ? {} : { model: defaults.model }),
-          ...(defaults.reasoningEffort === undefined ? {} : { reasoningEffort: defaults.reasoningEffort }),
-          ...(defaults.serviceTier === undefined ? {} : { serviceTier: defaults.serviceTier }),
-        },
-        ...(defaults.permission === undefined ? {} : { permission: defaults.permission }),
-      });
+    updateSettings: async ({ permission, ...selection }) => {
+      if (permission !== undefined) await applyPermission(permission);
+      const changed = Object.fromEntries(Object.entries(selection).filter(([, value]) => value !== undefined));
+      if (Object.keys(changed).length) await updateControls({ selection: { ...state().selection, ...controls().selection, ...changed } });
     },
     setPlanMode: async planMode => { await updateControls({ planMode }); },
     menuSelect: async item => {
       const match = /^session-permission:(\d+)$/.exec(item.id);
       const permission = match && capabilities().permissions[Number(match[1])];
       if (!permission) throw new Error('Unknown permission option.');
-      await call(options.client.setPermission, permission.id);
-      await updateControls({ permission: permission.id });
+      await applyPermission(permission.id);
     },
   };
   const controller = createConversationPaneController({
