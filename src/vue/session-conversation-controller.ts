@@ -4,7 +4,7 @@ import type { HarnessCapabilities, Harness, SessionState } from '@korus-dev/mult
 import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import { createConversationPaneController, resolveConversationPaneValue as read, type ConversationPaneActions as Actions, type ConversationPaneValueSource as Source } from './conversation-pane-controller';
 import { sessionStateToConversationPaneState, type SessionConversationControls } from './session-conversation-pane';
-import { requestResponseFromApproval, requestResponseFromClientResponse, type SessionRequestResponse } from './session-request-response';
+import type { SessionRequestResponse } from './session-request-response';
 import { createQueuedChatPrompt } from './chat/queued-prompts';
 import type { ComposerMenuItem } from './composer-menu';
 import { ShieldCheckIcon } from './shared/icons/app-icons';
@@ -186,8 +186,7 @@ export function createSessionConversationController(options: SessionConversation
     },
     interrupt: async () => { await call(options.client.interrupt); },
     cancel: async () => { await call(options.client.interrupt); },
-    resolveApproval: async (id, decision, scope) => { await call(options.client.respondToRequest, requestResponseFromApproval(id, decision, scope)); },
-    clientResponse: async response => { await call(options.client.respondToRequest, requestResponseFromClientResponse(response)); },
+    respond: async response => { await call(options.client.respondToRequest, response); },
     clearGoal: async () => { await call(options.client.clearGoal); },
     loadTurnHistory: async id => { await call(options.client.loadTurnHistory, id); },
     loadOlderHistory: async () => { await call(options.client.loadOlderHistory); },
@@ -195,14 +194,18 @@ export function createSessionConversationController(options: SessionConversation
     editTurn: async ({ turnId, content, options: input }) => { await call(options.client.editTurn, turnId, content, input); },
     retryTurn: async id => { await call(options.client.retryTurn, id); },
     sendFollowUp: async prompt => { await submit(prompt); },
-    updateSettings: async settings => { await updateControls({
-      selection: { ...state().selection, ...controls().selection,
-        ...(settings.modelId === undefined ? {} : { model: settings.modelId }),
-        ...(settings.reasoningEffort === undefined ? {} : { reasoningEffort: settings.reasoningEffort }),
-        ...(settings.serviceTier === undefined ? {} : { serviceTier: settings.serviceTier }),
-      },
-      ...(settings.planMode === undefined ? {} : { planMode: settings.planMode }),
-    }); },
+    updateSettings: async defaults => {
+      if (defaults.permission !== undefined) await call(options.client.setPermission, defaults.permission);
+      await updateControls({
+        selection: { ...state().selection, ...controls().selection,
+          ...(defaults.model === undefined ? {} : { model: defaults.model }),
+          ...(defaults.reasoningEffort === undefined ? {} : { reasoningEffort: defaults.reasoningEffort }),
+          ...(defaults.serviceTier === undefined ? {} : { serviceTier: defaults.serviceTier }),
+        },
+        ...(defaults.permission === undefined ? {} : { permission: defaults.permission }),
+      });
+    },
+    setPlanMode: async planMode => { await updateControls({ planMode }); },
     menuSelect: async item => {
       const match = /^session-permission:(\d+)$/.exec(item.id);
       const permission = match && capabilities().permissions[Number(match[1])];

@@ -1,7 +1,7 @@
 import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import { shallowRef } from 'vue';
 import type { Harness, Session, PromptOptions } from '@korus-dev/multi-agent-sdk';
-import { createConversationPaneController, sessionStateToConversationPaneState, requestResponseFromClientResponse, requestResponseFromApproval } from '@korus-dev/agent-ui-sdk';
+import { createConversationPaneController, sessionStateToConversationPaneState } from '@korus-dev/agent-ui-sdk';
 
 /**
  * Minimal controlled conversation. The host owns subscription lifetime and any
@@ -22,12 +22,7 @@ export function sessionPaneExample(
     actions: {
       submit: async (prompt, options) => { await driver.sendPrompt(session, prompt, resolvePromptOptions(options)); },
       interrupt: async () => { await driver.interrupt(session, state.value.activeTurnId ?? undefined); },
-      resolveApproval: async (id, decision, scope) => {
-        await driver.respondToRequest(session, requestResponseFromApproval(id, decision, scope));
-      },
-      clientResponse: async response => {
-        await driver.respondToRequest(session, requestResponseFromClientResponse(response));
-      },
+      respond: async response => { await driver.respondToRequest(session, response); },
     },
   });
   return { controller, dispose: unsubscribe };

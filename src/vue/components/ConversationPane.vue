@@ -277,7 +277,9 @@
 
 <script setup lang="ts" generic="Payload = unknown">
 import { parseToolStatusDescriptor } from '../chat/tool-status';
-import { questionPayload, isQuestionRequest, isConfirmationRequest, type ConversationRequest as ClientRequest } from '../chat/conversation-request';
+import type { AgentRequest, AgentRequestResponse } from '@korus-dev/multi-agent-sdk';
+import { requestResponseFromApproval, requestResponseFromClientResponse } from '../session-request-response';
+import { questionPayload, isQuestionRequest, isConfirmationRequest, type ConversationRequest } from '../chat/conversation-request';
 import { computed, nextTick, provide, ref, shallowReactive, watch } from 'vue';
 import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt';
 import type { ConversationRenderStrategy, PromptReferenceAttachment, Approval, ApprovalDecision, ApprovalScope, PluginSummary, Turn, ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
@@ -354,8 +356,8 @@ const props = withDefaults(defineProps<{
   actionsDisabled?: boolean;
   activeTurnId?: string | null;
   answeredClientRequestIds?: ReadonlySet<string>;
-  approvals?: readonly Approval[];
-  clientRequests?: readonly ClientRequest[];
+  /** Pending requests the person answers: approvals, questions and tool confirmations. */
+  requests?: readonly AgentRequest[];
   approvalPresets?: readonly ApprovalPreset[];
   attachEnabled?: boolean;
   attachments?: readonly HostAttachment[];
@@ -509,7 +511,7 @@ const emit = defineEmits<{
   requestSkills: [];
   attachmentsChange: [attachments: readonly HostAttachment[]];
   cancel: [];
-  clientResponse: [response: ClientRequestResponse];
+  respond: [response: AgentRequestResponse];
   copyMessage: [index: number];
   clearGoal: [];
   continueInterruptedTurn: [];
@@ -528,11 +530,6 @@ const emit = defineEmits<{
   mentionSelect: [item: ComposerMentionItem<Payload>, group: ComposerMentionGroup<Payload>];
   openLink: [link: ConversationLink];
   openVisualization: [visualization: ConversationVisualization];
-  resolveApproval: [
-    approvalId: string,
-    decision: ApprovalDecision,
-    scope: ApprovalScope,
-  ];
   quoteMessage: [index: number];
   retryTurn: [turnId: string];
   selectApprovalPreset: [preset: ApprovalPreset];
@@ -670,10 +667,12 @@ const displayAnsweredClientRequestIds = computed<ReadonlySet<string>>((previous)
   ...(effectiveAnsweredClientRequestIds.value ?? []),
   ...questionResponses.keys(),
 ]));
-const effectiveClientRequests = computed<readonly ClientRequest[]>(() => controlledValue(
-  (state) => state.thread?.clientRequests ?? [],
-  () => props.clientRequests ?? [],
+const effectiveRequests = computed<readonly AgentRequest[]>(() => controlledValue(
+  (state) => state.thread?.requests ?? [],
+  () => props.requests ?? [],
 ));
+const effectiveClientRequests = computed<readonly ConversationRequest[]>(() => effectiveRequests.value
+  .filter((request): request is ConversationRequest => request.kind !== 'approval'));
 const supersededQuestionIds = computed<ReadonlySet<string>>(() => {
   const ids = new Set<string>();
   const turns = new Map((effectiveTurns.value ?? []).map((turn, index) => [turn.id, index]));
@@ -699,7 +698,7 @@ const dismissedQuestionIds = computed<ReadonlySet<string>>(() => new Set([
   ...supersededQuestionIds.value,
 ]));
 const pendingQuestionRequests = computed(() => {
-  const requests: Extract<ClientRequest, { kind: 'question' | 'ask_user' }>[] = [];
+  const requests: Extract<ConversationRequest, { kind: 'question' | 'ask_user' }>[] = [];
   const seen = new Set<string>();
   for (const request of effectiveClientRequests.value) {
     if (!isQuestionRequest(request) || questionPayload(request).delivery !== 'tool'
@@ -737,7 +736,7 @@ const hiddenQuestionRequestIds = computed<ReadonlySet<string>>((previous) => ret
   pendingQuestionRequests.value.map((request) => request.id),
 ));
 const activeConfirmation = computed(() => effectiveClientRequests.value.find(
-  (request): request is Extract<ClientRequest, { kind: 'toolConfirmation' | 'confirm_tool' }> => (
+  (request): request is Extract<ConversationRequest, { kind: 'toolConfirmation' | 'confirm_tool' }> => (
     isConfirmationRequest(request) && !displayAnsweredClientRequestIds.value.has(request.id)
   ),
 ));
@@ -778,10 +777,8 @@ function transformTranscriptMessage(message: ChatMessage | ConversationMessageIn
     toolCalls: chatMessage.toolCalls?.filter((toolCall) => !isHiddenTool(toolCall)),
   };
 }
-const effectiveApprovals = computed(() => controlledValue(
-  (state) => state.thread?.approvals ?? [],
-  () => props.approvals ?? [],
-));
+const effectiveApprovals = computed(() => effectiveRequests.value
+  .flatMap(request => request.kind === 'approval' ? [request.approval as Approval] : []));
 const activeApproval = computed(() => effectiveApprovals.value[0]);
 const effectiveBusy = computed(() => controlledValue(
   (state) => state.identity.busy ?? false,
@@ -1461,10 +1458,15 @@ function cancel(): void {
   emit('cancel');
 }
 
-function respondToClientRequest(response: ClientRequestResponse): void {
-  if (dispatchControllerAction('clientResponse', response)) return;
+/** Every answer leaves the pane in the shape `Harness.respondToRequest` takes. */
+function respond(response: AgentRequestResponse): void {
+  if (dispatchControllerAction('respond', response)) return;
   if (effectiveController.value) return;
-  emit('clientResponse', response);
+  emit('respond', response);
+}
+
+function respondToClientRequest(response: ClientRequestResponse): void {
+  respond(requestResponseFromClientResponse(response));
 }
 
 function copyMessage(index: number): void {
@@ -1608,11 +1610,8 @@ function steer(prompt: string, composerOptions?: Pick<ReferenceSendPromptOptions
 }
 
 function selectApprovalPreset(preset: ApprovalPreset): void {
-  if (dispatchControllerAction('selectApprovalPreset', preset)) return;
-  if (effectiveController.value) {
-    void dispatchControllerAction('updateSettings', { approvalPreset: preset });
-    return;
-  }
+  if (dispatchControllerAction('updateSettings', { permission: preset })) return;
+  if (effectiveController.value) return;
   emit('selectApprovalPreset', preset);
 }
 
@@ -1621,19 +1620,17 @@ function resolveApproval(
   decision: ApprovalDecision,
   scope: ApprovalScope,
 ): void {
-  if (dispatchControllerAction('resolveApproval', approvalId, decision, scope)) return;
-  if (effectiveController.value) return;
-  emit('resolveApproval', approvalId, decision, scope);
+  respond(requestResponseFromApproval(approvalId, decision, scope));
 }
 
 function updateModelId(modelId: string): void {
-  if (dispatchControllerAction('updateSettings', { modelId })) return;
+  if (dispatchControllerAction('updateSettings', { model: modelId })) return;
   if (effectiveController.value) return;
   emit('update:modelId', modelId);
 }
 
 function updatePlanMode(planMode: boolean): void {
-  if (dispatchControllerAction('updateSettings', { planMode })) return;
+  if (dispatchControllerAction('setPlanMode', planMode)) return;
   if (effectiveController.value) return;
   emit('update:planMode', planMode);
 }

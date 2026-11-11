@@ -24,8 +24,6 @@ export function sessionStateToConversationPaneState(
   controls?: SessionConversationControls,
 ): ConversationPaneState {
   const selection = { ...state.selection, ...controls?.selection };
-  const approvals = state.requests.flatMap(request => request.kind === 'approval' ? [request.approval] : []);
-  const clientRequests = state.requests.filter(request => request.kind !== 'approval');
   return {
     identity: {
       conversationKey, messages: state.messages, busy: state.busy,
@@ -33,7 +31,7 @@ export function sessionStateToConversationPaneState(
       turns: state.turns,
     },
     thread: {
-      approvals, clientRequests, goal: state.goal, contextUsage: state.contextUsage,
+      requests: state.requests, goal: state.goal, contextUsage: state.contextUsage,
       answeredClientRequestIds: state.answeredClientRequestIds === undefined
         ? undefined : new Set(state.answeredClientRequestIds),
     },

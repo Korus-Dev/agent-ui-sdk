@@ -38,11 +38,11 @@ const messages: ChatMessage[] = [
 
 it('folds resolved async questions with turn details while leaving pending questions accessible', async () => {
   const request = {
-    id: 'async-question:q', kind: 'ask_user' as const,
+    id: 'async-question:q', kind: 'question' as const,
     conversationId: 'thread', turnId: 'turn', itemId: 'q',
-    payload: { request: { itemId: 'q', delivery: 'async' as const, blocking: false,
+    question: { itemId: 'q', delivery: 'async' as const, blocking: false,
       questions: [{ id: 'q', header: 'Context', question: 'What context?', isOther: true, isSecret: false, options: null }],
-    } },
+    },
   };
   const wrapper = mount(MessageList, { props: {
     messages: [
@@ -2670,7 +2670,7 @@ describe('MessageList', () => {
       },
     });
     const chatMessage = wrapper.getComponent(Message);
-    const clientResponse = { id: 'approval-1', payload: { decision: 'allow' } };
+    const clientResponse = { id: 'approval-1', outcome: { kind: 'decision', decision: 'allow' } };
     const editPayload = { content: 'Updated prompt', turnId: 'turn-1' };
 
     chatMessage.vm.$emit('cancel');

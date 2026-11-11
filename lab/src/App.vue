@@ -94,9 +94,8 @@
           :capabilities="labCapabilities"
           :active-turn-id="mockActiveTurnId"
           :answered-client-request-ids="answeredClientRequestIds"
-          :approvals="approvals"
           :busy="mockBusy"
-          :client-requests="clientRequests"
+          :requests="requests"
           :context-usage="selected.contextUsage"
           :conversation-key="selected.id"
           :empty-description="selected.description"
@@ -119,8 +118,7 @@
           :turns="mockTurns"
           :transcribe-audio="transcribeAudio"
           @interrupt="activity = 'Interrupt requested'"
-          @client-response="respondToClientRequest"
-          @resolve-approval="resolveApproval"
+          @respond="respond"
           @continue-interrupted-turn="continueInterruptedTurn"
           @message-text-selection-change="selectedMessageText = $event"
           @submit="submitPrompt"
@@ -172,9 +170,9 @@ import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
 import { computed, defineComponent, h, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 const labCapabilities = { models: true, skills: true, reasoningEffort: true, serviceTier: true, planMode: true, goals: true, steerPrompt: true, interrupt: true, history: true, deleteTurn: true, editTurn: true, retryTurn: true, approvals: true, approvalPresets: ['ask-for-approval', 'approve-for-me', 'full-access'] as const };
 import { chartHtmlChunks, inlineHtmlChunks } from './inline-html-demo';
-import { ConversationPane, provideToolPresentation, type ChatMessage, type ChatTranscription, type ContextUsage, type ClientRequestResponse, type ModelOption, type MessageTextSelection, type NativeAttachment, type NativeAttachmentInput, type QueuedPromptData, type SkillSummary, type ReasoningEffort, type TurnGitDiff } from '@korus-dev/agent-ui-sdk';
+import { ConversationPane, provideToolPresentation, type ChatMessage, type ChatTranscription, type ContextUsage, type ModelOption, type MessageTextSelection, type NativeAttachment, type NativeAttachmentInput, type QueuedPromptData, type SkillSummary, type ReasoningEffort, type TurnGitDiff } from '@korus-dev/agent-ui-sdk';
 import type { MessagePart } from '@korus-dev/multi-agent-sdk';
-import type { Approval, ApprovalDecision, AskUserQuestion, ClientRequest, Plugin, Turn } from '@korus-dev/multi-agent-sdk';
+import type { AgentRequest, AgentRequestResponse, AskUserQuestion, Plugin, Turn } from '@korus-dev/multi-agent-sdk';
 
 type Scenario = {
   id: string;
@@ -554,8 +552,7 @@ const messages = ref<ConversationMessageInput[]>([]);
 const mockBusy = ref(false);
 const mockActiveTurnId = ref<string | null>(null);
 const mockTurns = shallowRef<readonly Turn[]>([]);
-const clientRequests = ref<ClientRequest[]>([]);
-const approvals = ref<Approval[]>([]);
+const requests = ref<AgentRequest[]>([]);
 const questionFormat = ref<'choices' | 'text'>('choices');
 const questionSteps = ref<'single' | 'multiple'>('single');
 const questionDelivery = ref<'tool' | 'async'>('async');
@@ -597,8 +594,7 @@ function resetScenario(confirmReset = true): void {
   mockBusy.value = selected.value.busy ?? false;
   mockActiveTurnId.value = selected.value.activeTurnId ?? null;
   mockTurns.value = [...(selected.value.turns ?? [])];
-  clientRequests.value = [];
-  approvals.value = [];
+  requests.value = [];
   answeredClientRequestIds.value = new Set();
   selectedMessageText.value = null;
   selectedMessageContexts.value = [];
@@ -694,11 +690,11 @@ function clearResetFeedback(): void {
 }
 
 function requestCommandApproval(): void {
-  approvals.value.push({
-    id: `lab-approval-${++requestSequence}`, kind: 'command', conversationId: selectedId.value,
+  const id = `lab-approval-${++requestSequence}`;
+  const approval = { id, kind: 'command' as const, conversationId: selectedId.value,
     itemId: `lab-command-${requestSequence}`, title: 'Allow this command?', command: 'npm test',
-    description: 'Run the project tests.',
-  });
+    description: 'Run the project tests.' };
+  requests.value.push({ id, kind: 'approval', conversationId: selectedId.value, itemId: approval.itemId, approval });
 }
 
 function requestApproval(): void {
@@ -710,8 +706,8 @@ function requestApproval(): void {
       description: 'Check for concurrent repo changes',
     }, null, 2),
   };
-  clientRequests.value.push({ id, kind: 'confirm_tool', conversationId: selectedId.value,
-    turnId: id, itemId: `native-${id}`, payload: { confirmation } });
+  requests.value.push({ id, kind: 'toolConfirmation', conversationId: selectedId.value,
+    turnId: id, itemId: `native-${id}`, confirmation });
   messages.value.push({ id, role: 'assistant', status: 'streaming', turnId: id,
     parts: [{ type: 'tool', id, kind: 'mcp', title: 'shell.run', status: 'running',
       statusText: JSON.stringify({ source: 'mcp', action: 'confirm_tool', phase: 'running',
@@ -721,10 +717,6 @@ function requestApproval(): void {
   });
 }
 
-function resolveApproval(id: string, decision: ApprovalDecision): void {
-  approvals.value = approvals.value.filter((approval) => approval.id !== id);
-  activity.value = `Approval ${decision}`;
-}
 
 function requestQuestion(): void {
   const delivery = questionDelivery.value;
@@ -743,16 +735,16 @@ function requestQuestion(): void {
     ...textQuestion, id: `${id}-details`, header: 'Context',
     question: questionFormat.value === 'text' ? 'Anything else I should know?' : textQuestion.question,
   });
-  const request: Extract<ClientRequest, { kind: 'ask_user' }> = {
-    id, kind: 'ask_user', conversationId: selectedId.value, turnId, itemId: id,
-    payload: { request: { itemId: id, delivery, blocking: delivery === 'tool', questions } },
+  const request: Extract<AgentRequest, { kind: 'question' }> = {
+    id, kind: 'question', conversationId: selectedId.value, turnId, itemId: id,
+    question: { itemId: id, delivery, blocking: delivery === 'tool', questions },
   };
   mockActiveTurnId.value = turnId;
   mockBusy.value = true;
   mockTurns.value = [...mockTurns.value, { id: turnId, status: 'inProgress', error: null,
     willRetry: false, startedAt: new Date().toISOString(), completedAt: null, durationMs: null }];
   if (delivery === 'tool') {
-    clientRequests.value.push(request);
+    requests.value.push(request);
     messages.value.push({ id, turnId, role: 'assistant', status: 'streaming',
       parts: [{ type: 'tool', id, kind: 'generic', title: 'ask_user_question', status: 'running',
         statusText: JSON.stringify({ source: 'codex', action: 'ask_user_question', phase: 'running',
@@ -761,20 +753,26 @@ function requestQuestion(): void {
     });
   }
   else messages.value.push({ id, turnId, role: 'assistant', status: 'streaming',
-    parts: [{ type: 'question', request: { id, kind: 'question', conversationId: selectedId.value, turnId, itemId: id, question: { itemId: id, delivery, blocking: false, questions } } }] });
+    parts: [{ type: 'question', request }] });
 }
 
-function respondToClientRequest(response: ClientRequestResponse): void {
-  const requestTurnId = clientRequests.value.find((request) => request.id === response.id)?.turnId
+function respond(response: AgentRequestResponse): void {
+  const pending = requests.value.find((request) => request.id === response.id);
+  if (pending?.kind === 'approval') {
+    requests.value = requests.value.filter((request) => request.id !== response.id);
+    activity.value = `Approval ${response.outcome.kind === 'decision' ? response.outcome.decision : response.outcome.kind}`;
+    return;
+  }
+  const requestTurnId = pending?.turnId
     ?? messages.value.find((message) => message.parts.some((part) =>
       part.type === 'question' && part.request.id === response.id))?.turnId;
   answeredClientRequestIds.value = new Set([...answeredClientRequestIds.value, response.id]);
-  clientRequests.value = clientRequests.value.filter((request) => request.id !== response.id);
+  requests.value = requests.value.filter((request) => request.id !== response.id);
   messages.value = messages.value.map((message) => ({ ...message,
     parts: message.parts.map((part) => part.type === 'tool' && part.id === response.id
-      ? { ...part, status: 'completed', output: response.payload } : part),
+      ? { ...part, status: 'completed', output: response.outcome } : part),
   }));
-  const answerText = Object.values(response.payload?.answers ?? {})
+  const answerText = Object.values(response.outcome.kind === 'answered' ? response.outcome.answers : {})
     .flatMap((answer) => answer.answers).filter(Boolean).join(', ');
   if (answerText) messages.value.push({
     id: 'mock-answer-' + messages.value.length, role: 'user', status: 'complete',

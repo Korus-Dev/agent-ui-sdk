@@ -9,24 +9,22 @@ describe('ChatQuestionRequest', () => {
   it('renders a surface request and forwards its answer', async () => {
     const request = {
       id: 'async-question:agent-question',
-      kind: 'ask_user' as const,
+      kind: 'question' as const,
       conversationId: 'thread-1',
       turnId: 'turn-1',
       itemId: 'agent-question',
-      payload: {
-        request: {
-          itemId: 'agent-question',
-          delivery: 'async' as const,
-          blocking: false,
-          questions: [{
-            id: 'question-1',
-            header: 'Framework',
-            question: 'Which framework?',
-            isOther: false,
-            isSecret: false,
-            options: [{ label: 'Vue', description: '' }],
-          }],
-        },
+      question: {
+        itemId: 'agent-question',
+        delivery: 'async' as const,
+        blocking: false,
+        questions: [{
+          id: 'question-1',
+          header: 'Framework',
+          question: 'Which framework?',
+          isOther: false,
+          isSecret: false,
+          options: [{ label: 'Vue', description: '' }],
+        }],
       },
     }
     const history = mount(ChatQuestionRequest, { props: { request, historical: true } })

@@ -122,12 +122,12 @@ describe('Message', () => {
         parts: [
           { type: 'text', text: question },
           { type: 'question', request: {
-            id: 'async-question:duplicate', kind: 'ask_user',
+            id: 'async-question:duplicate', kind: 'question',
             conversationId: 'thread-1', turnId: 'turn-1', itemId: 'duplicate',
-            payload: { request: {
+            question: {
               itemId: 'duplicate', delivery: 'async', blocking: false,
               questions: [{ id: 'q', header: question, question, isOther: true, isSecret: false, options: null }],
-            } },
+            },
           } },
         ],
       },
@@ -141,12 +141,11 @@ describe('Message', () => {
   it('renders and answers an asynchronous agent question outside the work disclosure', async () => {
     const request = {
       id: 'async-question:agent-question',
-      kind: 'ask_user' as const,
+      kind: 'question' as const,
       conversationId: 'thread-1',
       turnId: 'turn-1',
       itemId: 'agent-question',
-      payload: {
-        request: {
+      question: {
           itemId: 'agent-question',
           delivery: 'async' as const,
           blocking: false,
@@ -162,7 +161,6 @@ describe('Message', () => {
             ],
           }],
         },
-      },
     };
     const wrapper = mountMessage({
       answeredClientRequestIds: new Set<string>(),
@@ -574,7 +572,7 @@ describe('Message', () => {
         text: ({ content }: { content: string }) => `Custom work text: ${content}`,
       },
     });
-    const response = { id: 'question-1', payload: { answers: { choice: 'yes' } } };
+    const response = { id: 'question-1', outcome: { kind: 'answered', answers: { choice: 'yes' } } };
     const link = { href: 'https://example.com/result', kind: 'external' as const };
     const visualization = { path: '/tmp/chart.html', title: 'Chart' };
     const workGroup = wrapper.getComponent(ChatMessageBlock);

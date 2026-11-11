@@ -133,7 +133,7 @@ describe('standard session conversation', () => {
     expect(pane.get('.chat-model-selector__button').text()).toBe('Terra Low');
     await binding.controller.actions.submit?.('Continue');
     expect(sendPrompt).toHaveBeenCalledWith('Continue', expect.objectContaining({ model: 'terra', reasoningEffort: 'low', serviceTier: 'default' }));
-    await binding.controller.actions.updateSettings?.({ modelId: 'sol' }); await flushPromises();
+    await binding.controller.actions.updateSettings?.({ model: 'sol' }); await flushPromises();
     state.value = { ...state.value }; await flushPromises();
     expect(pane.get('.chat-model-selector__button').text()).toBe('Sol Low');
     state.value = { ...state.value, selection: { model: 'sol', reasoningEffort: 'low', serviceTier: 'default' } }; await flushPromises();

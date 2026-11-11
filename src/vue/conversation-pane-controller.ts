@@ -1,5 +1,4 @@
 import type { ConversationMessageInput } from './chat/renderer-message-adapter';
-import type { ConversationRequest as ClientRequest } from './chat/conversation-request';
 import type {
   ConversationLink,
   ContextUsage,
@@ -9,7 +8,6 @@ import type {
   ApprovalPreset,
   Capabilities,
   CommandSummary,
-  ClientRequestResponse,
   ReasoningEffort,
   ThreadGoal,
   TurnGitDiff,
@@ -22,7 +20,7 @@ import type { ComposerState } from './composer-state';
 import type { QueuedChatPrompt } from './chat/queued-prompts';
 import type { ComposerMentionGroup, ComposerMentionItem } from './chat/composer-mentions-custom';
 import type { HostAttachment } from '@korus-dev/agent-ui-sdk/host';
-import type { Approval, ApprovalDecision, ApprovalScope, PluginSummary, Turn, ReferenceSendPromptOptions, UpdateConversationSettings } from '@korus-dev/multi-agent-sdk';
+import type { AgentRequest, AgentRequestResponse, HarnessDefaults, PluginSummary, Turn, ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 
 export type ConversationPaneIdentityState = {
   conversationKey?: string | number | null;
@@ -41,9 +39,9 @@ export type ConversationPaneHistoryState = {
 };
 
 export type ConversationPaneThreadState = {
-  approvals?: readonly Approval[];
+  /** Pending requests the person answers: approvals, questions and tool confirmations. */
+  requests?: readonly AgentRequest[];
   answeredClientRequestIds?: ReadonlySet<string>;
-  clientRequests?: readonly ClientRequest[];
   goal?: ThreadGoal | null;
   queuedPrompts?: readonly QueuedChatPrompt[];
   turnGitDiff?: TurnGitDiff | null;
@@ -130,7 +128,8 @@ type PaneAction<Args extends unknown[] = [], Result = void> = (...args: Args) =>
 export type ConversationPaneActions<Payload = unknown> = {
   attach?: PaneAction;
   cancel?: PaneAction;
-  clientResponse?: PaneAction<[response: ClientRequestResponse]>;
+  /** Answers a pending request, in the shape `Harness.respondToRequest` takes. */
+  respond?: PaneAction<[response: AgentRequestResponse]>;
   clearGoal?: PaneAction;
   continueInterruptedTurn?: PaneAction;
   /** Called after the SDK has copied a message to the clipboard. */
@@ -156,20 +155,16 @@ export type ConversationPaneActions<Payload = unknown> = {
   readImagePreview?: (reference: string) => Promise<string | null>;
   /** Discovers the skill catalog when the composer opens skill suggestions. */
   requestSkills?: PaneAction;
-  resolveApproval?: PaneAction<[
-    approvalId: string,
-    decision: ApprovalDecision,
-    scope: ApprovalScope,
-  ]>;
   retryTurn?: PaneAction<[turnId: string]>;
-  selectApprovalPreset?: PaneAction<[preset: ApprovalPreset]>;
   sendFollowUp?: PaneAction<[prompt: string]>;
   steer?: PaneAction<[prompt: string, options?: ReferenceSendPromptOptions]>;
   steerQueuedPrompt?: PaneAction<[promptId: string, prompt?: string, options?: ReferenceSendPromptOptions]>;
   submit?: PaneAction<[prompt: string, options?: ReferenceSendPromptOptions], ConversationSubmissionResult>;
   updateAttachments?: PaneAction<[attachments: readonly HostAttachment[]]>;
   updateComposerState?: PaneAction<[state: ComposerState]>;
-  updateSettings?: PaneAction<[settings: UpdateConversationSettings]>;
+  /** Changes the defaults the session's next calls use. */
+  updateSettings?: PaneAction<[defaults: Partial<HarnessDefaults>]>;
+  setPlanMode?: PaneAction<[planMode: boolean]>;
 };
 
 export type ConversationPaneController<Payload = unknown> = {

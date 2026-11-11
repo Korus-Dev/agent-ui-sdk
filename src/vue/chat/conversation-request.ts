@@ -1,21 +1,18 @@
 import type { AgentRequest } from '@korus-dev/multi-agent-sdk';
-import type { ClientRequest } from '@korus-dev/multi-agent-sdk';
 
-/** Canonical requests plus explicit compatibility DTOs for existing authored messages. */
-export type ConversationQuestionRequest = Extract<AgentRequest, { kind: 'question' }> | Extract<ClientRequest, { kind: 'ask_user' }>;
-export type ConversationConfirmationRequest = Extract<AgentRequest, { kind: 'toolConfirmation' }> | Extract<ClientRequest, { kind: 'confirm_tool' }>;
+/** The requests the pane answers inline: questions and tool confirmations. Approvals use the approval prompt. */
+export type ConversationQuestionRequest = Extract<AgentRequest, { kind: 'question' }>;
+export type ConversationConfirmationRequest = Extract<AgentRequest, { kind: 'toolConfirmation' }>;
 export type ConversationRequest = ConversationQuestionRequest | ConversationConfirmationRequest;
 export function isQuestionRequest(request: ConversationRequest): request is ConversationQuestionRequest {
-  return request.kind === 'question' || request.kind === 'ask_user';
+  return request.kind === 'question';
 }
 export function isConfirmationRequest(request: ConversationRequest): request is ConversationConfirmationRequest {
-  return request.kind === 'toolConfirmation' || request.kind === 'confirm_tool';
+  return request.kind === 'toolConfirmation';
 }
-type QuestionPayload = Extract<AgentRequest, { kind: 'question' }>['question'] | Extract<ClientRequest, { kind: 'ask_user' }>['payload']['request'];
-type ConfirmationPayload = Extract<AgentRequest, { kind: 'toolConfirmation' }>['confirmation'] | Extract<ClientRequest, { kind: 'confirm_tool' }>['payload']['confirmation'];
-export function questionPayload(request: ConversationQuestionRequest): QuestionPayload {
-  return request.kind === 'question' ? request.question : request.payload.request;
+export function questionPayload(request: ConversationQuestionRequest): ConversationQuestionRequest['question'] {
+  return request.question;
 }
-export function confirmationPayload(request: ConversationConfirmationRequest): ConfirmationPayload {
-  return request.kind === 'toolConfirmation' ? request.confirmation : request.payload.confirmation;
+export function confirmationPayload(request: ConversationConfirmationRequest): ConversationConfirmationRequest['confirmation'] {
+  return request.confirmation;
 }

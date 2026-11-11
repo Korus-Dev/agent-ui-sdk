@@ -13,9 +13,9 @@ describe('neutral session composition', () => {
     const models = [{ id: 'catalog-key', model: 'model:a', supportedReasoningEfforts: [
       { reasoningEffort: 'low', description: 'Quick' }, { reasoningEffort: 'high', description: 'Deep' },
     ], serviceTiers: [{ id: 'priority', name: 'Priority', description: 'Faster processing' }] }, { id: 'other-key', model: 'model:b' }];
-    const updateSettings = vi.fn((settings: { modelId?: string; reasoningEffort?: string | null; serviceTier?: string | null }) => {
+    const updateSettings = vi.fn((settings: { model?: string; reasoningEffort?: string | null; serviceTier?: string | null }) => {
       selection.value = { ...selection.value,
-        ...(settings.modelId === undefined ? {} : { model: settings.modelId }),
+        ...(settings.model === undefined ? {} : { model: settings.model }),
         ...(settings.reasoningEffort === undefined ? {} : { reasoningEffort: settings.reasoningEffort ?? 'low' }),
         ...(settings.serviceTier === undefined ? {} : { serviceTier: settings.serviceTier }),
       };
@@ -30,8 +30,8 @@ describe('neutral session composition', () => {
     await pane.get('.chat-model-selector__button').trigger('click');
     await pane.get('[data-submenu-id="model:model:a"]').trigger('mouseenter');
     await pane.findAll('[data-submenu-id="model:model:a"] [role="menuitemradio"]')[0]!.trigger('click');
-    expect(updateSettings).toHaveBeenCalledWith({ modelId: 'model:a' });
-    expect(updateSettings).not.toHaveBeenCalledWith({ modelId: 'catalog-key' });
+    expect(updateSettings).toHaveBeenCalledWith({ model: 'model:a' });
+    expect(updateSettings).not.toHaveBeenCalledWith({ model: 'catalog-key' });
     expect(updateSettings).toHaveBeenCalledWith({ reasoningEffort: 'low' });
     expect(pane.get('.chat-composer .chat-model-selector__button').text()).toContain('model:a Low');
     expect(models[0]!.id).toBe('catalog-key');
@@ -69,9 +69,9 @@ describe('neutral session composition', () => {
     expect(state().identity.error).toBeNull();
     receive({ type: 'session.changed', session, state: { ...sessionFixture, error: 'Disconnected' } });
     expect(state().identity.error).toBe('Disconnected');
-    await actions.resolveApproval?.('approval-1', 'approve', 'session');
+    await actions.respond?.({ id: 'approval-1', outcome: { kind: 'decision', decision: 'allow_conversation' } });
     expect(driver.respondToRequest).toHaveBeenLastCalledWith(session, { id: 'approval-1', outcome: { kind: 'decision', decision: 'allow_conversation' } });
-    await actions.clientResponse?.({ id: 'question-1', payload: { answers: { language: { answers: ['TypeScript'] } } } });
+    await actions.respond?.({ id: 'question-1', outcome: { kind: 'answered', answers: { language: { answers: ['TypeScript'] } } } });
     expect(driver.respondToRequest).toHaveBeenLastCalledWith(session, { id: 'question-1', outcome: { kind: 'answered', answers: { language: { answers: ['TypeScript'] } } } });
     const pane = mount(ConversationPane, { props: { controller: binding.controller, escapeInterrupt: false } });
     const approval = pane.get('.agent-ui-approval-prompt');
@@ -184,10 +184,8 @@ describe('neutral session composition', () => {
     expect(pane.identity.messages).toBe(sessionFixture.messages);
     expect(pane.identity).toMatchObject({ conversationKey: 'session-key', busy: true, activeTurnId: 'turn-1', error: null });
     expect(pane.identity.turns?.[0]).toMatchObject({ id: 'turn-1', status: 'inProgress', durationMs: null, startedAt: null });
-    expect(pane.thread?.approvals?.[0]).toBe(sessionFixture.requests[0]!.approval);
-    expect(pane.thread?.clientRequests?.[0]).toBe(sessionFixture.requests[1]);
-    expect(pane.thread?.clientRequests?.[1]).toBe(sessionFixture.requests[2]);
-    expect(pane.thread?.clientRequests).toMatchObject([{ id: 'question-1', kind: 'question' }, { id: 'confirmation-1', kind: 'toolConfirmation' }]);
+    // The pane receives the session's requests as they are; it splits approvals from inline requests itself.
+    expect(pane.thread?.requests).toBe(sessionFixture.requests);
     expect(pane.capabilities).toMatchObject({ planMode: false, skills: false, approvals: true, approvalPresets: [] });
     expect(toChatMessage(sessionFixture.messages[1]!).toolCalls?.[0]).toMatchObject({ id: 'tool-1', state: 'running' });
   });

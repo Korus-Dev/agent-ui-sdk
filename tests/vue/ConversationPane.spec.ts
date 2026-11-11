@@ -18,7 +18,7 @@ import {
   type MessageTextSelection,
   type ConversationMessageInput,
 } from '../../src/vue';
-import type { ClientRequest, Turn } from '@korus-dev/multi-agent-sdk';
+import type { Turn, AgentRequest } from '@korus-dev/multi-agent-sdk';
 import type { ChatMessage } from '../../src/vue/chat/types';
 import ChatComposerShelf from '../../src/vue/chat/ChatComposerShelf.vue';
 import Composer from '../../src/vue/components/Composer.vue';
@@ -50,15 +50,15 @@ const runningQuestionTurn: Turn = {
   startedAt: null, completedAt: null, durationMs: null,
 };
 
-const blockingQuestion: Extract<ClientRequest, { kind: 'ask_user' }> = {
-  id: 'request-blocking', kind: 'ask_user', conversationId: 'thread-question',
+const blockingQuestion: Extract<AgentRequest, { kind: 'question' }> = {
+  id: 'request-blocking', kind: 'question', conversationId: 'thread-question',
   turnId: 'turn-question', itemId: 'item-blocking',
-  payload: { request: { itemId: 'item-blocking', delivery: 'tool', blocking: true,
+  question: { itemId: 'item-blocking', delivery: 'tool', blocking: true,
     questions: [{ id: 'framework', header: 'Framework', question: 'Which framework should I use?',
       isOther: false, isSecret: false,
       options: [{ label: 'Vue', description: 'Use the SDK component package.' }],
     }],
-  } },
+  },
 };
 
 const blockingQuestionMessage: ConversationMessageInput = {
@@ -66,7 +66,7 @@ const blockingQuestionMessage: ConversationMessageInput = {
   parts: [{ type: 'tool', id: 'item-blocking', kind: 'generic', title: 'ask_user_question',
     status: 'running', statusText: JSON.stringify({ source: 'codex', action: 'ask_user_question',
       phase: 'running', params: { requestId: blockingQuestion.id,
-        questions: blockingQuestion.payload.request.questions } }),
+        questions: blockingQuestion.question.questions } }),
     metadata: { requestId: blockingQuestion.id },
   }],
 };
@@ -78,6 +78,14 @@ const routingApproval = {
   turnId: 'routing-turn',
   itemId: 'routing-item',
   title: 'Apply routing changes',
+};
+/** Approvals as the pending requests a session reports. */
+function approvalRequests(approvals: readonly Extract<AgentRequest, { kind: 'approval' }>['approval'][]): AgentRequest[] {
+  return approvals.map(approval => ({ id: approval.id, kind: 'approval', conversationId: approval.conversationId,
+    ...(approval.turnId ? { turnId: approval.turnId } : {}), itemId: approval.itemId, approval }));
+}
+const routingApprovalRequest: AgentRequest = {
+  id: 'routing-approval', kind: 'approval', conversationId: 'routing-thread', turnId: 'routing-turn', itemId: 'routing-item', approval: routingApproval,
 };
 const routingMenuItem = {
   id: 'routing-menu-item', type: 'custom' as const, label: 'Route action', payload: { source: 'routing' },
@@ -282,21 +290,21 @@ describe('ConversationPane with provider fixtures', () => {
   });
 
   it.each(['always_allow', 'deny'] as const)('moves MCP tool confirmation into the composer and restores draft/history after %s', async (decision) => {
-    const request: Extract<ClientRequest, { kind: 'confirm_tool' }> = {
-      id: 'confirm-1', kind: 'confirm_tool', conversationId: 'thread-1', turnId: 'turn-1', itemId: 'tool-1',
-      payload: { confirmation: {
+    const request: Extract<AgentRequest, { kind: 'toolConfirmation' }> = {
+      id: 'confirm-1', kind: 'toolConfirmation', conversationId: 'thread-1', turnId: 'turn-1', itemId: 'tool-1',
+      confirmation: {
         summary: 'Check for concurrent repo changes', argumentsPreview: '{"command":"git status"}',
         integrationId: 'shell', integrationName: 'Shell', toolName: 'run',
         allowConversation: true, allowAlways: true,
-      } },
+      },
     };
     const toolPart: ConversationMessageInput['parts'][number] = {
       type: 'tool', id: 'tool-1', kind: 'mcp', title: 'shell.run', status: 'running',
       statusText: JSON.stringify({ source: 'mcp', action: 'confirm_tool', phase: 'running',
-        params: { requestId: request.id, confirmationSummary: request.payload.confirmation.summary } }),
+        params: { requestId: request.id, confirmationSummary: request.confirmation.summary } }),
     };
     const wrapper = mountConversation( { props: {
-      modelValue: 'My unfinished prompt', clientRequests: [request],
+      modelValue: 'My unfinished prompt', requests: [request],
       messages: [{ id: 'mixed', role: 'assistant', status: 'streaming',
         parts: [{ type: 'text', text: 'Checking the repository.' }, toolPart] }],
     } });
@@ -308,10 +316,10 @@ describe('ConversationPane with provider fixtures', () => {
     expect(wrapper.get('.agent-ui-conversation-pane__messages').text()).toContain('Checking the repository.');
     expect(wrapper.find('.agent-ui-conversation-pane__messages .chat-tool-confirmation').exists()).toBe(false);
     await footer.findAll('button').find((button) => button.text() === (decision === 'deny' ? 'Deny' : 'Always allow'))!.trigger('click');
-    expect(wrapper.emitted('clientResponse')).toStrictEqual([[
-      { id: request.id, payload: { decision } },
+    expect(wrapper.emitted('respond')).toStrictEqual([[
+      { id: request.id, outcome: { kind: 'decision', decision } },
     ]]);
-    await wrapper.setProps({ clientRequests: [], answeredClientRequestIds: new Set([request.id]),
+    await wrapper.setProps({ requests: [], answeredClientRequestIds: new Set([request.id]),
       messages: [{ id: 'mixed', role: 'assistant', status: 'streaming',
         parts: [{ type: 'text', text: 'Checking the repository.' }, { ...toolPart, output: { decision } }] }],
     });
@@ -324,7 +332,7 @@ describe('ConversationPane with provider fixtures', () => {
   it('replaces the composer with a blocking question and restores its tool summary after answering', async () => {
     const wrapper = mountConversation( { props: {
       activeTurnId: 'turn-question', busy: true,
-      clientRequests: [blockingQuestion], messages: [blockingQuestionMessage],
+      requests: [blockingQuestion], messages: [blockingQuestionMessage],
       turns: [runningQuestionTurn],
     } });
     expect(wrapper.findComponent(Composer).exists()).toBe(false);
@@ -333,12 +341,12 @@ describe('ConversationPane with provider fixtures', () => {
     expect(wrapper.find('.agent-ui-conversation-pane__messages .chat-tool-user-input').exists()).toBe(false);
 
     await wrapper.get('.agent-ui-conversation-pane__footer button[aria-label="Vue"]').trigger('click');
-    expect(wrapper.emitted('clientResponse')).toStrictEqual([[
-      { id: blockingQuestion.id, payload: { answers: { framework: { answers: ['Vue'] } } } },
+    expect(wrapper.emitted('respond')).toStrictEqual([[
+      { id: blockingQuestion.id, outcome: { kind: 'answered', answers: { framework: { answers: ['Vue'] } } } },
     ]]);
     expect(wrapper.find('.agent-ui-conversation-pane__messages .chat-tool-user-input').exists()).toBe(false);
 
-    await wrapper.setProps({ clientRequests: [], activeTurnId: null, busy: false,
+    await wrapper.setProps({ requests: [], activeTurnId: null, busy: false,
       turns: [{ ...runningQuestionTurn, status: 'completed',
         completedAt: '2026-09-23T00:00:00Z', durationMs: 1_000 }],
       messages: [{ ...blockingQuestionMessage,
@@ -351,14 +359,14 @@ describe('ConversationPane with provider fixtures', () => {
   });
 
   it('uses controlled pending requests for the same composer question and response path', async () => {
-    const clientResponse = vi.fn();
+    const respond = vi.fn();
     const controller = createConversationPaneController({
       state: {
         identity: { conversationKey: 'thread-question', activeTurnId: 'turn-question',
           turns: [runningQuestionTurn], messages: [blockingQuestionMessage], busy: true },
-        thread: { clientRequests: [blockingQuestion] },
+        thread: { requests: [blockingQuestion] },
       },
-      actions: { clientResponse },
+      actions: { respond },
     });
     const wrapper = mountConversation( { props: { controller } });
 
@@ -367,10 +375,10 @@ describe('ConversationPane with provider fixtures', () => {
     expect(wrapper.find('.agent-ui-conversation-pane__messages .chat-tool-user-input').exists()).toBe(false);
     await wrapper.get('.agent-ui-conversation-pane__footer button[aria-label="Vue"]').trigger('click');
 
-    expect(clientResponse).toHaveBeenCalledWith({
-      id: blockingQuestion.id, payload: { answers: { framework: { answers: ['Vue'] } } },
+    expect(respond).toHaveBeenCalledWith({
+      id: blockingQuestion.id, outcome: { kind: 'answered', answers: { framework: { answers: ['Vue'] } } },
     });
-    expect(wrapper.emitted('clientResponse')).toBeUndefined();
+    expect(wrapper.emitted('respond')).toBeUndefined();
   });
 
   it('moves an async question from the composer to a chip when its turn completes, then reopens it', async () => {
@@ -413,8 +421,8 @@ describe('ConversationPane with provider fixtures', () => {
     await footer.findAll('button').find((button) => button.text().includes('Vue'))!.trigger('click');
     await nextTick();
 
-    expect(wrapper.emitted('clientResponse')).toStrictEqual([[
-      { id: 'request-framework', payload: { answers: { framework: { answers: ['Vue'] } } } },
+    expect(wrapper.emitted('respond')).toStrictEqual([[
+      { id: 'request-framework', outcome: { kind: 'answered', answers: { framework: { answers: ['Vue'] } } } },
     ]]);
     expect(wrapper.findComponent(Composer).exists()).toBe(true);
     expect(wrapper.findComponent(ChatComposerShelf).exists()).toBe(true);
@@ -433,8 +441,8 @@ describe('ConversationPane with provider fixtures', () => {
     await wrapper.get('button[aria-label="Cancel pending question"]').trigger('click');
     expect(chip().exists()).toBe(false);
     expect(wrapper.findComponent(Composer).exists()).toBe(true);
-    expect(wrapper.emitted('clientResponse')).toStrictEqual([[
-      { id: 'request-framework', payload: { answers: {}, cancelled: true } },
+    expect(wrapper.emitted('respond')).toStrictEqual([[
+      { id: 'request-framework', outcome: { kind: 'cancelled' } },
     ]]);
 
     const reopened = mountConversation( { props: {
@@ -2610,7 +2618,7 @@ describe('ConversationPane with provider fixtures', () => {
     const wrapper = mountConversation( {
       props: { messages, modelValue: '' },
     });
-    const response = { id: 'legacy-request', payload: { decision: 'allow' } };
+    const response = { id: 'legacy-request', payload: { decision: 'allow' as const } };
     const edit = { content: 'Edited legacy prompt', turnId: 'turn-3' };
     const composerState = { text: 'Legacy draft', selectionStart: 2, selectionEnd: 6 };
 
@@ -2618,7 +2626,7 @@ describe('ConversationPane with provider fixtures', () => {
     await flushPromises();
 
     expect(wrapper.emitted('cancel')).toStrictEqual([[]]);
-    expect(wrapper.emitted('clientResponse')).toStrictEqual([[response]]);
+    expect(wrapper.emitted('respond')).toStrictEqual([[{ id: 'legacy-request', outcome: { kind: 'decision', decision: 'allow' } }]]);
     expect(wrapper.emitted('copyMessage')).toStrictEqual([[1]]);
     expect(wrapper.emitted('deleteTurn')).toStrictEqual([['turn-2']]);
     expect(wrapper.emitted('editTurn')).toStrictEqual([[edit]]);
@@ -2710,7 +2718,7 @@ describe('ConversationPane with provider fixtures', () => {
   it('routes the complete pane action table exclusively through controller actions', async () => {
     const actions = {
       cancel: vi.fn(),
-      clientResponse: vi.fn(),
+      respond: vi.fn(),
       onMessageCopied: vi.fn(),
       deleteTurn: vi.fn(),
       editTurn: vi.fn(),
@@ -2725,7 +2733,7 @@ describe('ConversationPane with provider fixtures', () => {
       actions,
     });
     const wrapper = mountConversation( { props: { controller } });
-    const response = { id: 'controller-request', payload: { decision: 'allow' } };
+    const response = { id: 'controller-request', payload: { decision: 'allow' as const } };
     const edit = { content: 'Edited controlled prompt', turnId: 'turn-3' };
     const composerState = { text: 'Controlled draft', selectionStart: 3, selectionEnd: 7 };
 
@@ -2733,7 +2741,7 @@ describe('ConversationPane with provider fixtures', () => {
     await flushPromises();
 
     expect(actions.cancel).toHaveBeenCalledOnce();
-    expect(actions.clientResponse).toHaveBeenCalledWith(response);
+    expect(actions.respond).toHaveBeenCalledWith({ id: 'controller-request', outcome: { kind: 'decision', decision: 'allow' } });
     expect(actions.onMessageCopied).toHaveBeenCalledWith(1);
     expect(actions.deleteTurn).toHaveBeenCalledWith('turn-2');
     expect(actions.editTurn).toHaveBeenCalledWith(edit);
@@ -2743,7 +2751,7 @@ describe('ConversationPane with provider fixtures', () => {
     expect(actions.clearGoal).toHaveBeenCalledOnce();
     expect(actions.updateComposerState).toHaveBeenCalledWith(composerState);
     expect(wrapper.emitted('cancel')).toBeUndefined();
-    expect(wrapper.emitted('clientResponse')).toBeUndefined();
+    expect(wrapper.emitted('respond')).toBeUndefined();
     expect(wrapper.emitted('copyMessage')).toBeUndefined();
     expect(wrapper.emitted('deleteTurn')).toBeUndefined();
     expect(wrapper.emitted('editTurn')).toBeUndefined();
@@ -2766,13 +2774,13 @@ describe('ConversationPane with provider fixtures', () => {
     emitPaneActionTable(wrapper, {
       composerState,
       edit: { content: 'Must stay controlled', turnId: 'turn-3' },
-      response: { id: 'controller-request-absent', payload: { decision: 'deny' } },
+      response: { id: 'controller-request-absent', payload: { decision: 'deny' as const } },
     });
     await flushPromises();
 
     expect(composerValue(wrapper)).toBe('Locally controlled draft');
     expect(wrapper.emitted('cancel')).toBeUndefined();
-    expect(wrapper.emitted('clientResponse')).toBeUndefined();
+    expect(wrapper.emitted('respond')).toBeUndefined();
     expect(wrapper.emitted('copyMessage')).toBeUndefined();
     expect(wrapper.emitted('deleteTurn')).toBeUndefined();
     expect(wrapper.emitted('editTurn')).toBeUndefined();
@@ -2791,14 +2799,14 @@ describe('ConversationPane with provider fixtures', () => {
     });
 
     emitComposerActionTable(wrapper);
-    await wrapper.setProps({ approvals: [routingApproval] });
+    await wrapper.setProps({ requests: [routingApprovalRequest] });
     await wrapper.findAll('button').find((button) => button.text() === 'Allow')!.trigger('click');
     await flushPromises();
 
     expect(wrapper.emitted('interrupt')).toStrictEqual([[]]);
     expect(wrapper.emitted('selectApprovalPreset')).toStrictEqual([['full-access']]);
-    expect(wrapper.emitted('resolveApproval')).toStrictEqual([
-      ['routing-approval', 'approve', 'once'],
+    expect(wrapper.emitted('respond')).toStrictEqual([
+      [{ id: 'routing-approval', outcome: { kind: 'decision', decision: 'allow' } }],
     ]);
     expect(wrapper.emitted('update:modelId')).toStrictEqual([['gpt-routing']]);
     expect(wrapper.emitted('update:planMode')).toStrictEqual([[true]]);
@@ -2815,13 +2823,13 @@ describe('ConversationPane with provider fixtures', () => {
       interrupt: vi.fn(),
       menuSelect: vi.fn(),
       mentionSelect: vi.fn(),
-      resolveApproval: vi.fn(),
-      selectApprovalPreset: vi.fn(),
+      respond: vi.fn(),
       updateSettings: vi.fn(),
+      setPlanMode: vi.fn(),
     };
     const state: ConversationPaneState = reactive({
       identity: { conversationKey: 'controlled-composer-actions', messages },
-      thread: { approvals: [] },
+      thread: { requests: [] },
     });
     const controller = createConversationPaneController({
       state,
@@ -2830,17 +2838,17 @@ describe('ConversationPane with provider fixtures', () => {
     const wrapper = mountConversation( { props: { controller } });
 
     emitComposerActionTable(wrapper);
-    state.thread = { approvals: [routingApproval] };
+    state.thread = { requests: [routingApprovalRequest] };
     await nextTick();
     await wrapper.findAll('button').find((button) => button.text() === 'Allow')!.trigger('click');
     await flushPromises();
 
     expect(actions.interrupt).toHaveBeenCalledOnce();
-    expect(actions.selectApprovalPreset).toHaveBeenCalledWith('full-access');
-    expect(actions.resolveApproval).toHaveBeenCalledWith('routing-approval', 'approve', 'once');
+    expect(actions.respond).toHaveBeenCalledWith({ id: 'routing-approval', outcome: { kind: 'decision', decision: 'allow' } });
+    expect(actions.setPlanMode).toHaveBeenCalledWith(true);
     expect(actions.updateSettings.mock.calls).toStrictEqual([
-      [{ modelId: 'gpt-routing' }],
-      [{ planMode: true }],
+      [{ permission: 'full-access' }],
+      [{ model: 'gpt-routing' }],
       [{ reasoningEffort: 'high' }],
       [{ serviceTier: 'priority' }],
     ]);
@@ -2851,7 +2859,7 @@ describe('ConversationPane with provider fixtures', () => {
     );
     expect(wrapper.emitted('interrupt')).toBeUndefined();
     expect(wrapper.emitted('selectApprovalPreset')).toBeUndefined();
-    expect(wrapper.emitted('resolveApproval')).toBeUndefined();
+    expect(wrapper.emitted('respond')).toBeUndefined();
     expect(wrapper.emitted('update:modelId')).toBeUndefined();
     expect(wrapper.emitted('update:planMode')).toBeUndefined();
     expect(wrapper.emitted('update:reasoningEffort')).toBeUndefined();
@@ -2872,14 +2880,14 @@ describe('ConversationPane with provider fixtures', () => {
       .$emit('selectApprovalPreset', 'approve-for-me');
     await flushPromises();
 
-    expect(updateSettings).toHaveBeenCalledWith({ approvalPreset: 'approve-for-me' });
+    expect(updateSettings).toHaveBeenCalledWith({ permission: 'approve-for-me' });
     expect(wrapper.emitted('selectApprovalPreset')).toBeUndefined();
   });
 
   it('keeps composer settings and decisions controller-owned when actions are absent', async () => {
     const state: ConversationPaneState = reactive({
       identity: { conversationKey: 'controlled-composer-actions-absent', messages },
-      thread: { approvals: [] },
+      thread: { requests: [] },
     });
     const controller = createConversationPaneController({
       state,
@@ -2888,14 +2896,14 @@ describe('ConversationPane with provider fixtures', () => {
     const wrapper = mountConversation( { props: { controller } });
 
     emitComposerActionTable(wrapper);
-    state.thread = { approvals: [routingApproval] };
+    state.thread = { requests: [routingApprovalRequest] };
     await nextTick();
     await wrapper.findAll('button').find((button) => button.text() === 'Allow')!.trigger('click');
     await flushPromises();
 
     expect(wrapper.emitted('interrupt')).toBeUndefined();
     expect(wrapper.emitted('selectApprovalPreset')).toBeUndefined();
-    expect(wrapper.emitted('resolveApproval')).toBeUndefined();
+    expect(wrapper.emitted('respond')).toBeUndefined();
     expect(wrapper.emitted('update:modelId')).toBeUndefined();
     expect(wrapper.emitted('update:planMode')).toBeUndefined();
     expect(wrapper.emitted('update:reasoningEffort')).toBeUndefined();
@@ -2924,7 +2932,7 @@ describe('ConversationPane with provider fixtures', () => {
           selectedServiceTier: null,
         },
         history: { hasOlder: false, loading: false, loadingOlder: false },
-        thread: { approvals: [], queuedPrompts: [], goal: null, contextUsage: null },
+        thread: { requests: [], queuedPrompts: [], goal: null, contextUsage: null },
         catalogs: { files: [], models: [], commands: [], skills: [], plugins: [] },
         policy: {
           actionsDisabled: false,
@@ -3186,7 +3194,7 @@ describe('ConversationPane with provider fixtures', () => {
   it('starts the transcript for a pending approval without messages or busy work', () => {
     const wrapper = mountConversation( {
       props: {
-        approvals: [{
+        requests: approvalRequests([{
           id: 'approval-only',
           kind: 'command',
           conversationId: 'conversation-approval-only',
@@ -3194,7 +3202,7 @@ describe('ConversationPane with provider fixtures', () => {
           title: 'Run tests',
           command: 'npm test',
           cwd: '/repo',
-        }],
+        }]),
         messages: [],
         modelValue: '',
       },
@@ -3340,25 +3348,24 @@ describe('ConversationPane with provider fixtures', () => {
         modelValue: 'My unfinished prompt',
       },
     });
-    await wrapper.setProps({
-      approvals: [approval, { ...approval, id: 'approval-2', title: 'Second approval' }],
-    });
+    const second = { ...approval, id: 'approval-2', title: 'Second approval' };
+    await wrapper.setProps({ requests: approvalRequests([approval, second]) });
     expect(wrapper.findComponent(Composer).exists()).toBe(false);
-    await wrapper.setProps({ clientRequests: [blockingQuestion] });
+    await wrapper.setProps({ requests: [...approvalRequests([approval, second]), blockingQuestion] });
     expect(wrapper.text()).not.toContain('Second approval');
     expect(wrapper.text()).not.toContain('Which framework should I use?');
     await wrapper.findAll('button').find((button) => button.text() === 'Allow')!.trigger('click');
-    expect(wrapper.emitted('resolveApproval')).toStrictEqual([['approval-1', 'approve', 'once']]);
-    await wrapper.setProps({ approvals: [{ ...approval, id: 'approval-2', title: 'Second approval' }] });
+    expect(wrapper.emitted('respond')).toStrictEqual([[{ id: 'approval-1', outcome: { kind: 'decision', decision: 'allow' } }]]);
+    await wrapper.setProps({ requests: [...approvalRequests([second]), blockingQuestion] });
     expect(wrapper.text()).toContain('Second approval');
     expect(wrapper.findComponent(Composer).exists()).toBe(false);
     await wrapper.findAll('button').find((button) => button.text() === 'Deny')!.trigger('click');
-    expect(wrapper.emitted('resolveApproval')?.at(-1)).toStrictEqual(['approval-2', 'deny', 'once']);
-    await wrapper.setProps({ approvals: [] });
+    expect(wrapper.emitted('respond')?.at(-1)).toStrictEqual([{ id: 'approval-2', outcome: { kind: 'decision', decision: 'deny' } }]);
+    await wrapper.setProps({ requests: [blockingQuestion] });
     expect(wrapper.text()).toContain('Which framework should I use?');
     expect(wrapper.findComponent(Composer).exists()).toBe(false);
     wrapper.get<HTMLButtonElement>('button[aria-label="Vue"]').element.focus();
-    await wrapper.setProps({ clientRequests: [] });
+    await wrapper.setProps({ requests: [] });
     await flushPromises();
     expect(composerValue(wrapper)).toBe('My unfinished prompt');
     expect(document.activeElement).toBe(wrapper.get('[role="textbox"]').element);
@@ -3369,13 +3376,13 @@ describe('ConversationPane with provider fixtures', () => {
   it('does not steal another input focus when the host resolves an approval in the background', async () => {
     const wrapper = mountConversation( {
       attachTo: document.body,
-      props: { approvals: [routingApproval], modelValue: 'Keep this draft' },
+      props: { requests: [routingApprovalRequest], modelValue: 'Keep this draft' },
     });
     const elsewhere = document.createElement('input');
     document.body.append(elsewhere);
     try {
       elsewhere.focus();
-      await wrapper.setProps({ approvals: [] });
+      await wrapper.setProps({ requests: [] });
       await flushPromises();
       expect(composerValue(wrapper)).toBe('Keep this draft');
       expect(document.activeElement).toBe(elsewhere);
@@ -3388,10 +3395,10 @@ describe('ConversationPane with provider fixtures', () => {
   it('forwards presentation extension slots at each composition boundary', async () => {
     const wrapper = mountConversation( {
       props: {
-        approvals: [{
+        requests: approvalRequests([{
           id: 'approval-slot', kind: 'permissions', conversationId: 'thread-1', itemId: 'item-1',
           title: 'Permissions',
-        }],
+        }]),
         disabled: true,
         menuItems: [{ id: 'custom', type: 'custom', label: 'Custom' }],
         messages,
@@ -3414,7 +3421,7 @@ describe('ConversationPane with provider fixtures', () => {
     expect(wrapper.get('.approval-slot').text()).toBe('Approval slot');
     expect(wrapper.get('.message-slot').text()).toBe('ChatMessage slot');
     expect(wrapper.find('.input-slot').exists()).toBe(false);
-    await wrapper.setProps({ approvals: [] });
+    await wrapper.setProps({ requests: [] });
     expect(wrapper.get('.input-slot').text()).toBe('Input slot');
     expect(wrapper.get('.after-slot').text()).toBe('After slot');
     expect(wrapper.get<HTMLButtonElement>('.drawer-slot').element.disabled).toBe(true);
