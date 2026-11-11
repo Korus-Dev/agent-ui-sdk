@@ -137,8 +137,8 @@ describe('neutral session composition', () => {
   it('preserves answered requests and optional history evidence in the rendered pane', async () => {
     const question = sessionFixture.requests[1]!;
     if (question.kind !== 'question') throw new Error('Missing question fixture');
-    const inlineRequest = { id: question.id, kind: 'ask_user' as const, conversationId: question.conversationId,
-      turnId: question.turnId!, itemId: question.question.itemId, payload: { request: question.question } };
+    // A question inside a message carries the same neutral request the session reports.
+    const inlineRequest = question;
     const snapshot = {
       ...sessionFixture,
       messages: [...sessionFixture.messages, {

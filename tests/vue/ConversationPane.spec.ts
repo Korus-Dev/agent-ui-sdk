@@ -33,15 +33,15 @@ const messages: ConversationMessageInput[] = [{
 const asyncQuestionMessage: ConversationMessageInput = {
   id: 'assistant-question', role: 'assistant', status: 'complete', turnId: 'turn-question',
   parts: [{ type: 'question', request: {
-    id: 'request-framework', kind: 'ask_user', conversationId: 'thread-question',
+    id: 'request-framework', kind: 'question', conversationId: 'thread-question',
     turnId: 'turn-question', itemId: 'item-framework',
-    payload: { request: { itemId: 'item-framework', delivery: 'async', blocking: false,
+    question: { itemId: 'item-framework', delivery: 'async', blocking: false,
       questions: [{ id: 'framework', header: 'Framework', question: 'Which framework should I use?',
         isOther: true, isSecret: false,
         options: [{ label: 'Vue', description: 'Use the SDK component package.' },
           { label: 'React', description: 'Use a custom renderer.' }],
       }],
-    } },
+    },
   } }],
 };
 

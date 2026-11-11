@@ -761,7 +761,7 @@ function requestQuestion(): void {
     });
   }
   else messages.value.push({ id, turnId, role: 'assistant', status: 'streaming',
-    parts: [{ type: 'question', request }] });
+    parts: [{ type: 'question', request: { id, kind: 'question', conversationId: selectedId.value, turnId, itemId: id, question: { itemId: id, delivery, blocking: false, questions } } }] });
 }
 
 function respondToClientRequest(response: ClientRequestResponse): void {
