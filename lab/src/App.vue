@@ -172,7 +172,7 @@ const labCapabilities = { models: true, skills: true, reasoningEffort: true, ser
 import { chartHtmlChunks, inlineHtmlChunks } from './inline-html-demo';
 import { ConversationPane, provideToolPresentation, type ChatMessage, type ChatTranscription, type ContextUsage, type ModelOption, type MessageTextSelection, type NativeAttachment, type NativeAttachmentInput, type QueuedPromptData, type SkillSummary, type ReasoningEffort, type TurnGitDiff } from '@korus-dev/agent-ui-sdk';
 import type { MessagePart } from '@korus-dev/multi-agent-sdk';
-import type { AgentRequest, AgentRequestResponse, AskUserQuestion, Plugin, Turn } from '@korus-dev/multi-agent-sdk';
+import type { AgentRequest, AgentRequestResponse, AskUserQuestion, PluginSummary, Turn } from '@korus-dev/multi-agent-sdk';
 
 type Scenario = {
   id: string;
@@ -190,7 +190,7 @@ type Scenario = {
   turnGitDiff?: TurnGitDiff;
 };
 
-const plugins: Plugin[] = [
+const plugins: PluginSummary[] = [
   { id: 'gmail@remote', name: 'gmail', displayName: 'Gmail', shortDescription: 'Read and manage Gmail', brandColor: '#EA4335', enabled: true },
   { id: 'google-drive@remote', name: 'google-drive', displayName: 'Google Drive', shortDescription: 'Search files and documents', brandColor: '#0F9D58', enabled: true },
 ];

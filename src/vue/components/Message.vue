@@ -263,7 +263,7 @@ const emit = defineEmits<{
   'open-visualization': [visualization: ConversationVisualization]
   'copy-message': [index: number]
   'delete-turn': [turnId: string]
-  'edit-turn': [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }]
+  'edit-turn': [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ReferenceSendPromptOptions }]
   'fork-turn': [turnId: string]
   'quote-message': [index: number]
   'retry-turn': [turnId: string]
@@ -424,7 +424,7 @@ function cancelEdit() {
   isEditing.value = false
 }
 
-function saveEdit(content: string, options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions) {
+function saveEdit(content: string, options?: import('@korus-dev/multi-agent-sdk').ReferenceSendPromptOptions) {
   const turnId = chatMessage.value.turnId
   if (!turnId) return
   emit('edit-turn', { content, turnId, ...(options ? { options } : {}) })

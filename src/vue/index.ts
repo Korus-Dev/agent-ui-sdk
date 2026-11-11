@@ -29,7 +29,7 @@ export { default as MessageList } from './components/MessageList.vue';
 export { default as MessageTurn } from './components/MessageTurn.vue';
 export { default as ScrollToBottom } from './components/ScrollToBottom.vue';
 export { default as WorkbenchLayout } from './components/WorkbenchLayout.vue';
-export type { ConversationRenderStrategy } from '@korus-dev/multi-agent-sdk';
+export type { ConversationRenderStrategy } from './chat/contracts';
 export { default as AttachmentBlock } from './chat/ChatAttachmentBlock.vue';
 export { default as AnimatedDiffStat } from './chat/ChatAnimatedDiffStat.vue';
 export { default as CompactionMessage } from './chat/ChatCompactionMessage.vue';
@@ -178,7 +178,7 @@ export type {
   ToolConfirmationDecision,
   TurnGitDiff,
 } from './chat/contracts';
-export type { Plugin, ServiceTier } from '@korus-dev/multi-agent-sdk';
+export type { PluginSummary, ProviderServiceTier } from '@korus-dev/multi-agent-sdk';
 export type {
   MessageAttachment,
   ChatMessage,
@@ -197,17 +197,6 @@ export type { ChatMessageInput as MessageInput, ConversationMessageInput } from 
 export type { ToolVisibility } from './chat/tool-visibility';
 export type { ChatTranslate } from './chat/chat-i18n';
 export type { QueuedChatPrompt as QueuedPromptData } from './chat/queued-prompts';
-export type {
-  ConversationMessage,
-  ConversationMessageAttachment,
-  ConversationMessageAttachmentPart,
-  ConversationMessageMedia,
-  ConversationMessageMediaPart,
-  ConversationMessagePart,
-  ConversationMessageStatusPart,
-  ConversationMessageTextPart,
-  ConversationMessageToolPart,
-} from './types';
 export { applyTheme, type ThemeMode, type ThemeOptions } from './theme';
 export {
   conversationLinkFromHref,

@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { confirmationPayload, type ConversationRequest as ClientRequest } from './conversation-request';
 import { computed } from 'vue'
-import type { ClientRequestResponse } from '@korus-dev/multi-agent-sdk';
+import type { ClientRequestResponse } from './contracts';
 import type { MessageToolCall } from './types'
 import ChatToolConfirmation from './ChatToolConfirmation.vue'
 

@@ -6,9 +6,9 @@ import { describe, expect, it } from 'vitest';
 import ChatUserText from '../../../src/vue/chat/ChatUserText.vue';
 import { humanizeMentionName, parseUserText } from '../../../src/vue/chat/user-text';
 import { SparklesIcon } from '../../../src/vue/shared/icons/app-icons';
-import type { PromptMention, Plugin, Skill } from '@korus-dev/multi-agent-sdk';
+import type { PromptMention, PluginSummary, SkillSummary } from '@korus-dev/multi-agent-sdk';
 
-const gmail: Plugin = {
+const gmail: PluginSummary = {
   id: 'gmail@openai-curated-remote',
   name: 'gmail',
   displayName: 'Gmail',
@@ -18,7 +18,7 @@ const gmail: Plugin = {
   enabled: true,
 };
 
-const bankSkill: Skill = {
+const bankSkill: SkillSummary = {
   name: 'update-bank-balance-sheet',
   displayName: 'Update Bank Balance Sheet',
   description: 'Update balances in the workbook',
@@ -129,13 +129,13 @@ describe('ChatUserText', () => {
   });
 
   it('uses a plugin namespace instead of an opaque app id for contributed skills', () => {
-    const dropbox: Plugin = {
+    const dropbox: PluginSummary = {
       id: 'app-69b31dc2110c8191b8b47dc98fe5a052@openai-curated-remote',
       name: 'app-69b31dc2110c8191b8b47dc98fe5a052',
       displayName: 'Dropbox',
       enabled: true,
     };
-    const cleanup: Skill = {
+    const cleanup: SkillSummary = {
       name: 'app-69b31dc2110c8191b8b47dc98fe5a052:clean-up-dropbox-content',
       path: '/plugins/dropbox/skills/clean-up-dropbox-content/SKILL.md',
       enabled: true,
@@ -371,7 +371,7 @@ describe('ChatUserText', () => {
   });
 
   it('keeps the bare trigger authoritative when plugin and skill names collide', () => {
-    const gmailSkill: Skill = {
+    const gmailSkill: SkillSummary = {
       name: 'gmail',
       path: '/skills/gmail/SKILL.md',
       enabled: true,

@@ -102,7 +102,8 @@ import { questionPayload } from '../chat/conversation-request';
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowReactive, shallowRef, watch } from 'vue'
 import { touchedMessageActionsKey } from '../chat/message-action-state'
 import { questionResponsesKey } from '../chat/message-work-state'
-import type { ConversationRenderStrategy, PluginSummary, SkillSummary, Turn } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary, SkillSummary, Turn } from '@korus-dev/multi-agent-sdk';
+import type { ConversationRenderStrategy } from '../chat/contracts';
 import type { ClientRequestResponse, ConversationLink, ConversationPresentation } from '../chat/contracts'
 import { resolveConversationPresentation } from '../chat/contracts'
 import type { ChatMessage } from '../chat/types'
@@ -199,7 +200,7 @@ const emit = defineEmits<{
   'client-response': [response: ClientRequestResponse]
   'copy-message': [index: number]
   'delete-turn': [turnId: string]
-  'edit-turn': [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }]
+  'edit-turn': [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ReferenceSendPromptOptions }]
   'fork-turn': [turnId: string]
   'load-older-messages': []
   'load-turn-history': [turnId: string]

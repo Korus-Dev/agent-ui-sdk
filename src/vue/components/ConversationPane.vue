@@ -282,7 +282,8 @@ import { requestResponseFromApproval, requestResponseFromClientResponse } from '
 import { questionPayload, isQuestionRequest, isConfirmationRequest, type ConversationRequest } from '../chat/conversation-request';
 import { computed, nextTick, provide, ref, shallowReactive, watch } from 'vue';
 import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt';
-import type { ConversationRenderStrategy, PromptReferenceAttachment, Approval, ApprovalDecision, ApprovalScope, PluginSummary, Turn, ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
+import type { ConversationRenderStrategy } from '../chat/contracts';
+import type { PromptReferenceAttachment, ProviderApprovalRequest, ProviderApprovalDecision, ProviderApprovalScope, PluginSummary, Turn, ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import type { HostAttachment } from '@korus-dev/agent-ui-sdk/host';
 import type { ComposerMenuItem, ComposerMenuSelectableItem } from '../composer-menu';
 import type {
@@ -457,7 +458,7 @@ const props = withDefaults(defineProps<{
 
 defineSlots<{
   'after-composer'(): unknown;
-  approval(props: { approval: Approval }): unknown;
+  approval(props: { approval: ProviderApprovalRequest }): unknown;
   'before-composer'(): unknown;
   'composer-replacement'(): unknown;
   'composer-after'(): unknown;
@@ -778,7 +779,7 @@ function transformTranscriptMessage(message: ChatMessage | ConversationMessageIn
   };
 }
 const effectiveApprovals = computed(() => effectiveRequests.value
-  .flatMap(request => request.kind === 'approval' ? [request.approval as Approval] : []));
+  .flatMap(request => request.kind === 'approval' ? [request.approval as ProviderApprovalRequest] : []));
 const activeApproval = computed(() => effectiveApprovals.value[0]);
 const effectiveBusy = computed(() => controlledValue(
   (state) => state.identity.busy ?? false,
@@ -1617,8 +1618,8 @@ function selectApprovalPreset(preset: ApprovalPreset): void {
 
 function resolveApproval(
   approvalId: string,
-  decision: ApprovalDecision,
-  scope: ApprovalScope,
+  decision: ProviderApprovalDecision,
+  scope: ProviderApprovalScope,
 ): void {
   respond(requestResponseFromApproval(approvalId, decision, scope));
 }

@@ -3,18 +3,18 @@
 import { mount } from '@vue/test-utils';
 import { h, nextTick } from 'vue';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary } from '@korus-dev/multi-agent-sdk';
 import type { FileSearchItem, SkillSummary } from '../../../src/vue/chat/contracts';
 import ChatComposerAtMentionMenu from '../../../src/vue/chat/ChatComposerAtMentionMenu.vue';
 import ChatComposerFileMentionMenu from '../../../src/vue/chat/ChatComposerFileMentionMenu.vue';
 import ChatComposerPluginMenu from '../../../src/vue/chat/ChatComposerPluginMenu.vue';
 import ChatComposerSkillMenu from '../../../src/vue/chat/ChatComposerSkillMenu.vue';
 
-const plugin: Plugin = {
+const plugin: PluginSummary = {
   id: 'gmail@remote', name: 'gmail', displayName: 'Gmail',
   shortDescription: 'Read and manage mail', iconUrl: 'https://example.com/gmail.png', enabled: true,
 };
-const pluginWithoutIcon: Plugin = {
+const pluginWithoutIcon: PluginSummary = {
   id: 'drive@remote', name: 'drive', displayName: 'Drive', enabled: true,
 };
 const file: FileSearchItem = { name: 'README.md', path: 'README.md' };

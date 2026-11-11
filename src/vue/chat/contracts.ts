@@ -1,5 +1,5 @@
 import type { SpeechTranscriptionResult as NativeSpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host';
-import type { ServiceTier } from '@korus-dev/multi-agent-sdk';
+import type { ProviderServiceTier } from '@korus-dev/multi-agent-sdk';
 
 export type ApprovalPreset = 'ask-for-approval' | 'approve-for-me' | 'full-access';
 
@@ -35,13 +35,15 @@ export type ModelOption = {
   hidden?: boolean;
   supportedReasoningEfforts?: readonly ReasoningEffortOption[];
   defaultReasoningEffort?: ReasoningEffort | null;
-  serviceTiers?: readonly ServiceTier[];
+  serviceTiers?: readonly ProviderServiceTier[];
   defaultServiceTier?: string | null;
   isDefault?: boolean;
   providerMetadata?: Record<string, unknown>;
 };
 
 export type { SkillSummary } from '@korus-dev/multi-agent-sdk';
+/** Whether a long transcript renders all at once or as it scrolls into view. */
+export type ConversationRenderStrategy = 'eager' | 'lazy';
 
 export type CommandSummary = {
   id: string;

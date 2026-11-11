@@ -3,7 +3,7 @@
 import { nextTick, ref } from 'vue';
 import { describe, expect, it, vi } from 'vitest';
 import type { FileSearchItem, CommandSummary, SkillSummary } from '../../../src/vue/chat/contracts';
-import type { PromptMention, Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PromptMention, PluginSummary } from '@korus-dev/multi-agent-sdk';
 import { useChatComposerSuggestions } from '../../../src/vue/chat/use-chat-composer-suggestions';
 import type { ComposerMentionGroup } from '../../../src/vue/chat/composer-mentions-custom';
 
@@ -18,7 +18,7 @@ const skills: SkillSummary[] = [
 const commands: CommandSummary[] = [
   { id: 'codex:compact', name: 'compact', slashName: 'compact', submitOnSelect: true },
 ];
-const plugins: Plugin[] = [
+const plugins: PluginSummary[] = [
   { id: 'ts@remote', name: 'ts', displayName: 'TypeScript', enabled: true },
 ];
 
@@ -32,7 +32,7 @@ function setup(
     files: () => readonly FileSearchItem[];
     isSending: () => boolean;
     mentionGroups: () => readonly ComposerMentionGroup[];
-    plugins: () => readonly Plugin[];
+    plugins: () => readonly PluginSummary[];
     skills: () => readonly SkillSummary[];
     skillsEnabled: () => boolean;
     withMentionCallback: boolean;
@@ -342,7 +342,7 @@ describe('useChatComposerSuggestions', () => {
       placement: 'after',
       items: [{ id: 'trailing-x', value: 'trailing:x', label: 'x trailing' }],
     } satisfies ComposerMentionGroup;
-    const matchingPlugin: Plugin = {
+    const matchingPlugin: PluginSummary = {
       id: 'x@remote',
       name: 'x-plugin',
       displayName: 'X Plugin',

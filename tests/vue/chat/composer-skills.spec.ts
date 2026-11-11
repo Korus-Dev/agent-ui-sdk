@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary } from '@korus-dev/multi-agent-sdk';
 import {
   findActiveSkillSlash,
   findActiveSkillTrigger,
@@ -71,7 +71,7 @@ describe('composer skills', () => {
     ['name', { id: 'different', name: 'plugin' }],
     ['versioned id', { id: 'plugin@remote', name: 'different' }],
   ] as const)('matches a plugin by %s and normalizes its namespace', (_kind, identity) => {
-    const plugin: Plugin = {
+    const plugin: PluginSummary = {
       ...identity,
       displayName: '  My CLOUD! App  ',
       enabled: true,
@@ -80,7 +80,7 @@ describe('composer skills', () => {
   });
 
   it('falls back to the plugin name when its display name has no namespace characters', () => {
-    const plugin: Plugin = {
+    const plugin: PluginSummary = {
       id: 'plugin@remote',
       name: 'fallback-name',
       displayName: ' !!! ',
@@ -152,7 +152,7 @@ function skill(overrides: Partial<SkillSummary>): SkillSummary {
   };
 }
 
-function plugin(overrides: Partial<Plugin>): Plugin {
+function plugin(overrides: Partial<PluginSummary>): PluginSummary {
   return {
     id: 'plugin',
     name: 'plugin',

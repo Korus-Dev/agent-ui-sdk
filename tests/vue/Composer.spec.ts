@@ -9,7 +9,7 @@ import ChatRichTextEditor, { type RichTextEditorExpose } from '../../src/vue/cha
 import { exampleCapabilities as codexCapabilities } from '../fixtures/pane-catalogs';
 import { exampleCommands as codexCommands } from '../fixtures/pane-catalogs';
 import type { Capabilities, ContextUsage, FileSearchItem, CommandSummary, ConversationPresentation, ModelOption, SkillSummary, ChatTranscription } from '../../src/vue/chat/contracts';
-import type { PromptPart, Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PromptPart, PluginSummary } from '@korus-dev/multi-agent-sdk';
 import type { ComposerState } from '../../src/vue/composer-state';
 
 type ChatComposerProps = {
@@ -71,7 +71,7 @@ const files: FileSearchItem[] = [
   { name: 'ChatComposer.vue', path: 'src/renderer/components/ChatComposer.vue' },
 ];
 
-const plugins: Plugin[] = [{
+const plugins: PluginSummary[] = [{
   id: 'gmail@openai-curated-remote',
   name: 'gmail',
   displayName: 'Gmail',
@@ -1416,7 +1416,7 @@ describe('ChatComposer', () => {
       name: 'app-69b31dc2110c8191b8b47dc98fe5a052',
       displayName: 'Dropbox',
       enabled: true,
-    } satisfies Plugin;
+    } satisfies PluginSummary;
     const wrapper = mountComposer({
       plugins: [dropbox],
       skills: [{
@@ -2061,7 +2061,7 @@ function mountComposer(overrides: Partial<ChatComposerProps & {
   selectedReasoningEffort: string;
   files: FileSearchItem[];
   skills: SkillSummary[];
-  plugins: Plugin[];
+  plugins: PluginSummary[];
   transcribeAudio: ChatTranscription;
 }> = {}, options: { attachTo?: HTMLElement } = {}) {
   return mount(Composer, {

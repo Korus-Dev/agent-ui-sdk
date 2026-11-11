@@ -7,6 +7,7 @@
 - One capability-driven conversation pane for every harness; removed legacy provider-specific panes, hooks, catalogs and Electron execution bridges.
 - The conversation pane takes neutral `requests` (`AgentRequest[]`) and answers them through `respond(AgentRequestResponse)`. Settings changes go through `updateSettings(Partial<HarnessDefaults>)` and `setPlanMode`; without a controller, the pane emits `update:permission` alongside the other `update:*` events.
 - Session conversation bindings apply a permission change once, through the session, and never pass it to `onControlsChange`.
+- `ConversationRenderStrategy` is defined here. Approval props use the SDK's `Provider*` approval types, and the Codex-shaped `ConversationMessage*` re-exports are removed in favor of the SDK's neutral `Message` model.
 - Host preload globals, IPC channels and generic theme selectors use the canonical host and Agent UI vocabulary.
 
 ## 0.25.0

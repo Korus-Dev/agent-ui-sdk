@@ -25,11 +25,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ChatApprovalCard from '../chat/ChatApprovalCard.vue';
-import type { Approval, ApprovalDecision, ApprovalScope, RequestedPermission } from '@korus-dev/multi-agent-sdk';
+import type { ProviderApprovalRequest, ProviderApprovalDecision, ProviderApprovalScope, ProviderRequestedPermission } from '@korus-dev/multi-agent-sdk';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{
-  approval: Approval;
+  approval: ProviderApprovalRequest;
   disabled?: boolean;
 }>(), {
   disabled: false,
@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<{
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const emit = defineEmits<{
-  resolve: [decision: ApprovalDecision, scope: ApprovalScope];
+  resolve: [decision: ProviderApprovalDecision, scope: ProviderApprovalScope];
 }>();
 // Stryker restore all
 
@@ -55,7 +55,7 @@ function decide(decision: 'once' | 'session' | 'deny'): void {
   emit('resolve', decision === 'deny' ? 'deny' : 'approve', decision === 'session' ? 'session' : 'once');
 }
 
-function permissionLabel(permission: RequestedPermission): string {
+function permissionLabel(permission: ProviderRequestedPermission): string {
   if (permission.kind === 'network') {
     const destination = permission.host
       ? ` to ${permission.protocol ? `${permission.protocol}://` : ''}${permission.host}`
