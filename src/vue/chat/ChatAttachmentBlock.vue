@@ -2,7 +2,7 @@
   <figure
     v-if="(previewSource && !previewFailed) || (managedPreview?.viewport && attachment.kind === 'image')"
     ref="rootElement"
-    class="codex-chat-theme chat-attachment-block chat-attachment-block--image"
+    class="agent-ui-theme chat-attachment-block chat-attachment-block--image"
     :class="{ 'chat-attachment-block--proportional': managedPreview?.viewport && aspectRatio }"
     :title="attachment.path || attachment.url || attachment.name"
   >
@@ -34,7 +34,7 @@
   </figure>
   <button
     v-else-if="managedPreview && attachment.kind === 'image'"
-    class="codex-chat-theme chat-attachment-block chat-attachment-block--chip"
+    class="agent-ui-theme chat-attachment-block chat-attachment-block--chip"
     type="button"
     :aria-label="`Load ${attachment.name}`"
     @click="reloadPreview"
@@ -45,7 +45,7 @@
   <component
     :is="chipHref ? 'a' : 'span'"
     v-else
-    class="codex-chat-theme chat-attachment-block chat-attachment-block--chip"
+    class="agent-ui-theme chat-attachment-block chat-attachment-block--chip"
     :href="chipHref"
     :title="attachment.path || attachment.url || attachment.name"
   >
@@ -60,13 +60,13 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { imageAspectRatio, useManagedImagePreview, useImagePreviewReader } from './host-image-previews'
 import { PaperclipIcon, PhotoIcon } from '../shared/icons/app-icons'
 import ChatImageLightbox from './ChatImageLightbox.vue'
-import type { CodexMessageImageOpenHandler } from './message-image'
+import type { MessageImageOpenHandler } from './message-image'
 import type { MessageAttachment } from './types'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   attachment: MessageAttachment
-  openImage?: CodexMessageImageOpenHandler
+  openImage?: MessageImageOpenHandler
 }>()
 // Stryker restore all
 

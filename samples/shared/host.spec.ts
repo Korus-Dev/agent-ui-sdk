@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { HarnessDriver, HarnessEvent, HarnessProvider, HarnessOptions, Session } from '@korus-dev/multi-agent-sdk';
+import type { Harness, HarnessEvent, HarnessProvider, HarnessOptions, Session } from '@korus-dev/multi-agent-sdk';
 import { createSampleHost, type SampleHostConfiguration } from './host';
 import { capabilitiesFixture, sessionFixture } from '../../tests/fixtures/consumer-session';
 
@@ -14,7 +14,7 @@ function fixture(configuration?: SampleHostConfiguration) {
     sendPrompt: vi.fn(async () => ({})), respondToRequest: vi.fn(async () => {}),
     release: vi.fn(async () => {}), close: vi.fn(async () => {}),
   };
-  const factory = vi.fn((_provider: HarnessProvider, _options: HarnessOptions) => driver as unknown as HarnessDriver);
+  const factory = vi.fn((_provider: HarnessProvider, _options: HarnessOptions) => driver as unknown as Harness);
   const host = createSampleHost({ client: { name: 'sample-test' } }, '/workspace', factory, undefined, undefined, configuration);
   return { host, factory, driver, listeners };
 }

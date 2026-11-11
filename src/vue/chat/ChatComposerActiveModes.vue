@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="planMode || command"
-    class="codex-chat-theme chat-composer__modes"
+    class="agent-ui-theme chat-composer__modes"
     aria-label="Active composer modes"
   >
     <span v-if="planMode" class="chat-composer__mode chat-composer__mode__info">
@@ -28,13 +28,13 @@
 </template>
 
 <script setup lang="ts">
-import type { CodexCommandSummary } from './contracts'
+import type { CommandSummary } from './contracts'
 import { CircleXIcon, ListDetailsIcon, TargetArrowIcon } from '../shared/icons/app-icons'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 defineProps<{
   planMode: boolean
-  command?: CodexCommandSummary | null
+  command?: CommandSummary | null
 }>()
 
 const emit = defineEmits<{

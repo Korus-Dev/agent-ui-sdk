@@ -1,11 +1,11 @@
-import type { Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
+import type { Plugin } from '@korus-dev/multi-agent-sdk';
 import { filterComposerSearchItems } from './composer-search';
 
 export function filterComposerPlugins(
-  plugins: CodexSurfacePlugin[],
+  plugins: Plugin[],
   query: string,
   maxResults = -1,
-): CodexSurfacePlugin[] {
+): Plugin[] {
   return filterComposerSearchItems(plugins, query, [
     { values: (plugin) => [plugin.id] },
     { values: (plugin) => [plugin.name, plugin.displayName] },
@@ -13,19 +13,19 @@ export function filterComposerPlugins(
   ], maxResults);
 }
 
-export function pluginDisplayName(plugin: CodexSurfacePlugin): string {
+export function pluginDisplayName(plugin: Plugin): string {
   return plugin.displayName || plugin.name;
 }
 
-export function pluginDescription(plugin: CodexSurfacePlugin): string {
+export function pluginDescription(plugin: Plugin): string {
   return plugin.shortDescription || plugin.longDescription || '';
 }
 
-export function pluginInsertText(plugin: CodexSurfacePlugin): string {
+export function pluginInsertText(plugin: Plugin): string {
   return plugin.name || plugin.id;
 }
 
-export function pluginMatchesMention(plugin: CodexSurfacePlugin, mention: string): boolean {
+export function pluginMatchesMention(plugin: Plugin, mention: string): boolean {
   const normalized = mention.trim().toLowerCase();
   return [plugin.id, plugin.name, plugin.displayName]
     .some((candidate) => candidate.trim().toLowerCase() === normalized);

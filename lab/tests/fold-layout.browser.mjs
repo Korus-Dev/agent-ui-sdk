@@ -26,7 +26,7 @@ const fixture = {
     if (id !== fixtureId) return;
     return `
       import { createApp, h, ref, reactive } from 'vue';
-      import { CodexConversationPane, createCodexConversationPaneController } from '/@fs/${fileURLToPath(new URL('../../src/vue/index.ts', import.meta.url))}';
+      import { ConversationPane, createConversationPaneController } from '/@fs/${fileURLToPath(new URL('../../src/vue/index.ts', import.meta.url))}';
       import '/@fs/${fileURLToPath(new URL('../../src/vue/styles.css', import.meta.url))}';
       const canvas = document.createElement('canvas');
       canvas.width = 180; canvas.height = 120;
@@ -57,7 +57,7 @@ const fixture = {
         ]
       }] }; };
       window.runFirstCommand = () => { const message=state.identity.messages[0],tool=message.parts[0];state.identity.messages=[{...message,status:'streaming',parts:[{...tool,status:'running',statusText:JSON.stringify({source:'codex',action:'run',phase:'running',params:{target:tool.title}})},...message.parts.slice(1)]}]; };
-      const controller = createCodexConversationPaneController({ state, actions: {
+      const controller = createConversationPaneController({ state, actions: {
         async loadTurnHistory(turnId) {
           window.detailReads++;
           state.identity.turns.find(turn => turn.id === turnId).detailsLoading = true;
@@ -87,7 +87,7 @@ const fixture = {
           ]),
           h('main', { class: 'fixture-layout', style: {
             gridTemplateColumns: (sidebarOpen.value ? sidebarWidth.value : 0) + 'px minmax(0, 1fr)',
-          } }, [h('aside', 'Sidebar'), h('section', { class: 'fixture-conversation' }, h(CodexConversationPane, { controller }))]),
+          } }, [h('aside', 'Sidebar'), h('section', { class: 'fixture-conversation' }, h(ConversationPane, { controller }))]),
         ];
       } }).mount('#app');
     `;
@@ -120,8 +120,8 @@ try {
       const bounds = await card.evaluate(element => ({
         card: element.getBoundingClientRect().width,
         content: element.closest('.chat-message__stack').getBoundingClientRect().width,
-        contained: [...element.closest('.codex-conversation-pane').querySelectorAll('.chat-composer, .chat-queued-prompt__actions')].every(child => {
-          const pane = element.closest('.codex-conversation-pane').getBoundingClientRect();
+        contained: [...element.closest('.agent-ui-conversation-pane').querySelectorAll('.chat-composer, .chat-queued-prompt__actions')].every(child => {
+          const pane = element.closest('.agent-ui-conversation-pane').getBoundingClientRect();
           const rect = child.getBoundingClientRect();
           return rect.left >= pane.left && rect.right <= pane.right;
         }),

@@ -4,17 +4,17 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import ChatMessageActions from '../../../src/vue/chat/ChatMessageActions.vue';
 import { formatMessageSentAt, fullMessageSentAt } from '../../../src/vue/chat/message-time';
-import type { CodexMessageActionsPresentation } from '../../../src/vue/chat/contracts';
-import type { Message } from '../../../src/vue/chat/types';
+import type { MessageActionsPresentation } from '../../../src/vue/chat/contracts';
+import type { ChatMessage } from '../../../src/vue/chat/types';
 
 function mountActions(
-  message: Message,
+  message: ChatMessage,
   options: {
     deleting?: boolean;
     canFork?: boolean;
     copyAction?: () => Promise<void> | void;
     mutationDisabled?: boolean;
-    presentation?: CodexMessageActionsPresentation;
+    presentation?: MessageActionsPresentation;
   } = {},
 ) {
   return mount(ChatMessageActions, {
@@ -52,7 +52,7 @@ describe('ChatMessageActions', () => {
       fork: false,
       quote: false,
       retry: false,
-    } satisfies CodexMessageActionsPresentation;
+    } satisfies MessageActionsPresentation;
     const user = mountActions(
       { role: 'user', content: 'Question' },
       { canFork: true, presentation: hiddenPresentation },

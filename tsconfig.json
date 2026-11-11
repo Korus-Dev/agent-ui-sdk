@@ -32,31 +32,28 @@
       "@korus-dev/agent-ui-sdk": [
         "./src/vue/index.ts"
       ],
-      "@korus-dev/agent-ui-sdk/host.js": [
+      "@korus-dev/agent-ui-sdk/host": [
         "./src/host/contracts.ts"
       ],
-      "@korus-dev/agent-ui-sdk/native.js": [
-        "./src/vue/native/index.ts"
-      ],
-      "@korus-dev/agent-ui-sdk/electron.js": [
+      "@korus-dev/agent-ui-sdk/electron": [
         "./src/electron/index.ts"
       ],
-      "@korus-dev/agent-ui-sdk/electron/preload.js": [
+      "@korus-dev/agent-ui-sdk/electron/preload": [
         "./src/electron/preload.ts"
       ],
-      "@korus-dev/agent-ui-sdk/electron/browser.js": [
+      "@korus-dev/agent-ui-sdk/electron/browser": [
         "./src/browser/electron.ts"
       ],
-      "@korus-dev/agent-ui-sdk/speech.js": [
+      "@korus-dev/agent-ui-sdk/speech": [
         "./src/speech/index.ts"
       ],
-      "@korus-dev/agent-ui-sdk/browser.js": [
+      "@korus-dev/agent-ui-sdk/browser": [
         "./src/browser/index.ts"
       ],
-      "@korus-dev/agent-ui-sdk/browser-ui.js": [
+      "@korus-dev/agent-ui-sdk/browser-ui": [
         "./src/vue/browser/index.ts"
       ],
-      "@korus-dev/agent-ui-sdk/documents.js": [
+      "@korus-dev/agent-ui-sdk/documents": [
         "./src/documents/index.ts"
       ]
     }

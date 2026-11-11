@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
-import { createHarnessDriver, type HarnessDriver, type HarnessOptions, type HarnessProvider, type Session } from '@korus-dev/multi-agent-sdk';
-import { toHarnessPromptOptions } from '@korus-dev/agent-ui-sdk/host.js';
+import { createHarness, type Harness, type HarnessOptions, type HarnessProvider, type Session } from '@korus-dev/multi-agent-sdk';
+import { toHarnessPromptOptions } from '@korus-dev/agent-ui-sdk/host';
 import type { Commands, Conversation, Snapshot, SampleAuthentication } from './contracts';
 
 export type SampleHostConfiguration = { backend: HarnessProvider; login?: () => Promise<void>; loginCommand?: string };
 
 /** Trusted host owns opaque handles. Only serializable snapshots cross the bridge. */
-export function createSampleHost(options: HarnessOptions, folder: string, factory = createHarnessDriver, operations?: { snapshot(): Promise<unknown>; reset(): Promise<unknown> }, resolveAttachment?: Parameters<typeof toHarnessPromptOptions>[1], configuration: SampleHostConfiguration = { backend: 'codex' }) {
-  const drivers = new Map<HarnessProvider, HarnessDriver>();
-  const bindings = new Map<string, { driver: HarnessDriver; session: Session; view: Conversation }>();
+export function createSampleHost(options: HarnessOptions, folder: string, factory = createHarness, operations?: { snapshot(): Promise<unknown>; reset(): Promise<unknown> }, resolveAttachment?: Parameters<typeof toHarnessPromptOptions>[1], configuration: SampleHostConfiguration = { backend: 'codex' }) {
+  const drivers = new Map<HarnessProvider, Harness>();
+  const bindings = new Map<string, { driver: Harness; session: Session; view: Conversation }>();
   const listeners = new Set<(snapshot: Snapshot) => void>();
   const unsubscribers: (() => void)[] = [];
   let authentication: SampleAuthentication | null = null;

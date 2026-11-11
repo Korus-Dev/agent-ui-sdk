@@ -1,5 +1,5 @@
 <template>
-  <div ref="rootElement" class="codex-chat-theme chat-mermaid-block">
+  <div ref="rootElement" class="agent-ui-theme chat-mermaid-block">
     <div class="chat-mermaid-block__actions">
       <ChatIconButton bordered :label="modeToggleLabel" @click="toggleMode">
         <EyeIcon v-if="showingCode" />
@@ -19,8 +19,8 @@
     <Teleport to="body">
       <div
         v-if="fullscreenOpen"
-        class="codex-chat-theme chat-mermaid-block__fullscreen"
-        :data-codex-theme="portalTheme.mode"
+        class="agent-ui-theme chat-mermaid-block__fullscreen"
+        :data-theme="portalTheme.mode"
         :style="portalTheme.style"
         role="dialog"
         aria-modal="true"
@@ -55,7 +55,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { renderMermaidSVG } from 'beautiful-mermaid'
 import { CodeIcon, EyeIcon, Maximize2, X } from '../shared/icons/app-icons'
 import ChatIconButton from './ChatIconButton.vue'
-import { captureCodexPortalTheme, type CodexPortalTheme } from './portal-theme'
+import { capturePortalTheme, type PortalTheme } from './portal-theme'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
@@ -70,7 +70,7 @@ const showCodeLabel = 'Show source'
 const fullscreenOpen = ref(false)
 const showingCode = ref(false)
 const rootElement = ref<HTMLElement | null>(null)
-const portalTheme = ref<CodexPortalTheme>({ mode: 'light', style: {} })
+const portalTheme = ref<PortalTheme>({ mode: 'light', style: {} })
 const stylesheetImportPattern = /@import\s+url\([^)]*\);\s*/g
 const rawLabelAttributePattern = /\sdata-label="[^"]*"/g
 
@@ -103,7 +103,7 @@ function toggleMode() {
 }
 
 function openFullscreen() {
-  portalTheme.value = captureCodexPortalTheme(rootElement.value)
+  portalTheme.value = capturePortalTheme(rootElement.value)
   fullscreenOpen.value = true
 }
 

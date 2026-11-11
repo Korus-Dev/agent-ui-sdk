@@ -1,5 +1,5 @@
 import { shallowRef } from 'vue';
-import type { HarnessDriver, Session, PromptOptions } from '@korus-dev/multi-agent-sdk';
+import type { Harness, Session, PromptOptions } from '@korus-dev/multi-agent-sdk';
 import {
   createConversationPaneController,
   sessionStateToConversationPaneState,
@@ -14,7 +14,7 @@ import {
  * No runtime harness import, provider dispatch or native session identity.
  */
 export function sessionPaneExample(
-  driver: Pick<HarnessDriver, 'readSession' | 'getCapabilities' | 'onEvent' | 'sendPrompt' | 'interrupt' | 'respondToRequest'>,
+  driver: Pick<Harness, 'readSession' | 'getCapabilities' | 'onEvent' | 'sendPrompt' | 'interrupt' | 'respondToRequest'>,
   session: Session,
   resolvePromptOptions: (options?: ClientSendMessageOptions) => PromptOptions | undefined,
 ) {

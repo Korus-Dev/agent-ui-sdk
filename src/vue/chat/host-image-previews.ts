@@ -1,13 +1,13 @@
 import { observeImageViewport } from './image-viewport'
 import { imagePreviewPoolKey } from './image-preview-pool'
 import { computed, inject, provide, shallowRef, watch, type InjectionKey, type Ref, type WatchSource } from 'vue'
-import { useCodexHostCapabilities } from '../native-capabilities'
+import { useHostCapabilities } from '../native-capabilities'
 
 type ImagePreviewReader = (reference: string) => Promise<string | null>
 const imagePreviewReaderKey: InjectionKey<ImagePreviewReader> = Symbol('image-preview-reader')
 export function provideImagePreviewReader(read: ImagePreviewReader) { provide(imagePreviewReaderKey, read) }
 export function useImagePreviewReader(): ImagePreviewReader | undefined {
-  return inject(imagePreviewReaderKey, undefined) ?? useCodexHostCapabilities()?.readImagePreview
+  return inject(imagePreviewReaderKey, undefined) ?? useHostCapabilities()?.readImagePreview
 }
 
 function localSource(source: string): boolean {

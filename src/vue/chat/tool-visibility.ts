@@ -1,15 +1,15 @@
-import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk';
+import type { ConversationMessage } from '@korus-dev/multi-agent-sdk';
 import { computeMessageBlocks } from './message-blocks'
 import { chatMessageFromInput } from './renderer-message-adapter'
-import type { Message, MessageToolCall } from './types'
+import type { ChatMessage, MessageToolCall } from './types'
 
 /** Return false to hide a tool call from the rendered transcript only. */
-export type CodexToolVisibility = (toolCall: MessageToolCall) => boolean
+export type ToolVisibility = (toolCall: MessageToolCall) => boolean
 
 export function filterVisibleMessageTools(
-  message: Message | SurfaceMessage,
-  visibility: CodexToolVisibility | undefined,
-): Message | SurfaceMessage | null {
+  message: ChatMessage | ConversationMessage,
+  visibility: ToolVisibility | undefined,
+): ChatMessage | ConversationMessage | null {
   if (!visibility) return message
 
   const adapted = chatMessageFromInput(message)

@@ -28,17 +28,54 @@
   },
   "main": "./dist/vue/index.js",
   "types": "./dist/vue/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/vue/index.d.ts",
+      "default": "./dist/vue/index.js"
+    },
+    "./host": {
+      "types": "./dist/host/contracts.d.ts",
+      "default": "./dist/host/contracts.js"
+    },
+    "./electron": {
+      "types": "./dist/electron/index.d.ts",
+      "default": "./dist/electron/index.js"
+    },
+    "./electron/preload": {
+      "types": "./dist/electron/preload.d.ts",
+      "default": "./dist/electron/preload.js"
+    },
+    "./electron/browser": {
+      "types": "./dist/browser/electron.d.ts",
+      "default": "./dist/browser/electron.js"
+    },
+    "./speech": {
+      "types": "./dist/speech/index.d.ts",
+      "default": "./dist/speech/index.js"
+    },
+    "./browser": {
+      "types": "./dist/browser/index.d.ts",
+      "default": "./dist/browser/index.js"
+    },
+    "./browser-ui": {
+      "types": "./dist/vue/browser/index.d.ts",
+      "default": "./dist/vue/browser/index.js"
+    },
+    "./documents": {
+      "types": "./dist/documents/index.d.ts",
+      "default": "./dist/documents/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./assets/*": "./assets/*",
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
     "assets",
-    "native",
-    "*.js",
-    "*.d.ts",
-    "styles.css",
-    "electron"
+    "native"
   ],
   "scripts": {
     "build": "vite build && node scripts/typecheck.mjs vue -p tsconfig.build.json && node scripts/package-katex-assets.mjs dist/styles.css dist/fonts && node scripts/verify-package-css.mjs dist/styles.css dist/vue/index.d.ts dist/fonts && node scripts/verify-native-assets.mjs",
@@ -76,7 +113,7 @@
     "test:ai": "vitest --run --silent --reporter=./tests/reporter/silent.ts"
   },
   "dependencies": {
-    "@korus-dev/multi-agent-sdk": "0.25.1",
+    "@korus-dev/multi-agent-sdk": "0.26.0",
     "@pierre/highlights": "0.2.0",
     "@shikijs/langs": "4.3.1",
     "@shikijs/themes": "4.3.1",

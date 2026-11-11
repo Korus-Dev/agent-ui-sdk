@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import ChatRichTextEditor, {
-  type CodexRichTextEditorExpose,
+  type RichTextEditorExpose,
 } from '../../../src/vue/chat/ChatRichTextEditor.vue';
 
 describe('ChatRichTextEditor leading empty line', () => {
@@ -13,7 +13,7 @@ describe('ChatRichTextEditor leading empty line', () => {
       props: { modelValue: '\nExisting text' },
     });
     const editor = wrapper.get('[role="textbox"]').element;
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
 
     richEditor.setCaret(0);
 

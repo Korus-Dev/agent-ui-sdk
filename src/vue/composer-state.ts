@@ -1,15 +1,15 @@
-import { normalizePromptContent, promptContentText } from '@korus-dev/multi-agent-sdk/prompt.js';
-import type { PromptPart as CodexPromptPart } from '@korus-dev/multi-agent-sdk';
+import { normalizePromptContent, promptContentText } from '@korus-dev/multi-agent-sdk/prompt';
+import type { PromptPart } from '@korus-dev/multi-agent-sdk';
 
-export type CodexComposerState = {
+export type ComposerState = {
   text: string;
-  content?: readonly CodexPromptPart[];
+  content?: readonly PromptPart[];
   selectionStart: number;
   selectionEnd: number;
   activeCommandId?: string | null;
 };
 
-export function normalizeCodexComposerState(state: CodexComposerState): CodexComposerState {
+export function normalizeComposerState(state: ComposerState): ComposerState {
   const length = state.text.length;
   const selectionStart = Math.max(0, Math.min(state.selectionStart, length));
   const selectionEnd = Math.max(selectionStart, Math.min(state.selectionEnd, length));

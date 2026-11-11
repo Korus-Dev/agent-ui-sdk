@@ -1,25 +1,25 @@
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from 'vue'
-import type { CodexSpeechTranscriptionResult, CodexChatTranscription } from './contracts'
+import type { SpeechTranscriptionResult, ChatTranscription } from './contracts'
 import {
   BrowserAudioRecorder,
   isBrowserAudioRecordingSupported,
   type RecordedAudio,
 } from '../audio/browser-audio-recorder'
 import { transcribeRecordedAudio } from '../audio/apple-speech-transcription'
-import { useCodexHostCapabilities } from '../native-capabilities'
-import type { CodexSpeechTranscript, CodexStreamingTranscription } from '@korus-dev/agent-ui-sdk/host.js'
+import { useHostCapabilities } from '../native-capabilities'
+import type { SpeechTranscript, StreamingTranscription } from '@korus-dev/agent-ui-sdk/host'
 import { BrowserSpeechRecorder, isBrowserSpeechRecordingSupported, type SpeechRecorder } from '../audio/browser-speech-recorder'
 
-export type CodexComposerVoiceOptions = {
+export type ComposerVoiceOptions = {
   isDisabled: () => boolean
   isSending: () => boolean
   onTranscript: (text: string) => void | Promise<void>
-  transcribeAudio?: CodexChatTranscription
+  transcribeAudio?: ChatTranscription
   /** Overrides native streaming. A custom batch transcriber opts out of native streaming. */
-  streamingTranscription?: CodexStreamingTranscription
+  streamingTranscription?: StreamingTranscription
 }
 
-export type CodexComposerVoiceController = {
+export type ComposerVoiceController = {
   buttonDisabled: ComputedRef<boolean>
   buttonLabel: ComputedRef<string>
   buttonTitle: ComputedRef<string>
@@ -27,7 +27,7 @@ export type CodexComposerVoiceController = {
   isRecording: Ref<boolean>
   isTranscribing: Ref<boolean>
   isStarting: Ref<boolean>
-  transcript: Ref<CodexSpeechTranscript>
+  transcript: Ref<SpeechTranscript>
   /** Normalized local microphone energy (0–1); zero for batch-only capture. */
   audioLevel: Ref<number>
   isLive: ComputedRef<boolean>
@@ -42,14 +42,14 @@ type ChatComposerVoiceDependencies = {
   createRecorder: () => BrowserAudioRecorder
   createStreamRecorder: () => SpeechRecorder
   isRecordingSupported: () => boolean
-  transcribe: (recording: RecordedAudio) => Promise<CodexSpeechTranscriptionResult>
+  transcribe: (recording: RecordedAudio) => Promise<SpeechTranscriptionResult>
 }
 
 export function useChatComposerVoice(
-  options: CodexComposerVoiceOptions,
+  options: ComposerVoiceOptions,
   dependencyOverrides: Partial<ChatComposerVoiceDependencies> = {},
 ) {
-  const hostCapabilities = useCodexHostCapabilities()
+  const hostCapabilities = useHostCapabilities()
   const streaming = options.streamingTranscription ?? (options.transcribeAudio ? undefined : hostCapabilities?.streamingTranscription)
   const defaultDependencies: ChatComposerVoiceDependencies = {
     canTranscribe: () => Boolean(streaming) || hostCapabilities?.capabilities.transcription === true,
@@ -67,7 +67,7 @@ export function useChatComposerVoice(
     ? {
         canTranscribe: () => true,
         transcribe: (recording: RecordedAudio) => transcribeRecordedAudio(recording, {
-          transcribeAppleSpeech: options.transcribeAudio as CodexChatTranscription,
+          transcribeAppleSpeech: options.transcribeAudio as ChatTranscription,
         }),
       }
     : {}
@@ -75,7 +75,7 @@ export function useChatComposerVoice(
   const isRecording = ref(false)
   const isTranscribing = ref(false)
   const isStarting = ref(false)
-  const transcript = ref<CodexSpeechTranscript>({ finalText: '', partialText: '' })
+  const transcript = ref<SpeechTranscript>({ finalText: '', partialText: '' })
   const isLive = computed(() => Boolean(streaming))
   const audioLevel = ref(0)
   type Session = { id: string; batch?: BrowserAudioRecorder; capture?: SpeechRecorder; unsubscribe?: () => void; stopping: boolean }
@@ -171,7 +171,7 @@ export function useChatComposerVoice(
     isTranscribing.value = true
 
     try {
-      let result: CodexSpeechTranscriptionResult
+      let result: SpeechTranscriptionResult
       if (session.capture && streaming) {
         await session.capture.stop()
         if (active !== session) return false
@@ -249,11 +249,11 @@ export function useChatComposerVoice(
 
 /**
  * Public voice controller for composing live dictation or batch voice input
- * without depending on the full CodexComposer component.
+ * without depending on the full Composer component.
  */
-export function useCodexComposerVoice(
-  options: CodexComposerVoiceOptions,
-): CodexComposerVoiceController {
+export function useComposerVoice(
+  options: ComposerVoiceOptions,
+): ComposerVoiceController {
   return useChatComposerVoice(options)
 }
 

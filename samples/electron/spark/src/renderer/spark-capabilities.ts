@@ -1,6 +1,6 @@
-import type { CodexCapabilities } from '@korus-dev/agent-ui-sdk';
+import type { Capabilities } from '@korus-dev/agent-ui-sdk';
 
-export const sparkCapabilities: CodexCapabilities = {
+export const sparkCapabilities: Capabilities = {
   models: false,
   skills: false,
   reasoningEffort: false,

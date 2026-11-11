@@ -21,7 +21,7 @@ try {
   mkdirSync(path.join(temp, 'node_modules', '@korus-dev'), { recursive: true });
   symlinkSync(extracted, path.join(temp, 'node_modules', metadata.name));
 
-  const { resolveAppleSpeechAnalyzerPath } = await import(pathToFileURL(path.join(extracted, 'speech.js')).href);
+  const { resolveAppleSpeechAnalyzerPath } = await import(pathToFileURL(path.join(extracted, metadata.exports['./speech'].default)).href);
   const helper = resolveAppleSpeechAnalyzerPath();
   assert.equal(realpathSync(helper), realpathSync(path.join(extracted, 'assets/apple-speechanalyzer-cli')));
   execFileSync('codesign', ['--verify', '--strict', helper], { stdio: 'inherit' });
@@ -42,8 +42,8 @@ try {
   const page = await application.firstWindow({ timeout: 30_000 });
   await page.waitForLoadState('load');
   const result = await page.evaluate(async () => ({
-    snapshot: await window.codexSurface.getSnapshot(),
-    capabilities: window.codexAppSdkNative.capabilities,
+    snapshot: await window.smoke.snapshot(),
+    capabilities: window.agentUiHostCapabilities.capabilities,
     isolated: typeof window.require === 'undefined' && typeof window.process === 'undefined',
   }));
   assert.deepEqual(result.snapshot, { smoke: 'packaged-sdk', connected: true });

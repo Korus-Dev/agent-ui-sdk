@@ -7,7 +7,7 @@ export const htmlPreviewDocument = `<!doctype html><html><head>
 addEventListener('load', () => {
   document.open();
   addEventListener('message', function connect(event) {
-    if (event.source !== parent || event.data !== 'codex-html-connect' || !event.ports[0]) return;
+    if (event.source !== parent || event.data !== 'agent-ui-html-connect' || !event.ports[0]) return;
     removeEventListener('message', connect);
     const port = event.ports[0];
     port.onmessage = ({ data }) => {
@@ -16,6 +16,6 @@ addEventListener('load', () => {
       if (data.complete) document.close();
     };
   });
-  parent.postMessage('codex-html-ready', '*');
+  parent.postMessage('agent-ui-html-ready', '*');
 }, { once: true });
 </script></body></html>`

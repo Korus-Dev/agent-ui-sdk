@@ -1,13 +1,12 @@
 import { shallowRef, watch } from 'vue';
 import { readEmbeddedConversationImage } from '../host/conversation-images';
-import type { HarnessCapabilities, HarnessDriver, SessionState } from '@korus-dev/multi-agent-sdk';
+import type { HarnessCapabilities, Harness, SessionState } from '@korus-dev/multi-agent-sdk';
 import type { ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
-import { createCodexConversationPaneController, resolveCodexConversationPaneValue as read, type CodexConversationPaneActions as Actions, type CodexConversationPaneValueSource as Source } from './conversation-pane-controller';
+import { createConversationPaneController, resolveConversationPaneValue as read, type ConversationPaneActions as Actions, type ConversationPaneValueSource as Source } from './conversation-pane-controller';
 import { sessionStateToConversationPaneState, type SessionConversationControls } from './session-conversation-pane';
 import { requestResponseFromApproval, requestResponseFromClientResponse, type SessionRequestResponse } from './session-request-response';
 import { createQueuedChatPrompt } from './chat/queued-prompts';
-import { approvalPresetOptions } from './chat/approval-presets';
-import type { CodexComposerMenuItem } from './composer-menu';
+import type { ComposerMenuItem } from './composer-menu';
 import { ShieldCheckIcon } from './shared/icons/app-icons';
 
 /** Renderer-safe, session-bound operations. A host may implement these over IPC. */
@@ -19,7 +18,7 @@ export type SessionConversationClient = {
   setPermission?(id: string): Promise<unknown>;
   setGoal?(objective: string): Promise<unknown>;
   clearGoal?(): Promise<unknown>;
-  readConversationContent?(input: Parameters<HarnessDriver['readConversationContent']>[1]): ReturnType<HarnessDriver['readConversationContent']>;
+  readConversationContent?(input: Parameters<Harness['readConversationContent']>[1]): ReturnType<Harness['readConversationContent']>;
   loadTurnHistory?(id: string): Promise<unknown>;
   loadOlderHistory?(): Promise<unknown>;
   deleteTurn?(id: string): Promise<unknown>;
@@ -32,6 +31,8 @@ export type SessionConversationControllerOptions = {
   conversationKey: string | number;
   client: SessionConversationClient;
   controls?: Source<SessionConversationControls>;
+  /** The SDK reports permission ids; the app decides how they read. Without this, labels are derived from the id. */
+  presentPermission?(permission: { id: string; dangerous?: boolean }): { label?: string; description?: string } | undefined;
   /** Optional controlled preferences. Without this hook settings are ephemeral. */
   onControlsChange?(controls: SessionConversationControls): void | Promise<void>;
 };
@@ -140,11 +141,11 @@ export function createSessionConversationController(options: SessionConversation
       local.value = rest;
     }
   }, { flush: 'sync' });
-  const permissions = (): CodexComposerMenuItem[] => capabilities().permissions.length ? [{
+  const permissions = (): ComposerMenuItem[] => capabilities().permissions.length ? [{
     id: 'session-permissions', type: 'submenu', label: 'Permissions', icon: ShieldCheckIcon,
     submenuAlignment: 'bottom', submenuWidth: 'wide',
     items: capabilities().permissions.map((permission, index) => {
-      const copy = approvalPresetOptions.find(preset => preset.id === permission.id);
+      const copy = options.presentPermission?.(permission);
       return { id: `session-permission:${index}`, type: 'radio',
         label: copy?.label ?? permission.id.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[-_]/g, ' ').replace(/^./, char => char.toUpperCase()),
         description: copy?.description ?? (permission.dangerous ? 'Allows tools to run without approval.' : undefined),
@@ -210,7 +211,7 @@ export function createSessionConversationController(options: SessionConversation
       await updateControls({ permission: permission.id });
     },
   };
-  const controller = createCodexConversationPaneController({
+  const controller = createConversationPaneController({
     state: () => {
       const snapshot = state();
       const pane = sessionStateToConversationPaneState(snapshot, capabilities(), options.conversationKey, controls());

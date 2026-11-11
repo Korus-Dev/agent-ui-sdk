@@ -13,7 +13,7 @@
   </slot>
   <slot v-else-if="block.type === 'text'" name="text" :block="block" :content="block.content" :user="false">
     <div
-      class="codex-chat-theme chat-message-block chat-message-block--text codex-markdown"
+      class="agent-ui-theme chat-message-block chat-message-block--text agent-ui-markdown"
       @click="copyCodeBlock"
     >
       <div v-for="chunk in markdownChunks" :key="chunk.start" class="chat-markdown-chunk" v-html="chunk.html" />
@@ -21,7 +21,7 @@
   </slot>
   <div
     v-else-if="block.type === 'reasoning'"
-    class="codex-chat-theme chat-message-block chat-message-block--reasoning codex-markdown"
+    class="agent-ui-theme chat-message-block chat-message-block--reasoning agent-ui-markdown"
     @click="copyCodeBlock"
   >
     <div v-for="chunk in markdownChunks" :key="chunk.start" class="chat-markdown-chunk" v-html="chunk.html" />
@@ -131,14 +131,14 @@ import ChatVisualizationBlock from './ChatVisualizationBlock.vue'
 import ChatWorkGroup from './ChatWorkGroup.vue'
 import { createIncrementalMarkdown } from './message-markdown'
 import { copyTextToClipboard } from './message-actions'
-import { useCodexChatTranslate } from './chat-i18n'
+import { useChatTranslate } from './chat-i18n'
 import type { MessageBlock, RenderedMessageBlock } from './message-blocks'
-import type { ClientRequestResponse, CodexConversationLink } from './contracts'
-import type { Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill } from '@korus-dev/multi-agent-sdk';
-import type { CodexMessageImageOpenHandler } from './message-image'
-import type { CodexConversationVisualization } from './visualization'
-import type { CodexComposerMentionGroup, CodexComposerMentionItem } from './composer-mentions-custom'
-import { useCodexHostCapabilities } from '../native-capabilities'
+import type { ClientRequestResponse, ConversationLink } from './contracts'
+import type { Plugin, Skill } from '@korus-dev/multi-agent-sdk';
+import type { MessageImageOpenHandler } from './message-image'
+import type { ConversationVisualization } from './visualization'
+import type { ComposerMentionGroup, ComposerMentionItem } from './composer-mentions-custom'
+import { useHostCapabilities } from '../native-capabilities'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 defineSlots<{
@@ -149,7 +149,7 @@ defineSlots<{
   }): unknown
   media(props: { block: Extract<MessageBlock, { type: 'media' }>; media: Extract<MessageBlock, { type: 'media' }>['media'] }): unknown
   mermaid(props: { block: Extract<MessageBlock, { type: 'mermaid' }>; code: string }): unknown
-  mention(props: { group: CodexComposerMentionGroup; item: CodexComposerMentionItem; surface: 'message' }): unknown
+  mention(props: { group: ComposerMentionGroup; item: ComposerMentionItem; surface: 'message' }): unknown
   visualization(props: { block: Extract<MessageBlock, { type: 'visualization' }> }): unknown
   text(props: { block: Extract<MessageBlock, { type: 'text' | 'user-text' }>; content: string; user: boolean }): unknown
   tool(props: {
@@ -163,11 +163,11 @@ const props = withDefaults(defineProps<{
   block: RenderedMessageBlock
   answeredClientRequestIds?: ReadonlySet<string>
   followUpsDisabled?: boolean
-  mentionGroups?: readonly CodexComposerMentionGroup[]
-  openImage?: CodexMessageImageOpenHandler
-  plugins?: readonly CodexSurfacePlugin[]
+  mentionGroups?: readonly ComposerMentionGroup[]
+  openImage?: MessageImageOpenHandler
+  plugins?: readonly Plugin[]
   showToolDetails?: boolean
-  skills?: readonly CodexSurfaceSkill[]
+  skills?: readonly Skill[]
 }>(), {
   showToolDetails: undefined,
 })
@@ -175,14 +175,14 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   cancel: []
   'client-response': [response: ClientRequestResponse]
-  'open-link': [link: CodexConversationLink]
-  'open-visualization': [visualization: CodexConversationVisualization]
+  'open-link': [link: ConversationLink]
+  'open-visualization': [visualization: ConversationVisualization]
   'send-follow-up': [prompt: string]
 }>()
 // Stryker restore all
 
-const t = useCodexChatTranslate()
-const hostCapabilities = useCodexHostCapabilities()
+const t = useChatTranslate()
+const hostCapabilities = useHostCapabilities()
 const incrementalMarkdown = createIncrementalMarkdown()
 const markdownChunks = computed(() => (
   props.block.type === 'text' || props.block.type === 'reasoning'

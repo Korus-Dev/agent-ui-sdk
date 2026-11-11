@@ -53,7 +53,7 @@ describe('ChatToolCall', () => {
     ['create', 'add'], ['edit', 'update'], ['delete', 'delete'],
   ])('opens each %s diff with inline or deferred bytes, including files beyond the title summary', async (action, changeKind) => {
     const copy = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('codexAppSdkNative', { copyToClipboard: copy });
+    vi.stubGlobal('agentUiHostCapabilities', { copyToClipboard: copy });
     try {
     for (const diff of ['', '# README 🪴\n']) {
       const diffContent = { sessionId: 'thread', contentId: 'a'.repeat(64), byteLength: diff ? new TextEncoder().encode(diff).length : 100_000, changeKind };
@@ -84,7 +84,7 @@ describe('ChatToolCall', () => {
     const title = wrapper.get('.chat-tool-call__title');
 
     expect(title.classes().includes('chat-tool-call__title--running')).toBe(running);
-    expect(title.classes().includes('codex-text-shimmer')).toBe(running);
+    expect(title.classes().includes('agent-ui-text-shimmer')).toBe(running);
   });
 
   it('routes only active MCP and home requests with string ids to confirmation cards', () => {

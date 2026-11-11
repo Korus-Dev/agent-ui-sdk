@@ -6,16 +6,16 @@
 </template>
 
 <script setup lang="ts">
-import { confirmationPayload, type ConversationRequest as CodexSurfaceClientRequest } from './conversation-request';
+import { confirmationPayload, type ConversationRequest as ClientRequest } from './conversation-request';
 import { computed } from 'vue'
-import type { ClientRequestResponse as CodexSurfaceClientRequestResponse } from '@korus-dev/multi-agent-sdk';
+import type { ClientRequestResponse } from '@korus-dev/multi-agent-sdk';
 import type { MessageToolCall } from './types'
 import ChatToolConfirmation from './ChatToolConfirmation.vue'
 
 const props = defineProps<{
-  request: Extract<CodexSurfaceClientRequest, { kind: 'toolConfirmation' | 'confirm_tool' }>
+  request: Extract<ClientRequest, { kind: 'toolConfirmation' | 'confirm_tool' }>
 }>()
-defineEmits<{ 'client-response': [response: CodexSurfaceClientRequestResponse] }>()
+defineEmits<{ 'client-response': [response: ClientRequestResponse] }>()
 
 const toolCall = computed<MessageToolCall>(() => ({
   args: undefined,

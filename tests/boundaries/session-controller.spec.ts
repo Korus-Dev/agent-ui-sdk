@@ -18,10 +18,29 @@ function fixture(busy = false) {
       permissions: [{ id: 'ask-for-approval' }, { id: 'full-access', dangerous: true }] },
     controls: { models: [{ id: 'catalog-id', model: 'model', defaultReasoningEffort: 'high', supportedReasoningEfforts: [{ reasoningEffort: 'high', description: 'Deep' }] }] }, client });
   const pane = mount(ConversationPane, { props: { controller: binding.controller, escapeInterrupt: false } });
-  return { binding, state, client, pane, composer: () => pane.findComponent({ name: 'CodexComposer' }) };
+  return { binding, state, client, pane, composer: () => pane.findComponent({ name: 'Composer' }) };
 }
 
 describe('standard session conversation', () => {
+  it.each(['Codex', 'Claude', 'Cursor', 'Antigravity', 'An unknown backend'])('uses capabilities and actions independently of the %s label', async title => {
+    const state = shallowRef<SessionState>({ ...sessionFixture, title, busy: false, activeTurnId: null, requests: [] });
+    const capabilities = shallowRef({ ...capabilitiesFixture, models: false });
+    const sendPrompt = vi.fn(async (..._args: unknown[]) => {});
+    const binding = createSessionConversationController({ conversationKey: 'shared-session', state, capabilities, client: { sendPrompt } });
+    const pane = mount(ConversationPane, { props: { controller: binding.controller } });
+    try {
+      expect(pane.find('.chat-model-selector').exists()).toBe(false);
+      capabilities.value = { ...capabilities.value, models: true };
+      await flushPromises();
+      expect(pane.find('.chat-model-selector').exists()).toBe(true);
+      const editor = pane.get('[contenteditable="true"]');
+      editor.element.textContent = 'Hello';
+      await editor.trigger('input');
+      await pane.get('form').trigger('submit');
+      await flushPromises();
+      expect(sendPrompt.mock.calls[0]?.[0]).toBe('Hello');
+    } finally { pane.unmount(); binding.dispose(); }
+  });
 
   it.each([undefined, 'native-item-with-another-id'])('shows a pending confirmation only in the composer when itemId is %s', async itemId => {
     const { state, pane, client, binding } = fixture(true);
@@ -39,11 +58,11 @@ describe('standard session conversation', () => {
     ] }] };
     try {
       await flushPromises();
-      const transcript = pane.get('.codex-conversation-pane__messages');
+      const transcript = pane.get('.agent-ui-conversation-pane__messages');
       expect(transcript.text()).toContain('Investigating shipment.');
       expect(transcript.find('.chat-tool-call').exists()).toBe(true);
       expect(transcript.find('.chat-tool-confirmation').exists()).toBe(false);
-      const footer = pane.get('.codex-conversation-pane__footer');
+      const footer = pane.get('.agent-ui-conversation-pane__footer');
       expect(footer.text()).toContain(request.confirmation.summary);
       expect(pane.findAll('.chat-tool-confirmation')).toHaveLength(1);
       await footer.findAll('button').find(button => button.text() === 'Allow')!.trigger('click');
@@ -51,8 +70,8 @@ describe('standard session conversation', () => {
       expect(client.respondToRequest.mock.calls).toEqual([[{ id: request.id, outcome: { kind: 'decision', decision: 'allow' } }]]);
       state.value = { ...state.value, requests: [], answeredClientRequestIds: [request.id] };
       await flushPromises();
-      expect(pane.find('.codex-conversation-pane__footer .chat-tool-confirmation').exists()).toBe(false);
-      expect(pane.get('.codex-conversation-pane__messages').text()).toContain('Allowed tool call');
+      expect(pane.find('.agent-ui-conversation-pane__footer .chat-tool-confirmation').exists()).toBe(false);
+      expect(pane.get('.agent-ui-conversation-pane__messages').text()).toContain('Allowed tool call');
     } finally { pane.unmount(); binding.dispose(); }
   });
 
@@ -60,10 +79,10 @@ describe('standard session conversation', () => {
     const { binding, pane, composer, client, state } = fixture();
     expect(pane.get('.chat-model-selector__button').text()).toContain('model High');
     await pane.get('[aria-label="Composer actions"]').trigger('click');
-    const permissionTrigger = pane.get('.codex-composer-menu-list__submenu > button');
+    const permissionTrigger = pane.get('.agent-ui-composer-menu-list__submenu > button');
     expect(permissionTrigger.text()).toBe('Permissions');
     expect(permissionTrigger.get('svg').classes()).toContain('tabler-icon-shield-check');
-    expect(pane.get('.chat-composer-action-menu').element.children[1]!.classList.contains('codex-composer-menu-list__separator')).toBe(true);
+    expect(pane.get('.chat-composer-action-menu').element.children[1]!.classList.contains('agent-ui-composer-menu-list__separator')).toBe(true);
     await pane.findAll('button').find(button => button.text().includes('Plan mode'))!.trigger('click');
     expect(composer().props('planMode')).toBe(true);
     composer().vm.$emit('send', 'Explain'); await flushPromises();
@@ -170,7 +189,7 @@ describe('standard session conversation', () => {
     expect(pane.get('[role="alert"]').text()).toContain('Offline');
     await binding.controller.actions.deleteQueuedPrompt?.(binding.queuedPrompts.value[0]!.id);
     state.value = { ...state.value, requests: sessionFixture.requests }; await flushPromises();
-    await pane.findAll('.codex-approval-prompt button').find(button => button.text() === 'Allow')!.trigger('click');
+    await pane.findAll('.agent-ui-approval-prompt button').find(button => button.text() === 'Allow')!.trigger('click');
     await flushPromises();
     expect(client.respondToRequest).toHaveBeenCalledWith({ id: 'approval-1', outcome: { kind: 'decision', decision: 'allow' } });
     state.value = { ...state.value, requests: sessionFixture.requests.filter(request => request.kind === 'question')

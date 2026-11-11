@@ -1,9 +1,9 @@
 import fixWebmDuration from 'fix-webm-duration';
-import type { CodexSpeechTranscriptionResult } from '../chat/contracts';
+import type { SpeechTranscriptionResult } from '../chat/contracts';
 import type { RecordedAudio } from './browser-audio-recorder';
 
 export type AppleSpeechTranscriptionApi = {
-  transcribeAppleSpeech(audioData: ArrayBuffer, options?: { locale?: string }): Promise<CodexSpeechTranscriptionResult>;
+  transcribeAppleSpeech(audioData: ArrayBuffer, options?: { locale?: string }): Promise<SpeechTranscriptionResult>;
 };
 
 type WebmDurationFixer = (blob: Blob, durationMs: number) => Promise<Blob>;
@@ -11,7 +11,7 @@ type WebmDurationFixer = (blob: Blob, durationMs: number) => Promise<Blob>;
 export async function transcribeRecordedAudio(
   recording: RecordedAudio,
   api: AppleSpeechTranscriptionApi | undefined,
-): Promise<CodexSpeechTranscriptionResult> {
+): Promise<SpeechTranscriptionResult> {
   if (!api?.transcribeAppleSpeech) {
     throw new Error('Apple speech transcription is not available.');
   }

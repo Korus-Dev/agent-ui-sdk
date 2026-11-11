@@ -3,15 +3,15 @@
 import { nextTick, shallowRef } from 'vue';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
-  createCodexConversationPaneController,
-  resolveCodexConversationPaneValue,
-  type CodexConversationPaneActions,
-  type CodexConversationPaneState,
-  type CodexRendererSendMessageOptions,
+  createConversationPaneController,
+  resolveConversationPaneValue,
+  type ConversationPaneActions,
+  type ConversationPaneState,
+  type ClientSendMessageOptions,
 } from '../../src/vue';
-import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk';
+import type { ConversationMessage } from '@korus-dev/multi-agent-sdk';
 
-function message(id: string): SurfaceMessage {
+function message(id: string): ConversationMessage {
   return {
     id,
     role: 'assistant',
@@ -20,63 +20,63 @@ function message(id: string): SurfaceMessage {
   };
 }
 
-function state(messages: readonly SurfaceMessage[]): CodexConversationPaneState {
+function state(messages: readonly ConversationMessage[]): ConversationPaneState {
   return {
     identity: { conversationKey: 'thread-1', messages },
     composer: { state: { text: '', selectionStart: 0, selectionEnd: 0 } },
   };
 }
 
-describe('createCodexConversationPaneController', () => {
+describe('createConversationPaneController', () => {
   it('types controlled submissions with opaque renderer attachments', () => {
-    type SubmitOptions = Parameters<NonNullable<CodexConversationPaneActions['submit']>>[1];
-    type SteerOptions = Parameters<NonNullable<CodexConversationPaneActions['steer']>>[1];
+    type SubmitOptions = Parameters<NonNullable<ConversationPaneActions['submit']>>[1];
+    type SteerOptions = Parameters<NonNullable<ConversationPaneActions['steer']>>[1];
 
-    expectTypeOf<SubmitOptions>().toEqualTypeOf<CodexRendererSendMessageOptions | undefined>();
-    expectTypeOf<SteerOptions>().toEqualTypeOf<CodexRendererSendMessageOptions | undefined>();
+    expectTypeOf<SubmitOptions>().toEqualTypeOf<ClientSendMessageOptions | undefined>();
+    expectTypeOf<SteerOptions>().toEqualTypeOf<ClientSendMessageOptions | undefined>();
   });
 
   it('accepts ref-like sources from another Vue package resolution', () => {
     const messages = [message('message-1')];
-    const externalState: { readonly value: CodexConversationPaneState } = {
+    const externalState: { readonly value: ConversationPaneState } = {
       get value() { return state(messages); },
     };
-    const controller = createCodexConversationPaneController({
+    const controller = createConversationPaneController({
       state: externalState,
       actions: { submit: () => undefined },
     });
 
     expect(controller.state).toBe(externalState);
-    expect(resolveCodexConversationPaneValue(controller.state).identity.messages).toBe(messages);
+    expect(resolveConversationPaneValue(controller.state).identity.messages).toBe(messages);
   });
 
   it('resolves function sources and preserves nullable direct values', () => {
     const currentState = state([message('message-function')]);
     const source = vi.fn(() => currentState);
 
-    expect(resolveCodexConversationPaneValue(source)).toBe(currentState);
+    expect(resolveConversationPaneValue(source)).toBe(currentState);
     expect(source).toHaveBeenCalledOnce();
-    expect(resolveCodexConversationPaneValue<null>(null)).toBeNull();
+    expect(resolveConversationPaneValue<null>(null)).toBeNull();
   });
 
   it('resolves reactive state and actions without cloning message identities', async () => {
     const messages = [message('message-1')];
     const current = shallowRef(state(messages));
     const submit = vi.fn();
-    const actionMap: CodexConversationPaneActions = { submit };
-    const controller = createCodexConversationPaneController({
+    const actionMap: ConversationPaneActions = { submit };
+    const controller = createConversationPaneController({
       state: current,
       actions: actionMap,
     });
 
-    expect(resolveCodexConversationPaneValue(controller.state).identity.messages).toBe(messages);
-    expect(resolveCodexConversationPaneValue(controller.actions).submit).toBe(submit);
+    expect(resolveConversationPaneValue(controller.state).identity.messages).toBe(messages);
+    expect(resolveConversationPaneValue(controller.actions).submit).toBe(submit);
 
     const nextMessages = [message('message-2')];
     current.value = state(nextMessages);
     await nextTick();
 
-    expect(resolveCodexConversationPaneValue(controller.state).identity.messages).toBe(nextMessages);
-    expect(resolveCodexConversationPaneValue(controller.state).identity.messages).not.toBe(messages);
+    expect(resolveConversationPaneValue(controller.state).identity.messages).toBe(nextMessages);
+    expect(resolveConversationPaneValue(controller.state).identity.messages).not.toBe(messages);
   });
 });

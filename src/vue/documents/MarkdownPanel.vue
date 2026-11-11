@@ -46,7 +46,7 @@
     <div ref="documentRoot" class="markdown-panel__document" @scroll="updateActiveHeading">
       <div
         v-if="state === 'loading'"
-        class="markdown-panel__empty codex-text-shimmer"
+        class="markdown-panel__empty agent-ui-text-shimmer"
       > {{ $t('surface.markdownPanel.loadingMarkdown') }} </div>
       <div
         v-else-if="state === 'error'"
@@ -56,7 +56,7 @@
       </div>
       <div
         v-else-if="content.trim()"
-        class="markdown-panel__content codex-markdown"
+        class="markdown-panel__content agent-ui-markdown"
         @click="openLink"
         @auxclick="openLink"
         v-html="renderedMarkdown"

@@ -1,57 +1,57 @@
-import type { ConversationRequest as CodexSurfaceClientRequest } from './chat/conversation-request';
+import type { ConversationRequest as ClientRequest } from './chat/conversation-request';
 import type {
-  CodexConversationLink,
-  CodexContextUsage,
-  CodexFileSearchItem,
-  CodexModelOption,
-  CodexSkillSummary,
+  ConversationLink,
+  ContextUsage,
+  FileSearchItem,
+  ModelOption,
+  SkillSummary,
   ApprovalPreset,
-  CodexCapabilities,
-  CodexCommandSummary,
+  Capabilities,
+  CommandSummary,
   ClientRequestResponse,
   ReasoningEffort,
   ThreadGoal,
   TurnGitDiff,
 } from './chat/contracts';
-import type { CodexComposerMenuItem, CodexComposerMenuSelectableItem } from './composer-menu';
-import type { Message } from './chat/types';
-import type { CodexMessageImageOpenHandler } from './chat/message-image';
-import type { CodexConversationVisualization } from './chat/visualization';
-import type { CodexComposerState } from './composer-state';
+import type { ComposerMenuItem, ComposerMenuSelectableItem } from './composer-menu';
+import type { ChatMessage } from './chat/types';
+import type { MessageImageOpenHandler } from './chat/message-image';
+import type { ConversationVisualization } from './chat/visualization';
+import type { ComposerState } from './composer-state';
 import type { QueuedChatPrompt } from './chat/queued-prompts';
-import type { CodexComposerMentionGroup, CodexComposerMentionItem } from './chat/composer-mentions-custom';
-import type { CodexHostAttachment } from '@korus-dev/agent-ui-sdk/host.js';
-import type { Approval as CodexSurfaceApproval, ApprovalDecision as CodexSurfaceApprovalDecision, ApprovalScope as CodexSurfaceApprovalScope, Plugin as CodexSurfacePlugin, Turn as CodexSurfaceTurn, ClientSendMessageOptions as CodexRendererSendMessageOptions, SurfaceMessage, UpdateConversationSettings as UpdateCodexConversationSettings } from '@korus-dev/multi-agent-sdk';
+import type { ComposerMentionGroup, ComposerMentionItem } from './chat/composer-mentions-custom';
+import type { HostAttachment } from '@korus-dev/agent-ui-sdk/host';
+import type { Approval, ApprovalDecision, ApprovalScope, Plugin, Turn, ClientSendMessageOptions, ConversationMessage, UpdateConversationSettings } from '@korus-dev/multi-agent-sdk';
 
-export type CodexConversationPaneIdentityState = {
+export type ConversationPaneIdentityState = {
   conversationKey?: string | number | null;
   activeTurnId?: string | null;
-  turns?: readonly CodexSurfaceTurn[];
-  messages: readonly (Message | SurfaceMessage)[];
+  turns?: readonly Turn[];
+  messages: readonly (ChatMessage | ConversationMessage)[];
   busy?: boolean;
   disabled?: boolean;
   error?: string | null;
 };
 
-export type CodexConversationPaneHistoryState = {
+export type ConversationPaneHistoryState = {
   hasOlder?: boolean;
   loading?: boolean;
   loadingOlder?: boolean;
 };
 
-export type CodexConversationPaneThreadState = {
-  approvals?: readonly CodexSurfaceApproval[];
+export type ConversationPaneThreadState = {
+  approvals?: readonly Approval[];
   answeredClientRequestIds?: ReadonlySet<string>;
-  clientRequests?: readonly CodexSurfaceClientRequest[];
+  clientRequests?: readonly ClientRequest[];
   goal?: ThreadGoal | null;
   queuedPrompts?: readonly QueuedChatPrompt[];
   turnGitDiff?: TurnGitDiff | null;
-  contextUsage?: CodexContextUsage | null;
+  contextUsage?: ContextUsage | null;
 };
 
-export type CodexConversationPaneComposerState = {
-  state?: CodexComposerState;
-  attachments?: readonly CodexHostAttachment[];
+export type ConversationPaneComposerState = {
+  state?: ComposerState;
+  attachments?: readonly HostAttachment[];
   /** Chronological user prompts available to Up/Down recall. */
   promptHistory?: readonly string[];
   placeholder?: string;
@@ -60,10 +60,10 @@ export type CodexConversationPaneComposerState = {
   /** Primary follow-up action while busy; Cmd/Ctrl+Enter uses the other action. */
   followUpBehavior?: 'queue' | 'steer';
   /** Host actions rendered after Approval and before Plan mode. */
-  leadingMenuItems?: readonly CodexComposerMenuItem[];
-  menuItems?: readonly CodexComposerMenuItem[];
+  leadingMenuItems?: readonly ComposerMenuItem[];
+  menuItems?: readonly ComposerMenuItem[];
   /** Host-owned actions rendered before the SDK's model, reasoning, and speed controls. */
-  modelMenuItems?: readonly CodexComposerMenuItem[];
+  modelMenuItems?: readonly ComposerMenuItem[];
   approvalPreset?: ApprovalPreset | null;
   planMode?: boolean;
   selectedModelId?: string | null;
@@ -71,18 +71,18 @@ export type CodexConversationPaneComposerState = {
   selectedServiceTier?: string | null;
 };
 
-export type CodexConversationPaneCatalogState = {
-  files?: readonly CodexFileSearchItem[];
-  models?: readonly CodexModelOption[];
-  commands?: readonly CodexCommandSummary[];
-  skills?: readonly CodexSkillSummary[];
-  plugins?: readonly CodexSurfacePlugin[];
-  mentionGroups?: readonly CodexComposerMentionGroup[];
+export type ConversationPaneCatalogState = {
+  files?: readonly FileSearchItem[];
+  models?: readonly ModelOption[];
+  commands?: readonly CommandSummary[];
+  skills?: readonly SkillSummary[];
+  plugins?: readonly Plugin[];
+  mentionGroups?: readonly ComposerMentionGroup[];
   modelCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   skillCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
 };
 
-export type CodexConversationPanePolicy = {
+export type ConversationPanePolicy = {
   actionsDisabled?: boolean;
   attachEnabled?: boolean;
   canDeleteTurn?: boolean;
@@ -92,14 +92,14 @@ export type CodexConversationPanePolicy = {
   followUpsDisabled?: boolean;
 };
 
-export type CodexConversationPaneState = {
-  identity: CodexConversationPaneIdentityState;
-  history?: CodexConversationPaneHistoryState;
-  thread?: CodexConversationPaneThreadState;
-  composer?: CodexConversationPaneComposerState;
-  catalogs?: CodexConversationPaneCatalogState;
-  capabilities?: CodexCapabilities;
-  policy?: CodexConversationPanePolicy;
+export type ConversationPaneState = {
+  identity: ConversationPaneIdentityState;
+  history?: ConversationPaneHistoryState;
+  thread?: ConversationPaneThreadState;
+  composer?: ConversationPaneComposerState;
+  catalogs?: ConversationPaneCatalogState;
+  capabilities?: Capabilities;
+  policy?: ConversationPanePolicy;
 };
 
 /**
@@ -107,13 +107,13 @@ export type CodexConversationPaneState = {
  * intentionally structural so applications with a separately-resolved Vue
  * package can pass `computed`/`ref` values without nominal type conflicts.
  */
-export type CodexConversationPaneValueSource<T> =
+export type ConversationPaneValueSource<T> =
   | T
   | { readonly value: T }
   | (() => T);
 
-export function resolveCodexConversationPaneValue<T>(
-  source: CodexConversationPaneValueSource<T>,
+export function resolveConversationPaneValue<T>(
+  source: ConversationPaneValueSource<T>,
 ): T {
   if (typeof source === 'function') return (source as () => T)();
   if (source !== null && typeof source === 'object' && 'value' in source) {
@@ -126,7 +126,7 @@ export function resolveCodexConversationPaneValue<T>(
 export type ConversationSubmissionResult = void | { renderOptimisticMessage: boolean };
 type PaneAction<Args extends unknown[] = [], Result = void> = (...args: Args) => Result | Promise<Result>;
 
-export type CodexConversationPaneActions<Payload = unknown> = {
+export type ConversationPaneActions<Payload = unknown> = {
   attach?: PaneAction;
   cancel?: PaneAction;
   clientResponse?: PaneAction<[response: ClientRequestResponse]>;
@@ -136,18 +136,18 @@ export type CodexConversationPaneActions<Payload = unknown> = {
   onMessageCopied?: PaneAction<[index: number]>;
   deleteTurn?: PaneAction<[turnId: string]>;
   deleteQueuedPrompt?: PaneAction<[promptId: string]>;
-  updateQueuedPrompt?: PaneAction<[promptId: string, prompt: string, options?: CodexRendererSendMessageOptions]>;
+  updateQueuedPrompt?: PaneAction<[promptId: string, prompt: string, options?: ClientSendMessageOptions]>;
   editGoal?: PaneAction;
   editTurn?: PaneAction<[payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }]>;
   forkTurn?: PaneAction<[turnId: string]>;
   interrupt?: PaneAction;
   loadOlderHistory?: PaneAction;
   loadTurnHistory?: PaneAction<[turnId: string]>;
-  menuSelect?: PaneAction<[item: CodexComposerMenuSelectableItem<Payload>]>;
-  mentionSelect?: PaneAction<[item: CodexComposerMentionItem<Payload>, group: CodexComposerMentionGroup<Payload>]>;
-  openImage?: CodexMessageImageOpenHandler;
-  openLink?: PaneAction<[link: CodexConversationLink]>;
-  openVisualization?: PaneAction<[visualization: CodexConversationVisualization]>;
+  menuSelect?: PaneAction<[item: ComposerMenuSelectableItem<Payload>]>;
+  mentionSelect?: PaneAction<[item: ComposerMentionItem<Payload>, group: ComposerMentionGroup<Payload>]>;
+  openImage?: MessageImageOpenHandler;
+  openLink?: PaneAction<[link: ConversationLink]>;
+  openVisualization?: PaneAction<[visualization: ConversationVisualization]>;
   quoteMessage?: PaneAction<[index: number]>;
   /** Loads bounded user-only prompt history for the active conversation. */
   readPromptHistory?: () => readonly string[] | Promise<readonly string[]>;
@@ -157,44 +157,44 @@ export type CodexConversationPaneActions<Payload = unknown> = {
   requestSkills?: PaneAction;
   resolveApproval?: PaneAction<[
     approvalId: string,
-    decision: CodexSurfaceApprovalDecision,
-    scope: CodexSurfaceApprovalScope,
+    decision: ApprovalDecision,
+    scope: ApprovalScope,
   ]>;
   retryTurn?: PaneAction<[turnId: string]>;
   selectApprovalPreset?: PaneAction<[preset: ApprovalPreset]>;
   sendFollowUp?: PaneAction<[prompt: string]>;
-  steer?: PaneAction<[prompt: string, options?: CodexRendererSendMessageOptions]>;
-  steerQueuedPrompt?: PaneAction<[promptId: string, prompt?: string, options?: CodexRendererSendMessageOptions]>;
-  submit?: PaneAction<[prompt: string, options?: CodexRendererSendMessageOptions], ConversationSubmissionResult>;
-  updateAttachments?: PaneAction<[attachments: readonly CodexHostAttachment[]]>;
-  updateComposerState?: PaneAction<[state: CodexComposerState]>;
-  updateSettings?: PaneAction<[settings: UpdateCodexConversationSettings]>;
+  steer?: PaneAction<[prompt: string, options?: ClientSendMessageOptions]>;
+  steerQueuedPrompt?: PaneAction<[promptId: string, prompt?: string, options?: ClientSendMessageOptions]>;
+  submit?: PaneAction<[prompt: string, options?: ClientSendMessageOptions], ConversationSubmissionResult>;
+  updateAttachments?: PaneAction<[attachments: readonly HostAttachment[]]>;
+  updateComposerState?: PaneAction<[state: ComposerState]>;
+  updateSettings?: PaneAction<[settings: UpdateConversationSettings]>;
 };
 
-export type CodexConversationPaneController<Payload = unknown> = {
-  state: CodexConversationPaneValueSource<CodexConversationPaneState>;
-  actions: CodexConversationPaneValueSource<CodexConversationPaneActions<Payload>>;
+export type ConversationPaneController<Payload = unknown> = {
+  state: ConversationPaneValueSource<ConversationPaneState>;
+  actions: ConversationPaneValueSource<ConversationPaneActions<Payload>>;
 };
 
-export type CodexConversationPaneControllerSource<Payload = unknown> = CodexConversationPaneValueSource<
-  CodexConversationPaneController<Payload>
+export type ConversationPaneControllerSource<Payload = unknown> = ConversationPaneValueSource<
+  ConversationPaneController<Payload>
 >;
 
-export type CodexConversationPaneControllerOptions<Payload = unknown> = {
-  state: CodexConversationPaneValueSource<CodexConversationPaneState>;
-  actions: CodexConversationPaneValueSource<CodexConversationPaneActions<Payload>>;
+export type ConversationPaneControllerOptions<Payload = unknown> = {
+  state: ConversationPaneValueSource<ConversationPaneState>;
+  actions: ConversationPaneValueSource<ConversationPaneActions<Payload>>;
 };
 
 /**
- * Creates a stable controlled-view adapter for CodexConversationPane.
+ * Creates a stable controlled-view adapter for ConversationPane.
  *
  * The adapter only normalizes reactive state and actions. It does not load a
  * conversation, clone messages, or own a backend. Keep the returned object
  * stable and update the supplied state leaves in place when possible.
  */
-export function createCodexConversationPaneController<Payload = unknown>(
-  options: CodexConversationPaneControllerOptions<Payload>,
-): CodexConversationPaneController<Payload> {
+export function createConversationPaneController<Payload = unknown>(
+  options: ConversationPaneControllerOptions<Payload>,
+): ConversationPaneController<Payload> {
   return {
     // Preserve the host source instead of wrapping it in this Vue runtime's
     // computed(). A ref/computed from another Vue package must retain its own

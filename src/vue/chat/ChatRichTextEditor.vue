@@ -13,23 +13,23 @@
 
 <script setup lang="ts">
 import { Fragment, h, nextTick, onBeforeUnmount, onMounted, ref, render, useSlots, watch } from 'vue';
-import type { CodexFileSearchItem, CodexSkillSummary } from './contracts';
-import { normalizePromptContent, promptContentText, slicePromptContent } from '@korus-dev/multi-agent-sdk/prompt.js';
-import type { PromptPart as CodexPromptPart, PromptMention as CodexPromptMention, Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
+import type { FileSearchItem, SkillSummary } from './contracts';
+import { normalizePromptContent, promptContentText, slicePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
+import type { PromptPart, PromptMention, Plugin } from '@korus-dev/multi-agent-sdk';
 import ChatMentionChip from './ChatMentionChip.vue';
 import {
-  type CodexComposerMentionGroup,
+  type ComposerMentionGroup,
 } from './composer-mentions-custom';
 
-export type CodexRichTextEditorExpose = {
+export type RichTextEditorExpose = {
   autoResize: () => void;
   focusEnd: () => void;
   getSelectionRange: () => { end: number; start: number; valid: boolean };
   insertTextAtSelection: (value: string) => void;
   readText: () => string;
-  readContent: () => CodexPromptPart[];
-  setContent: (content: readonly CodexPromptPart[], caret?: number) => void;
-  insertMention: (mention: CodexPromptMention, start: number, end: number) => void;
+  readContent: () => PromptPart[];
+  setContent: (content: readonly PromptPart[], caret?: number) => void;
+  insertMention: (mention: PromptMention, start: number, end: number) => void;
   setCaret: (position: number, options?: { focus?: boolean }) => void;
   setSelection: (start: number, end: number, options?: { focus?: boolean }) => void;
   setText: (value: string, caret?: number, options?: { focus?: boolean }) => void;
@@ -39,14 +39,14 @@ export type CodexRichTextEditorExpose = {
 const props = withDefaults(defineProps<{
   ariaLabel?: string;
   disabled?: boolean;
-  files?: readonly CodexFileSearchItem[];
+  files?: readonly FileSearchItem[];
   maxHeight?: number;
-  mentionGroups?: readonly CodexComposerMentionGroup[];
+  mentionGroups?: readonly ComposerMentionGroup[];
   modelValue: string;
-  content?: readonly CodexPromptPart[];
+  content?: readonly PromptPart[];
   placeholder?: string;
-  plugins?: readonly CodexSurfacePlugin[];
-  skills?: readonly CodexSkillSummary[];
+  plugins?: readonly Plugin[];
+  skills?: readonly SkillSummary[];
 }>(), {
   ariaLabel: 'Prompt',
   disabled: false,
@@ -66,7 +66,7 @@ const emit = defineEmits<{
   input: [];
   'caret-change': [range: { end: number; start: number; valid: boolean }];
   'update:modelValue': [value: string];
-  'update:content': [content: CodexPromptPart[]];
+  'update:content': [content: PromptPart[]];
 }>();
 // Stryker restore all
 
@@ -167,7 +167,7 @@ function readText(): string {
 function canonicalNodeText(node: Node): string {
   if (node.nodeType === Node.TEXT_NODE) return node.textContent!;
   if (!(node instanceof HTMLElement)) return '';
-  if (node.dataset.promptMention) return (JSON.parse(node.dataset.promptMention) as CodexPromptMention).label;
+  if (node.dataset.promptMention) return (JSON.parse(node.dataset.promptMention) as PromptMention).label;
   if (node.tagName === 'CODE') return `\`${node.textContent!}\``;
   if (node.dataset.pluginName) return `@${node.dataset.pluginName}`;
   if (node.dataset.fileMention) return `@${node.dataset.fileMention}`;
@@ -331,8 +331,8 @@ function focusEnd(): void {
   void nextTick(() => setCaret(readText().length));
 }
 
-function readContent(): CodexPromptPart[] {
-  const parts: CodexPromptPart[] = [];
+function readContent(): PromptPart[] {
+  const parts: PromptPart[] = [];
   const visit = (node: Node): void => {
     if (node instanceof HTMLElement && node.dataset.promptMention) {
       parts.push(...normalizePromptContent([JSON.parse(node.dataset.promptMention)]));
@@ -349,11 +349,11 @@ function readContent(): CodexPromptPart[] {
   return parts;
 }
 
-function setContent(content: readonly CodexPromptPart[], caret = promptContentText(content).length): void {
+function setContent(content: readonly PromptPart[], caret = promptContentText(content).length): void {
   renderParts(content, caret, { focus: false });
 }
 
-function insertMention(mention: CodexPromptMention, start: number, end: number): void {
+function insertMention(mention: PromptMention, start: number, end: number): void {
   setSelection(start, end);
   const chip = createMentionChip(mention);
   const nextCaret = start + mention.label.length + 1;
@@ -379,7 +379,7 @@ function renderText(value: string, caret = caretPosition.value, options: { focus
   renderParts(content, caret, options);
 }
 
-function renderParts(content: readonly CodexPromptPart[], caret: number, options: { focus?: boolean } = {}): void {
+function renderParts(content: readonly PromptPart[], caret: number, options: { focus?: boolean } = {}): void {
   const element = editor.value;
   if (!element) return;
   const shouldFocus = options.focus ?? document.activeElement === element;
@@ -423,7 +423,7 @@ function createChip(dataset: Record<string, string>, properties: {
   return host;
 }
 
-function createMentionChip(part: CodexPromptMention): HTMLElement {
+function createMentionChip(part: PromptMention): HTMLElement {
   const dataset: Record<string, string> = part.kind === 'skill' ? { skillName: part.value }
     : part.kind === 'plugin' ? { pluginName: part.value }
       : part.kind === 'file' ? { fileMention: part.id }
@@ -452,7 +452,7 @@ function unmountChipHosts(): void {
 }
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
-defineExpose<CodexRichTextEditorExpose>({
+defineExpose<RichTextEditorExpose>({
   autoResize,
   focusEnd,
   getSelectionRange,

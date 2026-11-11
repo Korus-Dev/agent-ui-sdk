@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
+import type { Plugin } from '@korus-dev/multi-agent-sdk';
 import {
   findActiveSkillSlash,
   findActiveSkillTrigger,
@@ -8,7 +8,7 @@ import {
   skillInsertText,
   skillMatchesMention,
 } from '../../../src/vue/chat/composer-skills';
-import type { CodexSkillSummary } from '../../../src/vue/chat/contracts';
+import type { SkillSummary } from '../../../src/vue/chat/contracts';
 
 describe('composer skills', () => {
   it('finds the latest skill trigger at a clamped mid-string caret', () => {
@@ -71,7 +71,7 @@ describe('composer skills', () => {
     ['name', { id: 'different', name: 'plugin' }],
     ['versioned id', { id: 'plugin@remote', name: 'different' }],
   ] as const)('matches a plugin by %s and normalizes its namespace', (_kind, identity) => {
-    const plugin: CodexSurfacePlugin = {
+    const plugin: Plugin = {
       ...identity,
       displayName: '  My CLOUD! App  ',
       enabled: true,
@@ -80,7 +80,7 @@ describe('composer skills', () => {
   });
 
   it('falls back to the plugin name when its display name has no namespace characters', () => {
-    const plugin: CodexSurfacePlugin = {
+    const plugin: Plugin = {
       id: 'plugin@remote',
       name: 'fallback-name',
       displayName: ' !!! ',
@@ -143,7 +143,7 @@ describe('composer skills', () => {
   });
 });
 
-function skill(overrides: Partial<CodexSkillSummary>): CodexSkillSummary {
+function skill(overrides: Partial<SkillSummary>): SkillSummary {
   return {
     name: 'skill-name',
     path: '/skills/skill-name/SKILL.md',
@@ -152,7 +152,7 @@ function skill(overrides: Partial<CodexSkillSummary>): CodexSkillSummary {
   };
 }
 
-function plugin(overrides: Partial<CodexSurfacePlugin>): CodexSurfacePlugin {
+function plugin(overrides: Partial<Plugin>): Plugin {
   return {
     id: 'plugin',
     name: 'plugin',

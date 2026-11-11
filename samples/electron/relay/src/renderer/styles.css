@@ -782,9 +782,9 @@ button {
 .relay-chat {
   width: 100%;
   height: 100%;
-  --codex-composer-content-width: 820px;
-  --codex-message-content-width: 820px;
-  --codex-accent: #235fdb;
+  --agent-ui-composer-content-width: 820px;
+  --agent-ui-message-content-width: 820px;
+  --agent-ui-accent: #235fdb;
 }
 
 .relay-action-error {

@@ -18,7 +18,7 @@ import ChatTurnGitInfo from '../../../src/vue/chat/ChatTurnGitInfo.vue';
 
 describe('public conversation leaf components', () => {
   afterEach(() => {
-    delete (window as Window & { codexAppSdkNative?: unknown }).codexAppSdkNative;
+    delete (window as Window & { agentUiHostCapabilities?: unknown }).agentUiHostCapabilities;
   });
 
   it('does not use blocked filesystem URLs as image previews', async () => {
@@ -49,7 +49,7 @@ describe('public conversation leaf components', () => {
 
   it('loads historical local image previews through the native bridge', async () => {
     const readImagePreview = vi.fn(async () => 'data:image/png;base64,cG5n');
-    Object.defineProperty(window, 'codexAppSdkNative', {
+    Object.defineProperty(window, 'agentUiHostCapabilities', {
       configurable: true,
       value: { readImagePreview },
     });
@@ -79,7 +79,7 @@ describe('public conversation leaf components', () => {
 
     expect(wrapper.attributes('aria-label')).toBe('Commands and skills');
     expect(wrapper.text()).toContain('compact');
-    expect(wrapper.classes()).toContain('codex-chat-theme');
+    expect(wrapper.classes()).toContain('agent-ui-theme');
   });
 
   it('renders and selects both command and skill slash results', async () => {
@@ -195,7 +195,7 @@ describe('public conversation leaf components', () => {
 
   it('mounts Mermaid diagrams independently', async () => {
     const wrapper = mount(ChatMermaidBlock, { props: { code: 'graph TD; A-->B' } });
-    expect(wrapper.classes()).toContain('codex-chat-theme');
+    expect(wrapper.classes()).toContain('agent-ui-theme');
     await wrapper.get('[aria-label="Show source"]').trigger('click');
     expect(wrapper.get('code').text()).toBe('graph TD; A-->B');
   });

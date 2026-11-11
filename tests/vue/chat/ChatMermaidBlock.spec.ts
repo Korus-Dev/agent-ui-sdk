@@ -4,7 +4,7 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  captureCodexPortalTheme: vi.fn(),
+  capturePortalTheme: vi.fn(),
   renderMermaidSVG: vi.fn(),
 }));
 
@@ -13,7 +13,7 @@ vi.mock('beautiful-mermaid', () => ({
 }));
 
 vi.mock('../../../src/vue/chat/portal-theme', () => ({
-  captureCodexPortalTheme: mocks.captureCodexPortalTheme,
+  capturePortalTheme: mocks.capturePortalTheme,
 }));
 
 import ChatMermaidBlock from '../../../src/vue/chat/ChatMermaidBlock.vue';
@@ -29,8 +29,8 @@ function mountBlock(code = 'graph TD; A-->B') {
 beforeEach(() => {
   mocks.renderMermaidSVG.mockReset();
   mocks.renderMermaidSVG.mockReturnValue('<svg><text>Done</text></svg>');
-  mocks.captureCodexPortalTheme.mockReset();
-  mocks.captureCodexPortalTheme.mockReturnValue({
+  mocks.capturePortalTheme.mockReset();
+  mocks.capturePortalTheme.mockReturnValue({
     mode: 'dark',
     style: { '--color-text': 'lime' },
   });
@@ -99,8 +99,8 @@ describe('ChatMermaidBlock', () => {
 
     await wrapper.get('[aria-label="Open fullscreen"]').trigger('click');
     const fullscreen = document.body.querySelector<HTMLElement>('.chat-mermaid-block__fullscreen');
-    expect(mocks.captureCodexPortalTheme).toHaveBeenCalledWith(wrapper.element);
-    expect(fullscreen?.dataset.codexTheme).toBe('dark');
+    expect(mocks.capturePortalTheme).toHaveBeenCalledWith(wrapper.element);
+    expect(fullscreen?.dataset.theme).toBe('dark');
     expect(fullscreen?.style.getPropertyValue('--color-text')).toBe('lime');
     expect(document.body.querySelector('[aria-label="Close fullscreen"]')).not.toBeNull();
     expect(addEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));

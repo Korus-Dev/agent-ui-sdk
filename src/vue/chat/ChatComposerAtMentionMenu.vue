@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-chat-theme chat-composer-at-menu" role="listbox" aria-label="Mentions">
+  <div class="agent-ui-theme chat-composer-at-menu" role="listbox" aria-label="Mentions">
     <template v-for="group in leadingMentionGroups" :key="`custom:${group.id}`">
       <div class="chat-composer-at-menu__section">{{ group.label }}</div>
       <button
@@ -70,36 +70,36 @@
 
 <script setup lang="ts" generic="Payload = unknown">
 import { computed } from 'vue';
-import type { CodexFileSearchItem } from './contracts';
-import type { Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
+import type { FileSearchItem } from './contracts';
+import type { Plugin } from '@korus-dev/multi-agent-sdk';
 import { FileTextIcon, PlugIcon, SparklesIcon } from '../shared/icons/app-icons';
 import { pluginDescription, pluginDisplayName } from './composer-plugins';
 import type {
-  CodexComposerMentionGroup,
-  CodexComposerMentionItem,
-  CodexComposerVisibleMentionGroup,
+  ComposerMentionGroup,
+  ComposerMentionItem,
+  ComposerVisibleMentionGroup,
 } from './composer-mentions-custom';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   activeIndex: number;
-  mentionGroups?: readonly CodexComposerVisibleMentionGroup<Payload>[];
+  mentionGroups?: readonly ComposerVisibleMentionGroup<Payload>[];
   showFileHint: boolean;
-  visibleFiles: CodexFileSearchItem[];
-  visiblePlugins: CodexSurfacePlugin[];
+  visibleFiles: FileSearchItem[];
+  visiblePlugins: Plugin[];
 }>();
 
 defineEmits<{
-  'select-file': [file: CodexFileSearchItem];
-  'select-plugin': [plugin: CodexSurfacePlugin];
-  'select-mention': [item: CodexComposerMentionItem<Payload>, group: CodexComposerMentionGroup<Payload>];
+  'select-file': [file: FileSearchItem];
+  'select-plugin': [plugin: Plugin];
+  'select-mention': [item: ComposerMentionItem<Payload>, group: ComposerMentionGroup<Payload>];
 }>();
 
 defineSlots<{
   mention(props: {
     active: boolean;
-    group: CodexComposerVisibleMentionGroup<Payload>;
-    item: CodexComposerMentionItem<Payload>;
+    group: ComposerVisibleMentionGroup<Payload>;
+    item: ComposerMentionItem<Payload>;
   }): unknown;
 }>();
 // Stryker restore all
@@ -144,7 +144,7 @@ function mentionIndex(groupId: string, itemId: string): number {
 }
 .chat-composer-at-menu__section,
 .chat-composer-at-menu__hint { padding: var(--space-2) var(--space-4); color: var(--color-text-muted); font-size: var(--font-size-12); }
-.chat-composer-at-menu__section { font-size: var(--codex-composer-menu-heading-font-size, var(--chat-menu-font-size)); font-weight: var(--font-weight-regular); line-height: 18px; }
+.chat-composer-at-menu__section { font-size: var(--agent-ui-composer-menu-heading-font-size, var(--chat-menu-font-size)); font-weight: var(--font-weight-regular); line-height: 18px; }
 .chat-composer-at-menu__item { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: var(--chat-menu-control-min-height); margin-block: 0.125px; padding: var(--space-2) var(--space-4); border: 0; border-radius: var(--radius-lg); background: transparent; color: var(--color-text); text-align: left; }
 .chat-composer-at-menu__item--active { background: var(--color-surface-low); }
 .chat-composer-at-menu__icon { width: var(--icon-md); height: var(--icon-md); flex: 0 0 var(--icon-md); opacity: 0.5; stroke-width: 2px; }

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CodexNativeRendererApi } from '../../../src/host/contracts';
+import type { NativeRendererApi } from '../../../src/host/contracts';
 import {
   copyableMessageHtml,
   copyableMessageText,
@@ -12,7 +12,7 @@ import {
 
 describe('message actions', () => {
   afterEach(() => {
-    Reflect.deleteProperty(window, 'codexAppSdkNative');
+    Reflect.deleteProperty(window, 'agentUiHostCapabilities');
     Reflect.deleteProperty(globalThis, 'ClipboardItem');
     vi.restoreAllMocks();
   });
@@ -135,9 +135,9 @@ describe('message actions', () => {
 
   it('uses the native renderer clipboard when available', async () => {
     const copyToClipboard = vi.fn(async () => undefined);
-    Object.defineProperty(window, 'codexAppSdkNative', {
+    Object.defineProperty(window, 'agentUiHostCapabilities', {
       configurable: true,
-      value: { copyToClipboard } as unknown as CodexNativeRendererApi,
+      value: { copyToClipboard } as unknown as NativeRendererApi,
     });
 
     await copyMessageToClipboard('**Done**');
@@ -232,7 +232,7 @@ describe('message actions', () => {
 
     await copyTextToClipboard(
       'const value = 1;',
-      { copyToClipboard } as unknown as CodexNativeRendererApi,
+      { copyToClipboard } as unknown as NativeRendererApi,
     );
 
     expect(copyToClipboard).toHaveBeenCalledWith({ text: 'const value = 1;' });

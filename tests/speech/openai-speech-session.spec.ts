@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, expect, it, vi } from 'vitest';
 import type WebSocket from 'ws';
-import type { CodexSpeechSessionEvent } from '../../src/host/contracts';
+import type { SpeechSessionEvent } from '../../src/host/contracts';
 import { startOpenAISpeechSession, type OpenAISpeechSessionConfiguration } from '../../src/speech/openai-speech-session';
 
 class Socket extends EventEmitter {
@@ -16,7 +16,7 @@ const cleanups: (() => Promise<void>)[] = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0)) await cleanup(); vi.useRealTimers(); });
 function recording(sampleRate = 24000, locale?: string, configuration: Partial<OpenAISpeechSessionConfiguration> = {}) {
   const socket = new Socket();
-  const events: CodexSpeechSessionEvent[] = [];
+  const events: SpeechSessionEvent[] = [];
   const connect = vi.fn(() => socket as unknown as WebSocket);
   const abort = new AbortController();
   const starting = startOpenAISpeechSession({ sessionId: 'recording', sampleRate, locale }, event => events.push(event), {
@@ -158,7 +158,7 @@ it.each(['gpt-live-transcribe', 'gpt-transcribe'])('uses a real WebSocket upgrad
       }
     });
   });
-  const events: CodexSpeechSessionEvent[] = [];
+  const events: SpeechSessionEvent[] = [];
   let session: Awaited<ReturnType<typeof startOpenAISpeechSession>> | undefined;
   try {
     const address = server.address() as { port: number };

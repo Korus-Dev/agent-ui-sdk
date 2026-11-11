@@ -1,4 +1,4 @@
-.codex-request-card {
+.agent-ui-request-card {
   container-type: inline-size;
   display: flex;
   flex-direction: column;
@@ -14,14 +14,14 @@
   color: var(--color-text);
 }
 
-.codex-request-header {
+.agent-ui-request-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-6);
 }
 
-.codex-request-eyebrow {
+.agent-ui-request-eyebrow {
   display: inline-flex;
   min-width: 0;
   align-items: center;
@@ -36,7 +36,7 @@
   line-height: var(--line-height-16);
 }
 
-.codex-request-title {
+.agent-ui-request-title {
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
@@ -45,21 +45,21 @@
   line-height: var(--line-height-24);
 }
 
-.codex-request-description {
+.agent-ui-request-description {
   margin: 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-13);
   line-height: var(--line-height-20);
 }
 
-.codex-request-footer {
+.agent-ui-request-footer {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
 }
 
-.codex-request-button {
+.agent-ui-request-button {
   min-height: 32px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -72,30 +72,30 @@
   cursor: pointer;
 }
 
-.codex-request-button:hover:not(:disabled) {
+.agent-ui-request-button:hover:not(:disabled) {
   border-color: var(--color-primary);
   background: var(--color-primary-container);
 }
 
-.codex-request-button:disabled {
+.agent-ui-request-button:disabled {
   background: var(--color-surface-base);
   color: var(--color-text);
   cursor: not-allowed;
   opacity: 0.52;
 }
 
-.codex-request-button--primary:not(:disabled) {
+.agent-ui-request-button--primary:not(:disabled) {
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: var(--color-on-primary);
 }
 
-.codex-request-button--primary:hover:not(:disabled) {
+.agent-ui-request-button--primary:hover:not(:disabled) {
   border-color: var(--color-secondary);
   background: var(--color-secondary);
 }
 
-.codex-request-button:focus-visible {
+.agent-ui-request-button:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: var(--space-1);
 }

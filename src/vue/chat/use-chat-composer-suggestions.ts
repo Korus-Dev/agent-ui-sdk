@@ -1,10 +1,10 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import type {
-  CodexFileSearchItem,
-  CodexCommandSummary,
-  CodexSkillSummary,
+  FileSearchItem,
+  CommandSummary,
+  SkillSummary,
 } from './contracts'
-import type { PromptMention as CodexPromptMention, Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
+import type { PromptMention, Plugin } from '@korus-dev/multi-agent-sdk';
 import { findActiveFileMention, findActivePluginMention } from './composer-mentions'
 import { filterFileSearchItems } from './file-search'
 import { filterComposerCommands, findActiveCommandSlash } from './composer-commands'
@@ -12,32 +12,32 @@ import { filterComposerSkills, findActiveSkillTrigger } from './composer-skills'
 import { filterComposerPlugins } from './composer-plugins'
 import {
   filterComposerMentionGroups,
-  type CodexComposerMentionGroup,
-  type CodexComposerMentionItem,
+  type ComposerMentionGroup,
+  type ComposerMentionItem,
 } from './composer-mentions-custom'
 
 type ChatComposerSuggestionOptions<Payload = unknown> = {
   caretPosition: Ref<number>
-  commands: () => readonly CodexCommandSummary[]
+  commands: () => readonly CommandSummary[]
   disabled: () => boolean
-  files: () => readonly CodexFileSearchItem[]
-  plugins?: () => readonly CodexSurfacePlugin[]
-  mentionGroups?: () => readonly CodexComposerMentionGroup<Payload>[]
+  files: () => readonly FileSearchItem[]
+  plugins?: () => readonly Plugin[]
+  mentionGroups?: () => readonly ComposerMentionGroup<Payload>[]
   onMentionSelected?: (
-    item: CodexComposerMentionItem<Payload>,
-    group: CodexComposerMentionGroup<Payload>,
+    item: ComposerMentionItem<Payload>,
+    group: ComposerMentionGroup<Payload>,
   ) => void
   isSending: () => boolean
-  onCommandActivated?: (command: CodexCommandSummary) => void
+  onCommandActivated?: (command: CommandSummary) => void
   onCommandSubmitted: (prompt: string) => void
   onTextInserted: (caretPosition: number) => void
   prompt: Ref<string>
-  skills: () => readonly CodexSkillSummary[]
+  skills: () => readonly SkillSummary[]
   skillsEnabled: () => boolean
   onSkillsRequested?: () => void
   editor: Ref<{
     getSelectionRange: () => { end: number; start: number; valid: boolean }
-    insertMention: (mention: CodexPromptMention, start: number, end: number) => void
+    insertMention: (mention: PromptMention, start: number, end: number) => void
   } | null>
 }
 
@@ -218,7 +218,7 @@ export function useChatComposerSuggestions<Payload = unknown>(options: ChatCompo
     return false
   }
 
-  function selectFile(file: CodexFileSearchItem): void {
+  function selectFile(file: FileSearchItem): void {
     const mention = activeFileMention.value
     if (!mention || !options.editor.value) {
       return
@@ -226,14 +226,14 @@ export function useChatComposerSuggestions<Payload = unknown>(options: ChatCompo
     insertMention({ type: 'mention', kind: 'file', id: file.path, value: file.path, label: file.name }, mention.start, mention.end)
   }
 
-  function selectSkill(skill: CodexSkillSummary): void {
+  function selectSkill(skill: SkillSummary): void {
     const mention = activeSkillSlash.value
     if (mention) {
       insertMention({ type: 'mention', kind: 'skill', id: skill.path, value: skill.name, label: skill.displayName || skill.name }, mention.start, mention.end)
     }
   }
 
-  function selectPlugin(plugin: CodexSurfacePlugin): void {
+  function selectPlugin(plugin: Plugin): void {
     const mention = activePluginMention.value
     if (mention) {
       insertMention({ type: 'mention', kind: 'plugin', id: plugin.id, value: plugin.name || plugin.id, label: plugin.displayName || plugin.name }, mention.start, mention.end)
@@ -241,8 +241,8 @@ export function useChatComposerSuggestions<Payload = unknown>(options: ChatCompo
   }
 
   function selectMention(
-    item: CodexComposerMentionItem<Payload>,
-    group: CodexComposerMentionGroup<Payload>,
+    item: ComposerMentionItem<Payload>,
+    group: ComposerMentionGroup<Payload>,
   ): void {
     const mention = activeFileMention.value
     if (!mention) return
@@ -251,18 +251,18 @@ export function useChatComposerSuggestions<Payload = unknown>(options: ChatCompo
     options.onMentionSelected?.(item, catalogGroup)
   }
 
-  function selectSlashSkill(skill: CodexSkillSummary): void {
+  function selectSlashSkill(skill: SkillSummary): void {
     const mention = activeCommandSlash.value
     if (mention) {
       insertMention({ type: 'mention', kind: 'skill', id: skill.path, value: skill.name, label: skill.displayName || skill.name }, mention.start, mention.end)
     }
   }
 
-  function selectCommand(command: CodexCommandSummary): void {
+  function selectCommand(command: CommandSummary): void {
     handleCommand(command, 'default')
   }
 
-  function handleCommand(command: CodexCommandSummary, action: 'default' | 'execute' | 'complete'): void {
+  function handleCommand(command: CommandSummary, action: 'default' | 'execute' | 'complete'): void {
     const mention = activeCommandSlash.value
     if (!mention || !options.editor.value) {
       return
@@ -299,7 +299,7 @@ export function useChatComposerSuggestions<Payload = unknown>(options: ChatCompo
     }
   }
 
-  function insertMention(part: CodexPromptMention, start: number, end: number): void {
+  function insertMention(part: PromptMention, start: number, end: number): void {
     options.editor.value?.insertMention(part, start, end)
     const nextCaret = start + part.label.length + 1
     options.caretPosition.value = nextCaret

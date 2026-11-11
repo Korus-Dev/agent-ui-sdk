@@ -4,11 +4,11 @@ import { mount } from '@vue/test-utils';
 import { h } from 'vue';
 import { describe, expect, it } from 'vitest';
 import ChatUserText from '../../../src/vue/chat/ChatUserText.vue';
-import { humanizeMentionName, parseCodexUserText } from '../../../src/vue/chat/user-text';
+import { humanizeMentionName, parseUserText } from '../../../src/vue/chat/user-text';
 import { SparklesIcon } from '../../../src/vue/shared/icons/app-icons';
-import type { CodexPromptMention, CodexSurfacePlugin, CodexSurfaceSkill } from '@korus-dev/multi-agent-sdk';
+import type { PromptMention, Plugin, Skill } from '@korus-dev/multi-agent-sdk';
 
-const gmail: CodexSurfacePlugin = {
+const gmail: Plugin = {
   id: 'gmail@openai-curated-remote',
   name: 'gmail',
   displayName: 'Gmail',
@@ -18,7 +18,7 @@ const gmail: CodexSurfacePlugin = {
   enabled: true,
 };
 
-const bankSkill: CodexSurfaceSkill = {
+const bankSkill: Skill = {
   name: 'update-bank-balance-sheet',
   displayName: 'Update Bank Balance Sheet',
   description: 'Update balances in the workbook',
@@ -26,8 +26,8 @@ const bankSkill: CodexSurfaceSkill = {
   enabled: true,
 };
 
-const gmailMention: CodexPromptMention = { type: 'mention', kind: 'plugin', id: gmail.id, value: gmail.name, label: 'Gmail' };
-const bankMention: CodexPromptMention = { type: 'mention', kind: 'skill', id: bankSkill.path, value: bankSkill.name, label: 'Update Bank Balance Sheet' };
+const gmailMention: PromptMention = { type: 'mention', kind: 'plugin', id: gmail.id, value: gmail.name, label: 'Gmail' };
+const bankMention: PromptMention = { type: 'mention', kind: 'skill', id: bankSkill.path, value: bankSkill.name, label: 'Update Bank Balance Sheet' };
 
 describe('ChatUserText', () => {
   it('renders saved file and agent labels without a catalog and never relabels them from later catalogs', async () => {
@@ -129,13 +129,13 @@ describe('ChatUserText', () => {
   });
 
   it('uses a plugin namespace instead of an opaque app id for contributed skills', () => {
-    const dropbox: CodexSurfacePlugin = {
+    const dropbox: Plugin = {
       id: 'app-69b31dc2110c8191b8b47dc98fe5a052@openai-curated-remote',
       name: 'app-69b31dc2110c8191b8b47dc98fe5a052',
       displayName: 'Dropbox',
       enabled: true,
     };
-    const cleanup: CodexSurfaceSkill = {
+    const cleanup: Skill = {
       name: 'app-69b31dc2110c8191b8b47dc98fe5a052:clean-up-dropbox-content',
       path: '/plugins/dropbox/skills/clean-up-dropbox-content/SKILL.md',
       enabled: true,
@@ -310,7 +310,7 @@ describe('ChatUserText', () => {
   });
 
   it('matches skill file URLs by exact app-server path and rejects lookalike destinations', () => {
-    expect(parseCodexUserText(
+    expect(parseUserText(
       '[$bank](file:///Users/nbonamy/.codex/skills/update-bank-balance-sheet/SKILL.md)',
       [],
       [bankSkill],
@@ -320,9 +320,9 @@ describe('ChatUserText', () => {
       skill: bankSkill,
     }));
 
-    expect(parseCodexUserText('[$bank](/tmp/SKILL.md.exe)', [], [bankSkill]))
+    expect(parseUserText('[$bank](/tmp/SKILL.md.exe)', [], [bankSkill]))
       .toStrictEqual([{ type: 'text', text: '[$bank](/tmp/SKILL.md.exe)' }]);
-    const mismatchedSkill = parseCodexUserText(
+    const mismatchedSkill = parseUserText(
       '[$update-bank-balance-sheet](/another/workspace/update-bank-balance-sheet/SKILL.md)',
       [],
       [bankSkill],
@@ -332,28 +332,28 @@ describe('ChatUserText', () => {
       displayName: 'Update Bank Balance Sheet',
     })]);
     expect(mismatchedSkill[0]).not.toHaveProperty('skill');
-    expect(parseCodexUserText('[@gmail](https://example.com)', [gmail], []))
+    expect(parseUserText('[@gmail](https://example.com)', [gmail], []))
       .toStrictEqual([{ type: 'text', text: '[@gmail](https://example.com)' }]);
   });
 
   it('returns exact text, code, and line-break tokens in source order', () => {
-    expect(parseCodexUserText('before `code`\nafter')).toStrictEqual([
+    expect(parseUserText('before `code`\nafter')).toStrictEqual([
       { type: 'text', text: 'before ' },
       { type: 'code', text: 'code' },
       { type: 'line-break' },
       { type: 'text', text: 'after' },
     ]);
-    expect(parseCodexUserText('')).toStrictEqual([]);
+    expect(parseUserText('')).toStrictEqual([]);
   });
 
   it('keeps unresolved bare mentions literal with every default catalog', () => {
-    expect(parseCodexUserText('@missing')).toStrictEqual([{ type: 'text', text: '@missing' }]);
-    expect(parseCodexUserText('$missing')).toStrictEqual([{ type: 'text', text: '$missing' }]);
-    expect(parseCodexUserText('/missing')).toStrictEqual([{ type: 'text', text: '/missing' }]);
+    expect(parseUserText('@missing')).toStrictEqual([{ type: 'text', text: '@missing' }]);
+    expect(parseUserText('$missing')).toStrictEqual([{ type: 'text', text: '$missing' }]);
+    expect(parseUserText('/missing')).toStrictEqual([{ type: 'text', text: '/missing' }]);
   });
 
   it('returns exact bare skill and plugin tokens', () => {
-    expect(parseCodexUserText('$update-bank-balance-sheet', [gmail], [bankSkill]))
+    expect(parseUserText('$update-bank-balance-sheet', [gmail], [bankSkill]))
       .toStrictEqual([{
         type: 'skill-mention',
         displayName: 'Update Bank Balance Sheet',
@@ -361,7 +361,7 @@ describe('ChatUserText', () => {
         label: '$update-bank-balance-sheet',
         skill: bankSkill,
       }]);
-    expect(parseCodexUserText('@gmail', [gmail], [bankSkill])).toStrictEqual([{
+    expect(parseUserText('@gmail', [gmail], [bankSkill])).toStrictEqual([{
       type: 'plugin-mention',
       displayName: 'Gmail',
       href: 'plugin://gmail@openai-curated-remote',
@@ -371,13 +371,13 @@ describe('ChatUserText', () => {
   });
 
   it('keeps the bare trigger authoritative when plugin and skill names collide', () => {
-    const gmailSkill: CodexSurfaceSkill = {
+    const gmailSkill: Skill = {
       name: 'gmail',
       path: '/skills/gmail/SKILL.md',
       enabled: true,
     };
 
-    expect(parseCodexUserText('@gmail /gmail', [gmail], [gmailSkill])).toStrictEqual([
+    expect(parseUserText('@gmail /gmail', [gmail], [gmailSkill])).toStrictEqual([
       {
         type: 'plugin-mention',
         displayName: 'Gmail',
@@ -406,21 +406,21 @@ describe('ChatUserText', () => {
       ],
     } as const;
 
-    expect(parseCodexUserText('@gmail', [gmail], [], [before, after])).toStrictEqual([{
+    expect(parseUserText('@gmail', [gmail], [], [before, after])).toStrictEqual([{
       type: 'custom-mention',
       displayName: 'Leading Gmail',
       group: before,
       item: before.items[0],
       label: '@gmail',
     }]);
-    expect(parseCodexUserText('@gmail', [gmail], [], [after])).toStrictEqual([{
+    expect(parseUserText('@gmail', [gmail], [], [after])).toStrictEqual([{
       type: 'plugin-mention',
       displayName: 'Gmail',
       href: 'plugin://gmail@openai-curated-remote',
       label: '@gmail',
       plugin: gmail,
     }]);
-    expect(parseCodexUserText('@thread:123', [gmail], [], [after])).toStrictEqual([{
+    expect(parseUserText('@thread:123', [gmail], [], [after])).toStrictEqual([{
       type: 'custom-mention',
       displayName: 'Trailing Thread',
       group: after,
@@ -430,13 +430,13 @@ describe('ChatUserText', () => {
   });
 
   it('recognizes only complete mention syntaxes and preserves ordinary Markdown', () => {
-    expect(parseCodexUserText('[Docs](README.md) [@gmail](https://example.com)', [gmail]))
+    expect(parseUserText('[Docs](README.md) [@gmail](https://example.com)', [gmail]))
       .toStrictEqual([
         { type: 'text', text: '[Docs](README.md)' },
         { type: 'text', text: ' ' },
         { type: 'text', text: '[@gmail](https://example.com)' },
       ]);
-    expect(parseCodexUserText('[@gmail](plugin://) [broken](destination'))
+    expect(parseUserText('[@gmail](plugin://) [broken](destination'))
       .toStrictEqual([
         { type: 'text', text: '[@gmail](plugin://)' },
         { type: 'text', text: ' [broken](destination' },
@@ -444,11 +444,11 @@ describe('ChatUserText', () => {
     for (const link of [
       '[@Alex](mention://agents/id)', '[@Alex](mention://agents/id?value=)',
       '[@Alex](mention://agents/%ZZ?value=agent%3A1)', '[@](mention://agents/id?value=agent%3A1)',
-    ]) expect(parseCodexUserText(link)).toStrictEqual([{ type: 'text', text: link }]);
+    ]) expect(parseUserText(link)).toStrictEqual([{ type: 'text', text: link }]);
   });
 
   it('normalizes encoded and angle-wrapped plugin destinations without losing canonical text', () => {
-    expect(parseCodexUserText(
+    expect(parseUserText(
       ' [ @ignored ](README.md) [@Mail]( <plugin://gmail%40openai-curated-remote> ) ',
       [gmail],
     )).toStrictEqual([
@@ -467,7 +467,7 @@ describe('ChatUserText', () => {
   });
 
   it('trims mention labels and only unwraps destinations with both angle brackets', () => {
-    expect(parseCodexUserText('[ @Mail ](< plugin://gmail%40openai-curated-remote >)', [gmail]))
+    expect(parseUserText('[ @Mail ](< plugin://gmail%40openai-curated-remote >)', [gmail]))
       .toStrictEqual([{
         type: 'plugin-mention',
         displayName: 'Gmail',
@@ -475,20 +475,20 @@ describe('ChatUserText', () => {
         label: '@Mail',
         plugin: gmail,
       }]);
-    expect(parseCodexUserText('[@Mail](plugin://gmail%40openai-curated-remote>)', [gmail]))
+    expect(parseUserText('[@Mail](plugin://gmail%40openai-curated-remote>)', [gmail]))
       .toStrictEqual([{
         type: 'plugin-mention',
         displayName: 'Mail',
         href: 'plugin://gmail%40openai-curated-remote>',
         label: '@Mail',
       }]);
-    expect(parseCodexUserText('[@Mail](<plugin://gmail%40openai-curated-remote)', [gmail]))
+    expect(parseUserText('[@Mail](<plugin://gmail%40openai-curated-remote)', [gmail]))
       .toStrictEqual([{ type: 'text', text: '[@Mail](<plugin://gmail%40openai-curated-remote)' }]);
   });
 
   it('matches the exact plugin among multiple catalog entries', () => {
     const calendar = { ...gmail, id: 'calendar@remote', name: 'calendar', displayName: 'Calendar' };
-    expect(parseCodexUserText('[@gmail](plugin://gmail%40openai-curated-remote)', [calendar, gmail]))
+    expect(parseUserText('[@gmail](plugin://gmail%40openai-curated-remote)', [calendar, gmail]))
       .toStrictEqual([{
         type: 'plugin-mention',
         displayName: 'Gmail',
@@ -499,26 +499,26 @@ describe('ChatUserText', () => {
   });
 
   it('uses stable plugin fallbacks and tolerates malformed percent escapes', () => {
-    expect(parseCodexUserText('[@](plugin://calendar@remote)')).toStrictEqual([{
+    expect(parseUserText('[@](plugin://calendar@remote)')).toStrictEqual([{
       type: 'plugin-mention',
       displayName: 'Calendar',
       href: 'plugin://calendar@remote',
       label: '@',
     }]);
-    expect(parseCodexUserText('[@bad](plugin://bad%escape)')).toStrictEqual([{
+    expect(parseUserText('[@bad](plugin://bad%escape)')).toStrictEqual([{
       type: 'plugin-mention',
       displayName: 'Bad',
       href: 'plugin://bad%escape',
       label: '@bad',
     }]);
-    expect(parseCodexUserText('[@](plugin://app-0123456789abcdef)')[0])
+    expect(parseUserText('[@](plugin://app-0123456789abcdef)')[0])
       .toMatchObject({ type: 'plugin-mention', displayName: 'App' });
-    expect(parseCodexUserText('[@](plugin://@remote)')[0])
+    expect(parseUserText('[@](plugin://@remote)')[0])
       .toMatchObject({ type: 'plugin-mention', displayName: 'App' });
   });
 
   it('normalizes skill destinations while retaining their authored href', () => {
-    expect(parseCodexUserText(
+    expect(parseUserText(
       '[$bank]( </Users/nbonamy/.codex/skills/update-bank-balance-sheet/SKILL.md?source=chat#readme> )',
       [],
       [bankSkill],
@@ -529,30 +529,30 @@ describe('ChatUserText', () => {
       label: '$bank',
       skill: bankSkill,
     }]);
-    expect(parseCodexUserText('[$](relative/SKILL.md)')).toStrictEqual([{
+    expect(parseUserText('[$](relative/SKILL.md)')).toStrictEqual([{
       type: 'skill-mention',
       displayName: 'Skill',
       href: 'relative/SKILL.md',
       label: '$',
     }]);
-    expect(parseCodexUserText('[$](SKILL.md)')).toStrictEqual([{
+    expect(parseUserText('[$](SKILL.md)')).toStrictEqual([{
       type: 'skill-mention',
       displayName: 'Skill',
       href: 'SKILL.md',
       label: '$',
     }]);
-    expect(parseCodexUserText('[Docs](/skills/docs/SKILL.md)'))
+    expect(parseUserText('[Docs](/skills/docs/SKILL.md)'))
       .toStrictEqual([{ type: 'text', text: '[Docs](/skills/docs/SKILL.md)' }]);
-    expect(parseCodexUserText('[$gmail](plugin://gmail@openai-curated-remote)', [gmail]))
+    expect(parseUserText('[$gmail](plugin://gmail@openai-curated-remote)', [gmail]))
       .toStrictEqual([{ type: 'text', text: '[$gmail](plugin://gmail@openai-curated-remote)' }]);
-    expect(parseCodexUserText('[$bad](file://%)'))
+    expect(parseUserText('[$bad](file://%)'))
       .toStrictEqual([{ type: 'text', text: '[$bad](file://%)' }]);
-    expect(parseCodexUserText('[$bad](file://%/SKILL.md)'))
+    expect(parseUserText('[$bad](file://%/SKILL.md)'))
       .toStrictEqual([{ type: 'text', text: '[$bad](file://%/SKILL.md)' }]);
   });
 
   it('does not recognize bare mentions inside identifiers and preserves full aliases', () => {
-    expect(parseCodexUserText(
+    expect(parseUserText(
       'mail@gmail.com foo/bar a.$update-bank-balance-sheet $Commit-Push  \t(cp)',
       [gmail],
       [{

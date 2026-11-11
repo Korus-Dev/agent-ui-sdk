@@ -13,22 +13,22 @@ const fontsPath = process.argv[4]
   : fileURLToPath(new URL('../dist/fonts', import.meta.url));
 const css = await readFile(cssPath, 'utf8');
 const requiredMarkers = [
-  '.codex-text-shimmer',
-  '.codex-markdown',
-  '.codex-markdown .katex-display',
-  '.codex-chat-theme{font-family:var(--font-family-base)}',
-  ':where(.codex-chat-theme)',
-  '.codex-chat-theme--dark',
-  '.codex-chat-theme--system',
+  '.agent-ui-text-shimmer',
+  '.agent-ui-markdown',
+  '.agent-ui-markdown .katex-display',
+  '.agent-ui-theme{font-family:var(--font-family-base)}',
+  ':where(.agent-ui-theme)',
+  '.agent-ui-theme--dark',
+  '.agent-ui-theme--system',
   '@media (prefers-color-scheme:dark)',
   '--font-size-15:15px',
-  '--codex-message-font-size',
-  '--codex-composer-font-size',
-  '--codex-menu-font-size',
-  '--codex-composer-control-size',
-  '--codex-message-action-control-size',
-  '.codex-composer-menu-list__switch',
-  '.codex-conversation-pane',
+  '--agent-ui-message-font-size',
+  '--agent-ui-composer-font-size',
+  '--agent-ui-menu-font-size',
+  '--agent-ui-composer-control-size',
+  '--agent-ui-message-action-control-size',
+  '.agent-ui-composer-menu-list__switch',
+  '.agent-ui-conversation-pane',
   '.chat-rich-text-editor',
   '.chat-mention-chip',
   '.chat-composer-at-menu',
@@ -39,7 +39,7 @@ if (missingMarkers.length > 0) {
   throw new Error(`The published CSS bundle is missing: ${missingMarkers.join(', ')}`);
 }
 
-if (/\.codex-chat-theme \*\{[^}]*font-family/.test(css)) {
+if (/\.agent-ui-theme \*\{[^}]*font-family/.test(css)) {
   throw new Error('The published CSS must let themed descendants inherit specialized fonts.');
 }
 

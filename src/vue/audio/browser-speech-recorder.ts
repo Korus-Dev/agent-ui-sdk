@@ -45,7 +45,7 @@ export class BrowserSpeechRecorder implements SpeechRecorder {
       await context.audioWorklet.addModule(workletUrl);
       if (this.released) throw new Error('Speech recording cancelled.');
       this.source = context.createMediaStreamSource(stream);
-      this.node = new AudioWorkletNode(context, 'codex-pcm-capture', { channelCount: 1, channelCountMode: 'explicit' });
+      this.node = new AudioWorkletNode(context, 'agent-ui-pcm-capture', { channelCount: 1, channelCountMode: 'explicit' });
       this.node.onprocessorerror = () => fail('Microphone audio processing failed.');
       // The processor never writes to its output, so the microphone is not audible.
       this.node.connect(context.destination);

@@ -3,7 +3,7 @@
     <span class="spark-status__mascot" aria-hidden="true">★</span>
     <h1 id="spark-error-title">Spark couldn’t start</h1>
     <p>{{ startupError }}</p>
-    <button type="button" @click="connectSurface">Try again</button>
+    <button type="button" @click="connectHost">Try again</button>
   </main>
 
   <main v-else-if="!authenticationReady" class="spark-status" aria-live="polite">
@@ -44,7 +44,7 @@
         </div>
       </header>
 
-      <CodexConversationPane
+      <ConversationPane
         v-if="current"
         ref="chat"
         class="spark-chat"
@@ -82,15 +82,15 @@
             </div>
           </div>
         </template>
-      </CodexConversationPane>
+      </ConversationPane>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
-import type { CodexConversationPresentation } from '@korus-dev/agent-ui-sdk';
-import CodexConversationPane from '../../../../shared/ConversationView.vue';
+import type { ConversationPresentation } from '@korus-dev/agent-ui-sdk';
+import ConversationPane from '../../../../shared/ConversationView.vue';
 import type { Snapshot } from '../../../../shared/contracts';
 import SparkLanding from './components/SparkLanding.vue';
 import SparkSidebar from './components/SparkSidebar.vue';
@@ -102,7 +102,7 @@ const snapshot = shallowRef<Snapshot>({ backend: 'codex', authentication: null, 
 const activeId = ref<string | null>(null);
 const current = computed(() => snapshot.value.conversations.find(conversation => conversation.id === activeId.value));
 const conversations = computed(() => snapshot.value.conversations.map(conversation => ({ id: conversation.id, title: conversation.state.title ?? 'Untitled conversation', preview: '' })));
-const chat = ref<InstanceType<typeof CodexConversationPane>>();
+const chat = ref<InstanceType<typeof ConversationPane>>();
 const connecting = ref(false);
 const connectError = ref<string | null>(null);
 const openingSignIn = ref(false);
@@ -119,7 +119,7 @@ const activeTitle = computed(() => current.value?.state.title ?? 'A new chat');
 const backendName = computed(() => ({ codex: 'ChatGPT', claude: 'Claude', cursor: 'Cursor', antigravity: 'Antigravity' })[snapshot.value.backend]);
 const accountLabel = computed(() => `${backendName.value} account`);
 const signInLabel = computed(() => snapshot.value.backend === 'claude' ? 'Check Claude sign-in' : `Sign in with ${backendName.value}`);
-const sparkPresentation: CodexConversationPresentation = {
+const sparkPresentation: ConversationPresentation = {
   composer: { actionMenu: false, contextUsage: false, voice: false },
   messages: {
     actions: { copy: false, delete: false, edit: false, quote: false, retry: false },
@@ -138,10 +138,10 @@ const off = bridge.subscribe(value => {
   snapshot.value = value;
   if (!value.conversations.some(conversation => conversation.id === activeId.value)) activeId.value = value.conversations[0]?.id ?? null;
 });
-onMounted(() => { void connectSurface(); });
+onMounted(() => { void connectHost(); });
 onBeforeUnmount(off);
 
-async function connectSurface(): Promise<void> {
+async function connectHost(): Promise<void> {
   connectError.value = null; connecting.value = true;
   try {
     snapshot.value = await bridge.snapshot();

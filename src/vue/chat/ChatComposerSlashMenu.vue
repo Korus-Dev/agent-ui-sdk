@@ -1,7 +1,7 @@
 <template>
   <div
     ref="menuEl"
-    class="codex-chat-theme chat-composer-slash-menu"
+    class="agent-ui-theme chat-composer-slash-menu"
     role="listbox"
     aria-label="Commands and skills"
   >
@@ -61,8 +61,8 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
-import { useCodexChatTranslate } from './chat-i18n';
-import type { CodexCommandSummary, CodexSkillSummary } from './contracts';
+import { useChatTranslate } from './chat-i18n';
+import type { CommandSummary, SkillSummary } from './contracts';
 import { commandDescription } from './composer-commands';
 import { skillDescription } from './composer-skills';
 import { SparklesIcon, TerminalIcon } from '../shared/icons/app-icons';
@@ -70,17 +70,17 @@ import { SparklesIcon, TerminalIcon } from '../shared/icons/app-icons';
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   activeIndex: number;
-  visibleCommands: CodexCommandSummary[];
-  visibleSkills: CodexSkillSummary[];
+  visibleCommands: CommandSummary[];
+  visibleSkills: SkillSummary[];
 }>();
 
 defineEmits<{
-  selectCommand: [command: CodexCommandSummary];
-  selectSkill: [skill: CodexSkillSummary];
+  selectCommand: [command: CommandSummary];
+  selectSkill: [skill: SkillSummary];
 }>();
 // Stryker restore all
 
-const t = useCodexChatTranslate();
+const t = useChatTranslate();
 const menuEl = ref<HTMLElement | null>(null);
 
 watch(
@@ -118,7 +118,7 @@ watch(
 .chat-composer-slash-menu__section {
   padding: var(--space-2) var(--space-4);
   color: var(--color-text-muted);
-  font-size: var(--codex-composer-menu-heading-font-size, var(--chat-menu-font-size));
+  font-size: var(--agent-ui-composer-menu-heading-font-size, var(--chat-menu-font-size));
   font-weight: var(--font-weight-regular);
   line-height: 18px;
 }

@@ -46,7 +46,7 @@ try {
       await page.getByRole('button', { name: trigger === 'Command approval' ? 'Native approval' : 'Tool confirmation', exact: true }).click();
     }
     assert.equal(await editor.count(), 0, `${trigger} must replace the composer`);
-    const footer = page.locator('.codex-conversation-pane__footer');
+    const footer = page.locator('.agent-ui-conversation-pane__footer');
     const bounds = await footer.boundingBox();
     assert(bounds && bounds.y >= 0 && bounds.y + bounds.height <= 800,
       'The request must be visible in the composer area without scrolling');
@@ -60,7 +60,7 @@ try {
     if (trigger === 'Command approval') {
       await footer.getByRole('button', { name: cancel ? 'Deny' : 'Allow', exact: true }).click();
     } else if (trigger === 'Request approval') {
-      assert.equal(await page.locator('.codex-conversation-pane__messages .chat-tool-confirmation:not(.chat-tool-confirmation--resolved)').count(), 0);
+      assert.equal(await page.locator('.agent-ui-conversation-pane__messages .chat-tool-confirmation:not(.chat-tool-confirmation--resolved)').count(), 0);
       await footer.getByRole('button', { name: cancel ? 'Deny' : 'Allow', exact: true }).click();
     } else if (cancel) {
       await footer.getByRole('button', { name: 'Cancel question', exact: true }).click();
@@ -84,13 +84,13 @@ try {
   assert(await otherInput.isVisible(), 'The written answer must be editable without first selecting anything');
   const inputBounds = await otherInput.boundingBox();
   assert(inputBounds && inputBounds.height <= 36, 'The written answer starts as a compact one-line field');
-  const cardBounds = await page.locator('.codex-conversation-pane__question-composer').boundingBox();
+  const cardBounds = await page.locator('.agent-ui-conversation-pane__question-composer').boundingBox();
   const dividerBounds = await page.locator('.chat-tool-user-input__footer--divided').boundingBox();
   const above = inputBounds.y - (dividerBounds.y + 1);
   const below = (cardBounds.y + cardBounds.height - 1) - (inputBounds.y + inputBounds.height);
   assert(Math.abs(above - below) <= 1, `The written answer is centered between the divider and the card edge (${above}px / ${below}px)`);
   const vue = page.getByRole('button', { name: 'Vue', exact: true });
-  await page.locator('.codex-conversation-pane__question-composer').focus();
+  await page.locator('.agent-ui-conversation-pane__question-composer').focus();
   await page.keyboard.press('1');
   assert.equal(await page.locator('.chat-tool-user-input__index').innerText(), '2 / 2', 'A number key answers a single choice and advances');
   await page.getByRole('button', { name: 'Back', exact: true }).click();

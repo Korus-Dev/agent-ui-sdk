@@ -10,7 +10,7 @@
       @keydown.meta.enter="submitWithCommandEnter"
       @submit.prevent="submit()"
     >
-    <CodexComposerVoiceField
+    <ComposerVoiceField
       v-if="voiceVisible && voiceBusy"
       class="annotation-popup__voice-field"
       :recording="voiceRecording"
@@ -31,7 +31,7 @@
       @keyup="rememberSelection"
       @select="rememberSelection"
     >
-    <CodexComposerVoiceButton
+    <ComposerVoiceButton
       v-if="voiceVisible"
       :disabled="voiceButtonDisabled"
       :label="voiceButtonLabel"
@@ -55,10 +55,10 @@
 <script setup lang="ts">
 import { documentTranslation as translate } from './document-messages';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import CodexComposerVoiceButton from '../chat/ChatComposerVoiceButton.vue';
-import CodexComposerVoiceField from '../chat/ChatComposerVoiceField.vue';
-import { getCodexNativeRendererApi } from '../native-capabilities';
-import { useCodexComposerVoice } from '../chat/use-chat-composer-voice';
+import ComposerVoiceButton from '../chat/ChatComposerVoiceButton.vue';
+import ComposerVoiceField from '../chat/ChatComposerVoiceField.vue';
+import { getNativeRendererApi } from '../native-capabilities';
+import { useComposerVoice } from '../chat/use-chat-composer-voice';
 
 export type AnnotationPopupAnchor = {
   x: number;
@@ -104,8 +104,8 @@ const popup = ref<HTMLFormElement | null>(null);
 const selectionStart = ref(draft.value.length);
 const selectionEnd = ref(draft.value.length);
 const voiceSubmitPending = ref(false);
-const voiceVisible = computed(() => getCodexNativeRendererApi()?.capabilities.transcription === true);
-const voiceController = useCodexComposerVoice({
+const voiceVisible = computed(() => getNativeRendererApi()?.capabilities.transcription === true);
+const voiceController = useComposerVoice({
   isDisabled: () => false,
   isSending: () => false,
   onTranscript: insertTranscript,

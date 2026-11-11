@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils';
 import { defineComponent, h, onUnmounted } from 'vue';
 import { describe, expect, it, vi } from 'vitest';
 import ChatRichTextEditor, {
-  type CodexRichTextEditorExpose,
+  type RichTextEditorExpose,
 } from '../../../src/vue/chat/ChatRichTextEditor.vue';
 
 const plugin = {
@@ -553,8 +553,8 @@ describe('ChatRichTextEditor DOM contract', () => {
   });
 });
 
-function api(wrapper: ReturnType<typeof mount>): CodexRichTextEditorExpose {
-  return wrapper.vm as unknown as CodexRichTextEditorExpose;
+function api(wrapper: ReturnType<typeof mount>): RichTextEditorExpose {
+  return wrapper.vm as unknown as RichTextEditorExpose;
 }
 
 function chip(dataset: Record<string, string>): HTMLElement {

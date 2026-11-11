@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App.vue';
-import type { CodexMessageTextSelection } from '../../src/vue/index';
+import type { MessageTextSelection } from '../../src/vue/index';
 
 async function openQuestionLab(wrapper: ReturnType<typeof mount>, delivery = 'async', format = 'choices', steps = 'multiple') {
   await wrapper.findAll('nav button').find((button) => button.text().includes('Approvals & questions'))!.trigger('click');
@@ -19,15 +19,15 @@ describe('component lab', () => {
     const wrapper = mount(App);
     await openQuestionLab(wrapper, 'tool', 'choices', 'single');
 
-    const footer = wrapper.get('.codex-conversation-pane__footer');
+    const footer = wrapper.get('.agent-ui-conversation-pane__footer');
     expect(footer.text()).toContain('Which framework should I use?');
     expect(wrapper.find('.chat-rich-text-editor').exists()).toBe(false);
-    expect(wrapper.find('.codex-conversation-pane__messages .chat-tool-user-input').exists()).toBe(false);
+    expect(wrapper.find('.agent-ui-conversation-pane__messages .chat-tool-user-input').exists()).toBe(false);
 
     await footer.get('button[aria-label="Vue"]').trigger('click');
     expect(wrapper.find('.chat-rich-text-editor').exists()).toBe(true);
-    expect(wrapper.get('.codex-conversation-pane__messages').text()).toContain('User answered question');
-    expect(wrapper.get('.codex-conversation-pane__messages').text()).toContain('Vue');
+    expect(wrapper.get('.agent-ui-conversation-pane__messages').text()).toContain('User answered question');
+    expect(wrapper.get('.agent-ui-conversation-pane__messages').text()).toContain('Vue');
   });
   it('exercises an asynchronous agent question through the controlled pane', async () => {
     vi.useFakeTimers();
@@ -110,7 +110,7 @@ describe('component lab', () => {
       .find((button) => button.text().includes('Message selection'));
     expect(scenarioButton).toBeDefined();
     await scenarioButton!.trigger('click');
-    const selection: CodexMessageTextSelection = {
+    const selection: MessageTextSelection = {
       anchor: { x: 100, y: 120, width: 80, height: 20 },
       messageId: 'selection-assistant',
       messageIndex: 1,
@@ -119,7 +119,7 @@ describe('component lab', () => {
       turnId: 'selection-turn',
     };
 
-    wrapper.getComponent({ name: 'CodexConversationPane' }).vm.$emit('messageTextSelectionChange', selection);
+    wrapper.getComponent({ name: 'ConversationPane' }).vm.$emit('messageTextSelectionChange', selection);
     await wrapper.vm.$nextTick();
     await wrapper.get('.lab__selection-action').trigger('click');
 
@@ -189,7 +189,7 @@ describe('component lab', () => {
       ['Updated plan', 'list-details'],
       ['Read README.md', 'file-text'],
       ['Ran /bin/bash -lc "npm test && npm run typecheck && npm run build"', 'terminal-2'],
-      ['Searched registerCodexToolTitlePresenter', 'search'],
+      ['Searched registerToolTitlePresenter', 'search'],
       ['Opened in-app browser', 'lab-browser-tool-icon'],
       ['Claw synchronization complete', 'tool'],
     ] as const;
@@ -373,7 +373,7 @@ describe('component lab', () => {
     expect(wrapper.text()).toContain('Finished the verification.');
     expect(wrapper.text()).toContain('The docs are current.');
     expect(wrapper.text()).not.toContain('Also check the docs.');
-    const noSummaryTurn = wrapper.findAll('.codex-message-turn')
+    const noSummaryTurn = wrapper.findAll('.agent-ui-message-turn')
       .find((turn) => turn.text().includes('Finished the verification.'));
     expect(noSummaryTurn).toBeDefined();
     expect(noSummaryTurn!.find('.chat-work-group__header').exists()).toBe(false);

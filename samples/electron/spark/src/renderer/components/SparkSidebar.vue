@@ -68,13 +68,13 @@
 </template>
 
 <script setup lang="ts">
-type CodexConversationSummary = { id: string; title: string; preview?: string };
+type ConversationSummary = { id: string; title: string; preview?: string };
 
 withDefaults(defineProps<{
   activeConversationId?: string | null;
   accountError?: string | null;
   accountLabel?: string;
-  conversations: readonly CodexConversationSummary[];
+  conversations: readonly ConversationSummary[];
   createDisabled?: boolean;
   loading?: boolean;
   logoutBusy?: boolean;

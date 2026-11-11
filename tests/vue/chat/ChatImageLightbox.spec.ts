@@ -4,11 +4,11 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  captureCodexPortalTheme: vi.fn(),
+  capturePortalTheme: vi.fn(),
 }));
 
 vi.mock('../../../src/vue/chat/portal-theme', () => ({
-  captureCodexPortalTheme: mocks.captureCodexPortalTheme,
+  capturePortalTheme: mocks.capturePortalTheme,
 }));
 
 import ChatImageLightbox from '../../../src/vue/chat/ChatImageLightbox.vue';
@@ -30,8 +30,8 @@ function mountLightbox(open: boolean, themeSource: HTMLElement | null = null) {
 }
 
 beforeEach(() => {
-  mocks.captureCodexPortalTheme.mockReset();
-  mocks.captureCodexPortalTheme.mockReturnValue({
+  mocks.capturePortalTheme.mockReset();
+  mocks.capturePortalTheme.mockReturnValue({
     mode: 'dark',
     style: { '--color-text': 'papayawhip' },
   });
@@ -50,12 +50,12 @@ describe('ChatImageLightbox', () => {
     const dialog = document.body.querySelector<HTMLElement>('.chat-image-lightbox');
     const image = document.body.querySelector<HTMLImageElement>('.chat-image-lightbox__image');
 
-    expect(mocks.captureCodexPortalTheme).toHaveBeenCalledOnce();
-    expect(mocks.captureCodexPortalTheme).toHaveBeenCalledWith(themeSource);
+    expect(mocks.capturePortalTheme).toHaveBeenCalledOnce();
+    expect(mocks.capturePortalTheme).toHaveBeenCalledWith(themeSource);
     expect(dialog?.getAttribute('role')).toBe('dialog');
     expect(dialog?.getAttribute('aria-modal')).toBe('true');
     expect(dialog?.getAttribute('aria-label')).toBe('Generated image preview');
-    expect(dialog?.dataset.codexTheme).toBe('dark');
+    expect(dialog?.dataset.theme).toBe('dark');
     expect(dialog?.style.getPropertyValue('--color-text')).toBe('papayawhip');
     expect(image?.alt).toBe('Generated skyline');
     expect(image?.getAttribute('src')).toBe('/artifacts/skyline.webp');
@@ -88,25 +88,25 @@ describe('ChatImageLightbox', () => {
     const wrapper = mountLightbox(false, firstSource);
 
     expect(document.body.querySelector('.chat-image-lightbox')).toBeNull();
-    expect(mocks.captureCodexPortalTheme).not.toHaveBeenCalled();
+    expect(mocks.capturePortalTheme).not.toHaveBeenCalled();
     expect(removeEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
 
     await wrapper.setProps({ open: true });
-    expect(mocks.captureCodexPortalTheme).toHaveBeenLastCalledWith(firstSource);
+    expect(mocks.capturePortalTheme).toHaveBeenLastCalledWith(firstSource);
     expect(addEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
 
     await wrapper.setProps({ open: false });
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(wrapper.emitted('close')).toBeUndefined();
 
-    mocks.captureCodexPortalTheme.mockReturnValueOnce({
+    mocks.capturePortalTheme.mockReturnValueOnce({
       mode: 'light',
       style: { '--color-text': 'navy' },
     });
     await wrapper.setProps({ open: true, themeSource: secondSource });
     const dialog = document.body.querySelector<HTMLElement>('.chat-image-lightbox');
-    expect(mocks.captureCodexPortalTheme).toHaveBeenLastCalledWith(secondSource);
-    expect(dialog?.dataset.codexTheme).toBe('light');
+    expect(mocks.capturePortalTheme).toHaveBeenLastCalledWith(secondSource);
+    expect(dialog?.dataset.theme).toBe('light');
     expect(dialog?.style.getPropertyValue('--color-text')).toBe('navy');
 
     const keydownHandler = [...addEventListener.mock.calls]

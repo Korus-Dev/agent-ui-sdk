@@ -1,5 +1,5 @@
 <template>
-  <div v-if="resolved" class="codex-chat-theme chat-tool-confirmation chat-tool-confirmation--resolved">
+  <div v-if="resolved" class="agent-ui-theme chat-tool-confirmation chat-tool-confirmation--resolved">
     <ChatToolCallTitle :title="resolvedTitle" />
   </div>
   <ChatApprovalCard

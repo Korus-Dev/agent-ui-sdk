@@ -1,7 +1,7 @@
 <template>
   <span
     v-if="usagePercent !== null && usageDetails"
-    class="codex-chat-theme chat-context-usage"
+    class="agent-ui-theme chat-context-usage"
     :style="{ '--chat-context-usage-percent': `${usagePercent}%` }"
     :aria-label="t('chat.contextUsage.ariaLabel')"
     tabindex="0"
@@ -20,15 +20,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useCodexChatTranslate } from './chat-i18n';
-import type { CodexContextUsage } from './contracts';
+import { useChatTranslate } from './chat-i18n';
+import type { ContextUsage } from './contracts';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
-  contextUsage?: CodexContextUsage | null;
+  contextUsage?: ContextUsage | null;
 }>();
 // Stryker restore all
-const t = useCodexChatTranslate();
+const t = useChatTranslate();
 
 const usagePercent = computed(() => {
   const percent = props.contextUsage?.usedPercent;

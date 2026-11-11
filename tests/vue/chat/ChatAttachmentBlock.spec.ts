@@ -26,7 +26,7 @@ function deferred<T>() {
 
 describe('ChatAttachmentBlock', () => {
   afterEach(() => {
-    delete (window as Window & { codexAppSdkNative?: unknown }).codexAppSdkNative;
+    delete (window as Window & { agentUiHostCapabilities?: unknown }).agentUiHostCapabilities;
     document.body.innerHTML = '';
   });
 
@@ -73,7 +73,7 @@ describe('ChatAttachmentBlock', () => {
   it.each(['conversation-image:thread:' + 'a'.repeat(64), 'app-attachment:stored-image'])
   ('resolves the preview reference before the original provider path: %s', async (url) => {
     const readImagePreview = vi.fn(async () => 'data:image/png;base64,YQ==');
-    Object.defineProperty(window, 'codexAppSdkNative', { configurable: true, value: { readImagePreview } });
+    Object.defineProperty(window, 'agentUiHostCapabilities', { configurable: true, value: { readImagePreview } });
     const wrapper = mount(ChatAttachmentBlock, {
       props: { attachment: attachment({ path: '/provider/private/image.png', url }) },
     });
@@ -218,7 +218,7 @@ describe('ChatAttachmentBlock', () => {
 
   it('reads only unresolved local images through the native bridge', async () => {
     const readImagePreview = vi.fn(async () => 'data:image/png;base64,YQ==');
-    Object.defineProperty(window, 'codexAppSdkNative', {
+    Object.defineProperty(window, 'agentUiHostCapabilities', {
       configurable: true,
       value: { readImagePreview },
     });
@@ -249,7 +249,7 @@ describe('ChatAttachmentBlock', () => {
       .mockResolvedValueOnce('file:///tmp/unsafe.png')
       .mockResolvedValueOnce('')
       .mockRejectedValueOnce(new Error('missing'));
-    Object.defineProperty(window, 'codexAppSdkNative', {
+    Object.defineProperty(window, 'agentUiHostCapabilities', {
       configurable: true,
       value: { readImagePreview },
     });
@@ -275,7 +275,7 @@ describe('ChatAttachmentBlock', () => {
   it('keeps a loaded preview mounted when transcript updates recreate the same attachment', async () => {
     const pending = deferred<string>();
     const readImagePreview = vi.fn().mockResolvedValueOnce('data:image/png;base64,YQ==').mockReturnValue(pending.promise);
-    Object.defineProperty(window, 'codexAppSdkNative', { configurable: true, value: { readImagePreview } });
+    Object.defineProperty(window, 'agentUiHostCapabilities', { configurable: true, value: { readImagePreview } });
     const wrapper = mount(ChatAttachmentBlock, { props: { attachment: attachment({ path: '/tmp/photo.jpg' }) } });
     try {
       await flushPromises();
@@ -292,7 +292,7 @@ describe('ChatAttachmentBlock', () => {
   it('invalidates a pending native preview when unmounted', async () => {
     const pending = deferred<string>();
     const readImagePreview = vi.fn(() => pending.promise);
-    Object.defineProperty(window, 'codexAppSdkNative', {
+    Object.defineProperty(window, 'agentUiHostCapabilities', {
       configurable: true,
       value: { readImagePreview },
     });

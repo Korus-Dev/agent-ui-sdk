@@ -1,7 +1,7 @@
 <template>
   <section
     v-if="showHeader || expanded"
-    class="codex-chat-theme chat-work-group"
+    class="agent-ui-theme chat-work-group"
     :class="{ 'chat-work-group--continuation': !showHeader }"
   >
     <div v-if="showHeader && !hasDetails" class="chat-work-group__header">
@@ -18,7 +18,7 @@
     >
       <span
         class="chat-work-group__title"
-        :class="{ 'codex-text-shimmer': active }"
+        :class="{ 'agent-ui-text-shimmer': active }"
         :data-label="label"
       >
         {{ label }}
@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { computed, inject, onScopeDispose, ref, watch } from 'vue'
 import { ChevronDown, ChevronRightIcon, Loader2Icon } from '../shared/icons/app-icons'
-import { useCodexChatTranslate } from './chat-i18n'
+import { useChatTranslate } from './chat-i18n'
 import ChatFoldTransition from './ChatFoldTransition.vue'
 import { assistantWorkMessageIndexKey, assistantWorkTurnKey } from './message-work-state'
 import { formatWorkDuration } from './work-duration'
@@ -56,7 +56,7 @@ const props = defineProps<{
   finalStarted: boolean
 }>()
 
-const t = useCodexChatTranslate()
+const t = useChatTranslate()
 const assistantWorkTurn = inject(assistantWorkTurnKey, undefined)
 const messageIndex = inject(assistantWorkMessageIndexKey, undefined)
 const usesTurn = computed(() => assistantWorkTurn?.enabled.value === true && messageIndex !== undefined)

@@ -1,7 +1,7 @@
 <template>
   <span
-    class="codex-chat-theme chat-tool-call__title"
-    :class="{ 'chat-tool-call__title--running': running, 'codex-text-shimmer': running,
+    class="agent-ui-theme chat-tool-call__title"
+    :class="{ 'chat-tool-call__title--running': running, 'agent-ui-text-shimmer': running,
       'chat-tool-call__title--expandable': allowExpand, 'chat-tool-call__title--expanded': expanded,
       'chat-tool-call__title--interactive': allowExpand && (truncated || expanded) }"
     :data-label="title"
@@ -61,7 +61,7 @@
       @click.stop="toggleExpanded"
     ><component :is="expanded ? ChevronUp : ChevronDown" /></button>
   </span>
-  <span v-if="lineDiff" class="codex-chat-theme chat-tool-call__diff" aria-label="Line changes">
+  <span v-if="lineDiff" class="agent-ui-theme chat-tool-call__diff" aria-label="Line changes">
     <ChatAnimatedDiffStat
       v-if="lineDiff.addedLines"
       kind="added"
@@ -83,11 +83,11 @@ import { CheckIcon, CopyIcon, ChevronDown, ChevronUp } from '../shared/icons/app
 import ChatAnimatedDiffStat from './ChatAnimatedDiffStat.vue'
 import ChatCopyButton from './ChatCopyButton.vue'
 import { observeTextResize } from './text-resize'
-import { useCodexHostCapabilities } from '../native-capabilities'
+import { useHostCapabilities } from '../native-capabilities'
 import ChatToolIcon from './ChatToolIcon.vue'
-import type { CodexConversationLink } from './contracts'
-import type { CodexToolDisplayTargetPart, ToolLineDiff } from './tool-status'
-import type { CodexToolPresentation } from './tool-presentation'
+import type { ConversationLink } from './contracts'
+import type { ToolDisplayTargetPart, ToolLineDiff } from './tool-status'
+import type { ToolPresentation } from './tool-presentation'
 import { getMessageToolCallArgs, type MessageToolCall } from './types'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
@@ -98,16 +98,16 @@ const props = defineProps<{
   title: string
   titlePrefix?: string
   titleTarget?: string
-  titleTargetLink?: CodexConversationLink
-  titleTargetParts?: readonly CodexToolDisplayTargetPart[]
-  expandedTargetParts?: readonly CodexToolDisplayTargetPart[]
+  titleTargetLink?: ConversationLink
+  titleTargetParts?: readonly ToolDisplayTargetPart[]
+  expandedTargetParts?: readonly ToolDisplayTargetPart[]
   icon?: any
   toolCall?: MessageToolCall
-  toolPresentation?: CodexToolPresentation
+  toolPresentation?: ToolPresentation
 }>()
 
 const emit = defineEmits<{
-  'open-link': [link: CodexConversationLink]
+  'open-link': [link: ConversationLink]
 }>()
 // Stryker restore all
 
@@ -117,7 +117,7 @@ const expanded = ref(false)
 const truncated = ref(false)
 const iconHovered = ref(false)
 const iconFocused = ref(false)
-const host = useCodexHostCapabilities()
+const host = useHostCapabilities()
 const visibleTargetParts = computed(() => expanded.value ? props.expandedTargetParts ?? props.titleTargetParts : props.titleTargetParts)
 const hiddenTargets = computed(() => props.expandedTargetParts?.some((part, index) => part.label !== props.titleTargetParts?.[index]?.label) ?? false)
 const fullText = computed(() => {

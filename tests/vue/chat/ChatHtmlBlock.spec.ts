@@ -17,7 +17,7 @@ function connect(frame: HTMLIFrameElement) {
     port = (options!.transfer as unknown as MessagePort[])[0];
     port!.on('message', packet => packets.push(packet));
   });
-  window.dispatchEvent(new MessageEvent('message', { source: frame.contentWindow, data: 'codex-html-ready' }));
+  window.dispatchEvent(new MessageEvent('message', { source: frame.contentWindow, data: 'agent-ui-html-ready' }));
   return packets;
 }
 
@@ -27,7 +27,7 @@ describe('HTML preview lifecycle', () => {
     const wrapper = mount(ChatHtmlBlock, { attachTo: document.body, props: { source: '<p>Old', title: 'Example', complete: false } });
     const frame = wrapper.get('iframe').element;
     // Unrelated frames must not initialize this preview's channel.
-    window.dispatchEvent(new MessageEvent('message', { source: window, data: 'codex-html-ready' }));
+    window.dispatchEvent(new MessageEvent('message', { source: window, data: 'agent-ui-html-ready' }));
     await wrapper.setProps({ source: '<p>Latest</p>', complete: true });
     const child = connect(frame);
     await vi.waitFor(() => expect(child).toEqual([{ chunk: '<p>Latest</p>', complete: true }]));

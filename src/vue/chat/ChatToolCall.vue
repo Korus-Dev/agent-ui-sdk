@@ -1,19 +1,19 @@
 <template>
   <ChatToolConfirmation
     v-if="isToolConfirmation"
-    class="codex-chat-theme"
+    class="agent-ui-theme"
     :answered-client-request-ids="answeredClientRequestIds"
     :tool-call="toolCall"
     @client-response="emit('client-response', $event)"
   />
   <ChatToolUserInputRequest
     v-else-if="isUserInputRequest"
-    class="codex-chat-theme"
+    class="agent-ui-theme"
     :answered-client-request-ids="answeredClientRequestIds"
     :tool-call="toolCall"
     @client-response="emit('client-response', $event)"
   />
-  <section v-else class="codex-chat-theme chat-tool-call" :class="{ 'chat-tool-call--open': isOpen, [`chat-tool-call--${toolCall.state}`]: true }">
+  <section v-else class="agent-ui-theme chat-tool-call" :class="{ 'chat-tool-call--open': isOpen, [`chat-tool-call--${toolCall.state}`]: true }">
     <div v-if="summaryOnly" class="chat-tool-call__summary">
       <ChatToolCallTitle
         :allow-expand="!toolDetailsEnabled"
@@ -100,17 +100,17 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useCodexChatTranslate } from './chat-i18n'
-import { useCodexToolPresentation } from './tool-presentation'
+import { useChatTranslate } from './chat-i18n'
+import { useToolPresentation } from './tool-presentation'
 import { ChevronDown, ChevronUp } from '../shared/icons/app-icons'
-import type { ClientRequestResponse, CodexConversationLink } from './contracts'
+import type { ClientRequestResponse, ConversationLink } from './contracts'
 import ChatFoldTransition from './ChatFoldTransition.vue'
 import ChatToolConfirmation from './ChatToolConfirmation.vue'
 import ChatToolCallTitle from './ChatToolCallTitle.vue'
 import ChatToolUserInputRequest from './ChatToolUserInputRequest.vue'
 import { getToolDisplayTargetParts, getToolDisplayTitleParts, getToolLineDiff, parseToolStatusDescriptor } from './tool-status'
 import { getMessageToolCallArgs, type MessageToolCall } from './types'
-import { useCodexToolCallDetails } from './tool-call-details'
+import { useToolCallDetails } from './tool-call-details'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{
@@ -128,14 +128,14 @@ const emit = defineEmits<{
   cancel: []
   'toggle-details': []
   'client-response': [response: ClientRequestResponse]
-  'open-link': [link: CodexConversationLink]
+  'open-link': [link: ConversationLink]
 }>()
 // Stryker restore all
 
-const t = useCodexChatTranslate()
-const resolveToolPresentation = useCodexToolPresentation()
+const t = useChatTranslate()
+const resolveToolPresentation = useToolPresentation()
 const isOpen = ref(false)
-const providedToolDetails = useCodexToolCallDetails()
+const providedToolDetails = useToolCallDetails()
 
 const toolCallArgs = computed(() => getMessageToolCallArgs(props.toolCall))
 const isRunning = computed(() => !props.toolCall.done && props.toolCall.state !== 'completed')

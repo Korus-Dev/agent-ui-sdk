@@ -1,4 +1,4 @@
-import type { HarnessCapabilities, HarnessProvider, HarnessDriver, ModelOption, SessionState } from '@korus-dev/multi-agent-sdk';
+import type { HarnessCapabilities, HarnessProvider, Harness, ModelOption, SessionState } from '@korus-dev/multi-agent-sdk';
 import type { ClientSendMessageOptions, SessionRequestResponse } from '@korus-dev/agent-ui-sdk';
 export type Conversation = { id: string; provider: HarnessProvider; state: SessionState; capabilities: HarnessCapabilities; models: ModelOption[] };
 export type SampleAuthentication = { connected: boolean; pending: boolean; error: string | null; loginCommand?: string };
@@ -14,7 +14,7 @@ export type Commands = {
   goal: [id: string, objective: string];
   clearGoal: [id: string];
   history: [id: string];
-  content: [id: string, input: Parameters<HarnessDriver['readConversationContent']>[1]];
+  content: [id: string, input: Parameters<Harness['readConversationContent']>[1]];
   turnHistory: [id: string, turnId: string];
   deleteTurn: [id: string, turnId: string];
   retryTurn: [id: string, turnId: string];

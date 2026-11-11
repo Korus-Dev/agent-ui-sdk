@@ -6,13 +6,13 @@ import { describe, expect, it } from 'vitest';
 
 import { defaultApprovalPreset, isApprovalPreset } from '../../../src/vue/chat/approval-presets';
 import {
-  defaultCodexChatTranslate,
-  provideCodexChatTranslate,
-  useCodexChatTranslate,
+  defaultChatTranslate,
+  provideChatTranslate,
+  useChatTranslate,
 } from '../../../src/vue/chat/chat-i18n';
 import {
-  defaultCodexConversationPresentation,
-  resolveCodexConversationPresentation,
+  defaultConversationPresentation,
+  resolveConversationPresentation,
 } from '../../../src/vue/chat/contracts';
 import { isImageGenerationToolCall, type MessageToolCall } from '../../../src/vue/chat/types';
 
@@ -27,7 +27,7 @@ const toolCall = (overrides: Partial<MessageToolCall>): MessageToolCall => ({
 
 describe('chat public contracts', () => {
   it('publishes and resolves the complete default presentation', () => {
-    expect(defaultCodexConversationPresentation).toStrictEqual({
+    expect(defaultConversationPresentation).toStrictEqual({
       composer: { actionMenu: true, contextUsage: true, voice: true },
       messages: {
         actions: { copy: true, delete: true, edit: true, fork: true, quote: true, retry: true },
@@ -35,11 +35,11 @@ describe('chat public contracts', () => {
       },
       shelf: { goal: true, queuedPrompts: true, turnGitDiff: true },
     });
-    expect(resolveCodexConversationPresentation()).toStrictEqual(defaultCodexConversationPresentation);
+    expect(resolveConversationPresentation()).toStrictEqual(defaultConversationPresentation);
   });
 
   it('preserves every explicit false presentation override', () => {
-    expect(resolveCodexConversationPresentation({
+    expect(resolveConversationPresentation({
       composer: { actionMenu: false, contextUsage: false, voice: false },
       messages: {
         actions: { copy: false, delete: false, edit: false, fork: false, quote: false, retry: false },
@@ -75,14 +75,14 @@ describe('chat translation', () => {
     ['chat.actions.label', 'Message actions'],
     ['chat.actions.resubmit', 'Resubmit'],
   ])('translates %s exactly', (key, expected) => {
-    expect(defaultCodexChatTranslate(key)).toBe(expected);
+    expect(defaultChatTranslate(key)).toBe(expected);
   });
 
   it('substitutes present and missing parameters and delegates tool keys', () => {
-    expect(defaultCodexChatTranslate('chat.contextUsage.usedAndLeft', { used: 40 })).toBe(
+    expect(defaultChatTranslate('chat.contextUsage.usedAndLeft', { used: 40 })).toBe(
       '40% used (% left)',
     );
-    expect(defaultCodexChatTranslate('chat.tool.command.read.running', { target: 'README.md' })).toBe(
+    expect(defaultChatTranslate('chat.tool.command.read.running', { target: 'README.md' })).toBe(
       'Reading README.md',
     );
   });
@@ -90,13 +90,13 @@ describe('chat translation', () => {
   it('uses the nearest tree-scoped translation provider', () => {
     const Consumer = defineComponent({
       setup() {
-        const translate = useCodexChatTranslate();
+        const translate = useChatTranslate();
         return () => h('span', translate('host.label', { count: 2 }));
       },
     });
     const Provider = defineComponent({
       setup() {
-        provideCodexChatTranslate((key, params) => `${key}:${String(params?.count)}`);
+        provideChatTranslate((key, params) => `${key}:${String(params?.count)}`);
         return () => h(Consumer);
       },
     });

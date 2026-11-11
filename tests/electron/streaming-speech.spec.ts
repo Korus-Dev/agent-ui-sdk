@@ -1,13 +1,13 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, expect, it, vi } from 'vitest';
-import type { CodexSpeechSessionEvent, CodexSpeechTranscriptionResult, CodexPreparedSpeechSession } from '../../src/host/contracts';
-import { registerCodexNativeIpc, type CodexNativeMainOptions } from '../../src/electron/codex-native-ipc';
-import { createCodexNativeRendererApi } from '../../src/electron/codex-native-renderer';
+import type { SpeechSessionEvent, SpeechTranscriptionResult, PreparedSpeechSession } from '../../src/host/contracts';
+import { registerNativeIpc, type NativeMainOptions } from '../../src/electron/native-ipc';
+import { createNativeRendererApi } from '../../src/electron/native-renderer';
 
 const cleanups: (() => void)[] = [];
 afterEach(() => { for (const cleanup of cleanups.splice(0)) cleanup(); });
 
-function runtime(options: CodexNativeMainOptions, speechPreparation = false) {
+function runtime(options: NativeMainOptions, speechPreparation = false) {
   const handlers = new Map<string, (event: unknown, ...args: unknown[]) => unknown>();
   const ipcMain = { handle: (name: string, fn: (event: unknown, ...args: unknown[]) => unknown) => { handlers.set(name, fn); },
     removeHandler: (name: string) => { handlers.delete(name); } };
@@ -15,25 +15,25 @@ function runtime(options: CodexNativeMainOptions, speechPreparation = false) {
     const bus = new EventEmitter();
     const sender = new EventEmitter();
     const senderFrame = { processId: 1, routingId: 1, send: (name: string, payload: unknown) => bus.emit(name, {}, payload) };
-    return { sender, senderFrame, api: createCodexNativeRendererApi({
+    return { sender, senderFrame, api: createNativeRendererApi({
       invoke: async (name, ...args) => handlers.get(name)!({ sender, senderFrame }, ...args),
       on: (name, fn) => { bus.on(name, fn); }, off: (name, fn) => { bus.off(name, fn); },
     }, { transcription: true, streamingTranscription: true, speechPreparation }) };
   }
-  const dispose = registerCodexNativeIpc({ ipcMain, clipboard: { write() {} }, dialog: { showOpenDialog: async () => ({ canceled: true, filePaths: [] }) }, shell: { openExternal: async () => {} } }, options);
+  const dispose = registerNativeIpc({ ipcMain, clipboard: { write() {} }, dialog: { showOpenDialog: async () => ({ canceled: true, filePaths: [] }) }, shell: { openExternal: async () => {} } }, options);
   cleanups.push(dispose);
   return { renderer, dispose, handlers };
 }
 
 it('routes live speech only to its owner and cancels on renderer teardown', async () => {
-  let publish!: (event: CodexSpeechSessionEvent) => void;
+  let publish!: (event: SpeechSessionEvent) => void;
   const session = { append: vi.fn(async () => {}), stop: vi.fn(async () => ({ text: 'Final words.' })), cancel: vi.fn(async () => {}) };
   const { renderer, dispose, handlers } = runtime({
     startSpeechSession: async (_options, onEvent) => { publish = onEvent; return session; },
   });
   const owner = renderer();
   const other = renderer();
-  const received: CodexSpeechSessionEvent[] = [];
+  const received: SpeechSessionEvent[] = [];
   const unsubscribe = owner.api.streamingTranscription!.onEvent((event) => received.push(event));
   const stream = owner.api.streamingTranscription!;
   await stream.start({ sessionId: 'first', sampleRate: 16000 });
@@ -187,14 +187,14 @@ it('preserves native failures and pairs cancellation with an in-flight stop once
   let finishStop!: () => void;
   const session = {
     append: async () => {},
-    stop: vi.fn<() => Promise<CodexSpeechTranscriptionResult>>()
+    stop: vi.fn<() => Promise<SpeechTranscriptionResult>>()
       .mockRejectedValueOnce(failure)
       .mockResolvedValueOnce({ text: '', error: 'Private recognition error' })
       .mockImplementation(() => new Promise(resolve => { finishStop = () => resolve({ text: 'Discarded text' }); })),
     cancel: vi.fn(async () => {}),
   };
   const h = runtime({
-    startSpeechSession: vi.fn<NonNullable<CodexNativeMainOptions['startSpeechSession']>>()
+    startSpeechSession: vi.fn<NonNullable<NativeMainOptions['startSpeechSession']>>()
       .mockRejectedValueOnce(failure).mockResolvedValue(session),
     onSpeechOperation: operation => {
       observed.push(operation);
@@ -226,14 +226,14 @@ it('preserves native failures and pairs cancellation with an in-flight stop once
 });
 
 it('reports recognizer errors and permits retry after a failed startup', async () => {
-  let publish!: (event: CodexSpeechSessionEvent) => void;
+  let publish!: (event: SpeechSessionEvent) => void;
   const session = { append: vi.fn(async () => {}), stop: vi.fn(async () => ({ text: '' })), cancel: vi.fn(async () => {}) };
-  const factory = vi.fn<NonNullable<CodexNativeMainOptions['startSpeechSession']>>()
+  const factory = vi.fn<NonNullable<NativeMainOptions['startSpeechSession']>>()
     .mockRejectedValueOnce(new Error('Model unavailable'))
     .mockImplementation(async (_options, onEvent) => { publish = onEvent; return session; });
   const h = runtime({ startSpeechSession: factory });
   const stream = h.renderer().api.streamingTranscription!;
-  const events: CodexSpeechSessionEvent[] = [];
+  const events: SpeechSessionEvent[] = [];
   stream.onEvent((event) => events.push(event));
   await expect(stream.start({ sessionId: 'failed', sampleRate: 16000 })).rejects.toThrow('Model unavailable');
   await stream.start({ sessionId: 'retry', sampleRate: 16000 });
@@ -268,9 +268,9 @@ it('owns prepared sessions before activation, preserves actual rate, and rejects
 });
 
 it('cancels pending preparation immediately and cleans late resources without reviving the renderer', async () => {
-  let finish!: (value: CodexPreparedSpeechSession) => void;
+  let finish!: (value: PreparedSpeechSession) => void;
   let signal!: AbortSignal;
-  const prepared = { start: vi.fn<CodexPreparedSpeechSession['start']>(), cancel: vi.fn(async () => {}) };
+  const prepared = { start: vi.fn<PreparedSpeechSession['start']>(), cancel: vi.fn(async () => {}) };
   const h = runtime({ prepareSpeechSession: async (_input, _onEvent, options) => {
     signal = options.signal;
     return new Promise(resolve => { finish = resolve; });

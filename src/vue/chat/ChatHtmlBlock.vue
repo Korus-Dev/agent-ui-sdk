@@ -1,5 +1,5 @@
 <template>
-  <section class="codex-chat-theme chat-html-block">
+  <section class="agent-ui-theme chat-html-block">
     <header class="chat-html-block__header">
       <span class="chat-html-block__title">{{ title || t('chat.html.title') }}</span>
       <span v-if="!complete" class="chat-html-block__status">{{ t('chat.html.streaming') }}</span>
@@ -29,16 +29,16 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { CodeIcon, Download, EyeIcon } from '../shared/icons/app-icons'
-import { useCodexHostCapabilities } from '../native-capabilities'
+import { useHostCapabilities } from '../native-capabilities'
 import ChatIconButton from './ChatIconButton.vue'
 import ChatCopyButton from './ChatCopyButton.vue'
-import { useCodexChatTranslate } from './chat-i18n'
+import { useChatTranslate } from './chat-i18n'
 import { copyTextToClipboard } from './message-actions'
 import { htmlPreviewDocument } from './html-preview-document'
 
 const props = defineProps<{ source: string; title?: string; complete: boolean }>()
-const t = useCodexChatTranslate()
-const host = useCodexHostCapabilities()
+const t = useChatTranslate()
+const host = useHostCapabilities()
 const frame = ref<HTMLIFrameElement>()
 const showSource = ref(false)
 const revision = ref(0)
@@ -70,11 +70,11 @@ function flush() {
 }
 
 function connect(event: MessageEvent) {
-  if (event.source !== frame.value?.contentWindow || event.data !== 'codex-html-ready' || channel) return
+  if (event.source !== frame.value?.contentWindow || event.data !== 'agent-ui-html-ready' || channel) return
   channel = new MessageChannel()
   // A transferred port ties subsequent chunks to this document. If generated
   // code navigates its frame, we never send the remaining source to that URL.
-  frame.value!.contentWindow!.postMessage('codex-html-connect', { targetOrigin: '*', transfer: [channel.port2] })
+  frame.value!.contentWindow!.postMessage('agent-ui-html-connect', { targetOrigin: '*', transfer: [channel.port2] })
   // MessagePort queues packets until the child installs its handler.
   ready = true
   flush()

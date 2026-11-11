@@ -1,33 +1,33 @@
 import { defineComponent, h, nextTick, onBeforeUnmount, onMounted, reactive, type Component, type PropType, type Slots, type VNode } from 'vue';
 import type {
-  CodexComposerMenuItem,
-  CodexComposerMenuSelectableItem,
-  CodexComposerMenuSubmenuItem,
+  ComposerMenuItem,
+  ComposerMenuSelectableItem,
+  ComposerMenuSubmenuItem,
 } from '../composer-menu';
 import { CheckIcon, ChevronRightIcon } from '../shared/icons/app-icons';
 
-const CodexComposerMenuItems = defineComponent({
-  name: 'CodexComposerMenuItems',
+const ComposerMenuItems = defineComponent({
+  name: 'ComposerMenuItems',
   props: {
     ariaLabel: {
       type: String,
       default: 'Composer actions',
     },
     items: {
-      type: Array as unknown as PropType<readonly CodexComposerMenuItem<unknown>[]>,
+      type: Array as unknown as PropType<readonly ComposerMenuItem<unknown>[]>,
       required: true,
     },
     pinnedItemCount: { type: Number, default: 0 },
   },
   emits: {
-    select: (_item: CodexComposerMenuSelectableItem<unknown>) => true,
+    select: (_item: ComposerMenuSelectableItem<unknown>) => true,
   },
   setup(props, { emit, slots }) {
     const openSubmenus = reactive(new Set<string>());
     const closeSubmenus = () => openSubmenus.clear();
     onMounted(() => window.addEventListener('resize', closeSubmenus));
     onBeforeUnmount(() => window.removeEventListener('resize', closeSubmenus));
-    const select = (item: CodexComposerMenuSelectableItem<unknown>): void => {
+    const select = (item: ComposerMenuSelectableItem<unknown>): void => {
       emit('select', item);
     };
 
@@ -36,12 +36,12 @@ const CodexComposerMenuItems = defineComponent({
 });
 
 function renderMenu(
-  items: readonly CodexComposerMenuItem<unknown>[],
+  items: readonly ComposerMenuItem<unknown>[],
   ariaLabel: string,
   slots: Slots,
-  select: (item: CodexComposerMenuSelectableItem<unknown>) => void,
+  select: (item: ComposerMenuSelectableItem<unknown>) => void,
   openSubmenus: Set<string>,
-  className: string | Array<string | null> = 'codex-chat-theme codex-composer-menu-list',
+  className: string | Array<string | null> = 'agent-ui-theme agent-ui-composer-menu-list',
   pinnedItemCount = 0,
 ): VNode {
   const firstFocusableId = items.find((item) => item.type !== 'separator'
@@ -51,11 +51,11 @@ function renderMenu(
   const content = items.map((item) => renderItem(item, slots, select, openSubmenus, item.id === firstFocusableId));
   const pinned = Math.max(0, Math.floor(pinnedItemCount));
   const children = pinned > 0 ? [
-    h('div', { class: 'codex-composer-menu-list__pinned', 'data-menu-section': '' }, content.slice(0, pinned)),
-    h('div', { class: 'codex-composer-menu-list__scroll', 'data-menu-section': '' }, content.slice(pinned)),
+    h('div', { class: 'agent-ui-composer-menu-list__pinned', 'data-menu-section': '' }, content.slice(0, pinned)),
+    h('div', { class: 'agent-ui-composer-menu-list__scroll', 'data-menu-section': '' }, content.slice(pinned)),
   ] : content;
   return h('div', {
-    class: [className, pinned > 0 ? 'codex-composer-menu-list--pinned' : null],
+    class: [className, pinned > 0 ? 'agent-ui-composer-menu-list--pinned' : null],
     role: 'menu',
     'aria-label': ariaLabel,
     onKeydown: (event: KeyboardEvent) => handleMenuKeydown(event, openSubmenus),
@@ -89,16 +89,16 @@ function positionScrollableSubmenu(vnode: VNode): void {
 }
 
 function renderItem(
-  item: CodexComposerMenuItem<unknown>,
+  item: ComposerMenuItem<unknown>,
   slots: Slots,
-  select: (item: CodexComposerMenuSelectableItem<unknown>) => void,
+  select: (item: ComposerMenuSelectableItem<unknown>) => void,
   openSubmenus: Set<string>,
   firstFocusable: boolean,
 ): VNode {
   if (item.type === 'separator') {
     return h('div', {
       key: item.id,
-      class: 'codex-composer-menu-list__separator',
+      class: 'agent-ui-composer-menu-list__separator',
       role: 'separator',
     });
   }
@@ -106,15 +106,15 @@ function renderItem(
   if (item.type === 'heading') {
     return h('div', {
       key: item.id,
-      class: 'codex-composer-menu-list__heading',
+      class: 'agent-ui-composer-menu-list__heading',
       role: 'presentation',
     }, [
-      h('span', { class: 'codex-composer-menu-list__heading-label' }, item.label),
+      h('span', { class: 'agent-ui-composer-menu-list__heading-label' }, item.label),
       item.actions?.length
-        ? h('span', { class: 'codex-composer-menu-list__heading-actions' }, item.actions.map((action) => (
+        ? h('span', { class: 'agent-ui-composer-menu-list__heading-actions' }, item.actions.map((action) => (
           h('button', {
             key: action.id,
-            class: 'codex-composer-menu-list__heading-action',
+            class: 'agent-ui-composer-menu-list__heading-action',
             type: 'button',
             role: 'menuitem',
             title: action.label,
@@ -136,8 +136,8 @@ function renderItem(
     return h('div', {
       key: item.id,
       class: [
-        'codex-composer-menu-list__submenu',
-        expanded ? 'codex-composer-menu-list__submenu--open' : null,
+        'agent-ui-composer-menu-list__submenu',
+        expanded ? 'agent-ui-composer-menu-list__submenu--open' : null,
       ],
       'data-submenu-id': item.id,
       onMouseenter: () => {
@@ -145,7 +145,7 @@ function renderItem(
       },
       onMouseleave: (event: MouseEvent) => {
         const submenu = (event.currentTarget as HTMLElement).querySelector(
-          ':scope > .codex-composer-menu-list__submenu-list',
+          ':scope > .agent-ui-composer-menu-list__submenu-list',
         );
         if (!(submenu instanceof HTMLElement) || !submenu.contains(document.activeElement)) {
           openSubmenus.delete(item.id);
@@ -159,7 +159,7 @@ function renderItem(
       },
     }, [
       h('button', {
-        class: 'codex-composer-menu-list__item codex-composer-menu-list__item--submenu',
+        class: 'agent-ui-composer-menu-list__item agent-ui-composer-menu-list__item--submenu',
         type: 'button',
         role: 'menuitem',
         'aria-haspopup': 'menu',
@@ -187,7 +187,7 @@ function renderItem(
       }, [
         ...renderContent(item, slots).nodes,
         h(ChevronRightIcon, {
-          class: 'codex-composer-menu-list__chevron',
+          class: 'agent-ui-composer-menu-list__chevron',
           'aria-hidden': 'true',
         }),
       ]),
@@ -202,11 +202,11 @@ function renderItem(
           },
           openSubmenus,
           [
-            'codex-composer-menu-list codex-composer-menu-list__submenu-list',
+            'agent-ui-composer-menu-list agent-ui-composer-menu-list__submenu-list',
             item.submenuAlignment === 'bottom'
-              ? 'codex-composer-menu-list__submenu-list--bottom-aligned'
+              ? 'agent-ui-composer-menu-list__submenu-list--bottom-aligned'
               : null,
-            item.submenuWidth === 'wide' ? 'codex-composer-menu-list__submenu-list--wide' : null,
+            item.submenuWidth === 'wide' ? 'agent-ui-composer-menu-list__submenu-list--wide' : null,
           ],
         )
         : null,
@@ -217,12 +217,12 @@ function renderItem(
   return h('button', {
     key: item.id,
     class: [
-      'codex-composer-menu-list__item',
+      'agent-ui-composer-menu-list__item',
       item.type === 'checkbox' && item.accessory && item.accessory !== 'check'
-        ? 'codex-composer-menu-list__item--switch'
+        ? 'agent-ui-composer-menu-list__item--switch'
         : null,
       (item.type === 'action' || item.type === 'custom') && item.danger
-        ? 'codex-composer-menu-list__item--danger'
+        ? 'agent-ui-composer-menu-list__item--danger'
         : null,
     ],
     type: 'button',
@@ -236,15 +236,15 @@ function renderItem(
     item.type === 'checkbox' && item.accessory === 'switch'
       ? h('span', {
         class: [
-          'codex-composer-menu-list__switch',
-          item.checked ? 'codex-composer-menu-list__switch--checked' : null,
+          'agent-ui-composer-menu-list__switch',
+          item.checked ? 'agent-ui-composer-menu-list__switch--checked' : null,
         ],
         'aria-hidden': 'true',
-      }, [h('span', { class: 'codex-composer-menu-list__switch-thumb' })])
+      }, [h('span', { class: 'agent-ui-composer-menu-list__switch-thumb' })])
       : item.type === 'checkbox' && item.accessory && typeof item.accessory !== 'string'
-        ? h('span', { class: 'codex-composer-menu-list__icon-toggle', 'aria-hidden': 'true' }, [h(item.accessory)])
+        ? h('span', { class: 'agent-ui-composer-menu-list__icon-toggle', 'aria-hidden': 'true' }, [h(item.accessory)])
       : item.type === 'checkbox' || (item.type === 'radio' && item.checked && !content.leadingRadioCheck)
-        ? h('span', { class: 'codex-composer-menu-list__selection', 'aria-hidden': 'true' }, item.checked ? '✓' : '')
+        ? h('span', { class: 'agent-ui-composer-menu-list__selection', 'aria-hidden': 'true' }, item.checked ? '✓' : '')
       : null,
   ]);
 }
@@ -262,7 +262,7 @@ function handleMenuKeydown(event: KeyboardEvent, openSubmenus: Set<string>): voi
     case 'Home': target = items[0]; break;
     case 'End': target = items.at(-1); break;
     case 'ArrowLeft': {
-      if (!menu.classList.contains('codex-composer-menu-list__submenu-list')) return;
+      if (!menu.classList.contains('agent-ui-composer-menu-list__submenu-list')) return;
       const container = menu.parentElement;
       const trigger = container?.querySelector(':scope > button[role="menuitem"]') as HTMLButtonElement | null;
       submenuToClose = container?.dataset.submenuId;
@@ -288,7 +288,7 @@ function menuItems(menu: HTMLElement | null): HTMLButtonElement[] {
     const candidates = child.matches('button[role^="menuitem"]')
       ? [child]
       : child.querySelectorAll(
-        ':scope > button[role^="menuitem"], :scope > .codex-composer-menu-list__heading-actions > button[role^="menuitem"]',
+        ':scope > button[role^="menuitem"], :scope > .agent-ui-composer-menu-list__heading-actions > button[role^="menuitem"]',
       );
     for (const candidate of candidates) {
       if (candidate instanceof HTMLButtonElement && !candidate.disabled) items.push(candidate);
@@ -304,7 +304,7 @@ function focusItem(menu: HTMLElement | null, target: HTMLButtonElement | undefin
 }
 
 function renderContent(
-  item: CodexComposerMenuSelectableItem<unknown> | CodexComposerMenuSubmenuItem<unknown>,
+  item: ComposerMenuSelectableItem<unknown> | ComposerMenuSubmenuItem<unknown>,
   slots: Slots,
 ): { nodes: Array<VNode | null>; leadingRadioCheck: boolean } {
   const customContent = slots.item?.({ item });
@@ -319,20 +319,20 @@ function renderContent(
     icon = customIcon;
   } else if (leadingRadioCheck) {
     icon = [h(CheckIcon, {
-      class: 'codex-composer-menu-list__icon codex-composer-menu-list__radio-check',
+      class: 'agent-ui-composer-menu-list__icon agent-ui-composer-menu-list__radio-check',
       'aria-hidden': 'true',
     })];
   } else if ('leadingColor' in item && item.leadingColor) {
     icon = [h('span', {
-      class: 'codex-composer-menu-list__color-dot',
+      class: 'agent-ui-composer-menu-list__color-dot',
       style: { backgroundColor: item.leadingColor },
       'aria-hidden': 'true',
     })];
   } else if (item.icon) {
-    icon = [h(item.icon as Component, { class: 'codex-composer-menu-list__icon', 'aria-hidden': 'true' })];
+    icon = [h(item.icon as Component, { class: 'agent-ui-composer-menu-list__icon', 'aria-hidden': 'true' })];
   } else {
     icon = [h('span', {
-      class: 'codex-composer-menu-list__icon codex-composer-menu-list__icon--empty',
+      class: 'agent-ui-composer-menu-list__icon agent-ui-composer-menu-list__icon--empty',
       'aria-hidden': 'true',
     })];
   }
@@ -340,24 +340,24 @@ function renderContent(
   return {
     nodes: [
       ...icon,
-      h('span', { class: 'codex-composer-menu-list__copy' }, [
-        h('span', { class: 'codex-composer-menu-list__label' }, item.label),
+      h('span', { class: 'agent-ui-composer-menu-list__copy' }, [
+        h('span', { class: 'agent-ui-composer-menu-list__label' }, item.label),
         item.description
-          ? h('span', { class: 'codex-composer-menu-list__description' }, ` • ${item.description}`)
+          ? h('span', { class: 'agent-ui-composer-menu-list__description' }, ` • ${item.description}`)
           : null,
       ]),
       item.value || item.valueIcon
-        ? h('span', { class: 'codex-composer-menu-list__value' }, [
+        ? h('span', { class: 'agent-ui-composer-menu-list__value' }, [
           item.value
             ? h('span', {
               class: item.valueAppearance === 'badge'
-                ? 'codex-composer-menu-list__value-badge'
+                ? 'agent-ui-composer-menu-list__value-badge'
                 : undefined,
             }, item.value)
             : null,
           item.valueIcon
             ? h(item.valueIcon as Component, {
-              class: 'codex-composer-menu-list__value-icon',
+              class: 'agent-ui-composer-menu-list__value-icon',
               title: item.valueIconLabel,
               'aria-label': item.valueIconLabel,
               'aria-hidden': item.valueIconLabel ? undefined : 'true',
@@ -370,7 +370,7 @@ function renderContent(
   };
 }
 
-function itemRole(item: CodexComposerMenuSelectableItem<unknown>): 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' {
+function itemRole(item: ComposerMenuSelectableItem<unknown>): 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' {
   if (item.type === 'checkbox') {
     return 'menuitemcheckbox';
   }
@@ -380,8 +380,8 @@ function itemRole(item: CodexComposerMenuSelectableItem<unknown>): 'menuitem' | 
   return 'menuitem';
 }
 
-function itemChecked(item: CodexComposerMenuSelectableItem<unknown>): boolean | undefined {
+function itemChecked(item: ComposerMenuSelectableItem<unknown>): boolean | undefined {
   return item.type === 'checkbox' || item.type === 'radio' ? item.checked : undefined;
 }
 
-export default CodexComposerMenuItems;
+export default ComposerMenuItems;

@@ -2,9 +2,9 @@
 
 import { effectScope } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CodexNativeRendererApi } from '../../../src/host/contracts';
+import type { NativeRendererApi } from '../../../src/host/contracts';
 import type { BrowserAudioRecorder, RecordedAudio } from '../../../src/vue/audio/browser-audio-recorder';
-import { useCodexComposerVoice } from '../../../src/vue';
+import { useComposerVoice } from '../../../src/vue';
 import { useChatComposerVoice } from '../../../src/vue/chat/use-chat-composer-voice';
 
 const recording: RecordedAudio = {
@@ -51,11 +51,11 @@ describe('useChatComposerVoice', () => {
     expect(recorder.release).toHaveBeenCalled();
   });
   afterEach(() => {
-    delete (window as Window & { codexAppSdkNative?: CodexNativeRendererApi }).codexAppSdkNative;
+    delete (window as Window & { agentUiHostCapabilities?: NativeRendererApi }).agentUiHostCapabilities;
   });
 
   it('exposes the product-neutral public controller', () => {
-    const voice = useCodexComposerVoice({
+    const voice = useComposerVoice({
       isDisabled: () => false,
       isSending: () => false,
       onTranscript: vi.fn(),
@@ -94,7 +94,7 @@ describe('useChatComposerVoice', () => {
 
   it('uses the SDK native preload transcription by default without a host callback', async () => {
     const transcribeAudio = vi.fn(async () => ({ text: 'native dictated change' }));
-    (window as Window & { codexAppSdkNative?: CodexNativeRendererApi }).codexAppSdkNative = {
+    (window as Window & { agentUiHostCapabilities?: NativeRendererApi }).agentUiHostCapabilities = {
       capabilities: {
         attachments: true,
         clipboard: true,
@@ -181,7 +181,7 @@ describe('useChatComposerVoice', () => {
   });
 
   it('keeps native transcription disabled when the preload reports an unsupported platform', () => {
-    (window as Window & { codexAppSdkNative?: CodexNativeRendererApi }).codexAppSdkNative = {
+    (window as Window & { agentUiHostCapabilities?: NativeRendererApi }).agentUiHostCapabilities = {
       capabilities: {
         attachments: true,
         clipboard: true,

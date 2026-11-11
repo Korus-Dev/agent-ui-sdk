@@ -1,6 +1,6 @@
 <template>
   <span
-    class="codex-chat-theme chat-animated-diff-stat"
+    class="agent-ui-theme chat-animated-diff-stat"
     :class="`chat-animated-diff-stat--${kind}`"
     :aria-label="labelText"
   >

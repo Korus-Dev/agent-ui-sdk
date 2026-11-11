@@ -1,17 +1,17 @@
-import type { Message } from './types';
+import type { ChatMessage } from './types';
 
-export type CodexMessageTextSelectionAnchor = {
+export type MessageTextSelectionAnchor = {
   height: number;
   width: number;
   x: number;
   y: number;
 };
 
-export type CodexMessageTextSelection = {
-  anchor: CodexMessageTextSelectionAnchor;
+export type MessageTextSelection = {
+  anchor: MessageTextSelectionAnchor;
   messageId?: string;
   messageIndex: number;
-  role: Message['role'];
+  role: ChatMessage['role'];
   text: string;
   turnId?: string;
 };

@@ -1,5 +1,5 @@
 import { defineComponent, h, ref, type Component, type PropType, type Slots, type Slot } from 'vue'
-import CodexMessageList from './CodexMessageList.vue'
+import MessageList from './MessageList.vue'
 
 const messageSlots: Record<string, string> = {
   message: 'message', actions: 'message-actions', attachment: 'message-attachment',
@@ -13,7 +13,7 @@ export default defineComponent({
   inheritAttrs: false,
   props: { sourceSlots: { type: Object as PropType<Slots>, required: true } },
   setup(props, { attrs, expose }) {
-    const list = ref<InstanceType<typeof CodexMessageList> | null>(null)
+    const list = ref<InstanceType<typeof MessageList> | null>(null)
     expose({ scrollToBottom: () => list.value?.scrollToBottom() })
     let previous: Record<string, Slot> = {}
     return () => {
@@ -24,7 +24,7 @@ export default defineComponent({
       }
       const keys = Object.keys(next)
       if (keys.length !== Object.keys(previous).length || keys.some(key => next[key] !== previous[key])) previous = next
-      return h(CodexMessageList as Component, { ...attrs, ref: list }, previous)
+      return h(MessageList as Component, { ...attrs, ref: list }, previous)
     }
   },
 })

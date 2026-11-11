@@ -2,23 +2,23 @@
 
 import { nextTick, ref } from 'vue';
 import { describe, expect, it, vi } from 'vitest';
-import type { CodexFileSearchItem, CodexCommandSummary, CodexSkillSummary } from '../../../src/vue/chat/contracts';
-import type { CodexPromptMention, CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
+import type { FileSearchItem, CommandSummary, SkillSummary } from '../../../src/vue/chat/contracts';
+import type { PromptMention, Plugin } from '@korus-dev/multi-agent-sdk';
 import { useChatComposerSuggestions } from '../../../src/vue/chat/use-chat-composer-suggestions';
-import type { CodexComposerMentionGroup } from '../../../src/vue/chat/composer-mentions-custom';
+import type { ComposerMentionGroup } from '../../../src/vue/chat/composer-mentions-custom';
 
-const files: CodexFileSearchItem[] = [
+const files: FileSearchItem[] = [
   { name: 'alpha.ts', path: 'src/alpha.ts' },
   { name: 'beta.ts', path: 'src/beta.ts' },
 ];
-const skills: CodexSkillSummary[] = [
+const skills: SkillSummary[] = [
   { name: 'frontend', path: '/skills/frontend/SKILL.md', scope: 'project', enabled: true },
   { name: 'testing', path: '/skills/testing/SKILL.md', scope: 'user', enabled: true },
 ];
-const commands: CodexCommandSummary[] = [
+const commands: CommandSummary[] = [
   { id: 'codex:compact', name: 'compact', slashName: 'compact', submitOnSelect: true },
 ];
-const plugins: CodexSurfacePlugin[] = [
+const plugins: Plugin[] = [
   { id: 'ts@remote', name: 'ts', displayName: 'TypeScript', enabled: true },
 ];
 
@@ -26,14 +26,14 @@ function setup(
   initialPrompt: string,
   overrides: Partial<{
     autoSync: boolean;
-    commands: () => readonly CodexCommandSummary[];
+    commands: () => readonly CommandSummary[];
     disabled: () => boolean;
     editor: { getSelectionRange: () => { end: number; start: number; valid: boolean } } | null;
-    files: () => readonly CodexFileSearchItem[];
+    files: () => readonly FileSearchItem[];
     isSending: () => boolean;
-    mentionGroups: () => readonly CodexComposerMentionGroup[];
-    plugins: () => readonly CodexSurfacePlugin[];
-    skills: () => readonly CodexSkillSummary[];
+    mentionGroups: () => readonly ComposerMentionGroup[];
+    plugins: () => readonly Plugin[];
+    skills: () => readonly SkillSummary[];
     skillsEnabled: () => boolean;
     withMentionCallback: boolean;
   }> = {},
@@ -41,7 +41,7 @@ function setup(
   const prompt = ref(initialPrompt);
   const caretPosition = ref(initialPrompt.length);
   const editor = ref(overrides.editor === null ? null : {
-    insertMention: (part: CodexPromptMention, start: number, end: number) => {
+    insertMention: (part: PromptMention, start: number, end: number) => {
       prompt.value = `${prompt.value.slice(0, start)}${part.label} ${prompt.value.slice(end)}`;
     },
     getSelectionRange: () => ({
@@ -170,7 +170,7 @@ describe('useChatComposerSuggestions', () => {
       id: 'people',
       label: 'People',
       items: [{ id: 'person', value: 'person:nico', label: 'Nicolas' }],
-    } satisfies CodexComposerMentionGroup;
+    } satisfies ComposerMentionGroup;
     const state = setup('plain text', {
       mentionGroups: () => [group],
       plugins: () => plugins,
@@ -183,7 +183,7 @@ describe('useChatComposerSuggestions', () => {
   });
 
   it('filters namespaced skills by the canonical plugin display namespace', () => {
-    const contributedSkill: CodexSkillSummary = {
+    const contributedSkill: SkillSummary = {
       name: 'ts@remote:review',
       path: '/skills/review/SKILL.md',
       enabled: true,
@@ -303,13 +303,13 @@ describe('useChatComposerSuggestions', () => {
         { id: 'thread-1', value: 'thread:019abc', label: 'codex-claw' },
         { id: 'thread-2', value: 'thread:019def', label: 'sdk-planning' },
       ],
-    } satisfies CodexComposerMentionGroup;
+    } satisfies ComposerMentionGroup;
     const trailing = {
       id: 'people',
       label: 'People',
       placement: 'after',
       items: [{ id: 'person-1', value: 'person:nico', label: 'Nicolas' }],
-    } satisfies CodexComposerMentionGroup;
+    } satisfies ComposerMentionGroup;
     const state = setup('@codex', {
       plugins: () => plugins,
       mentionGroups: () => [leading, trailing],
@@ -335,14 +335,14 @@ describe('useChatComposerSuggestions', () => {
       id: 'leading',
       label: 'Leading',
       items: [{ id: 'leading-x', value: 'leading:x', label: 'x leading' }],
-    } satisfies CodexComposerMentionGroup;
+    } satisfies ComposerMentionGroup;
     const trailing = {
       id: 'trailing',
       label: 'Trailing',
       placement: 'after',
       items: [{ id: 'trailing-x', value: 'trailing:x', label: 'x trailing' }],
-    } satisfies CodexComposerMentionGroup;
-    const matchingPlugin: CodexSurfacePlugin = {
+    } satisfies ComposerMentionGroup;
+    const matchingPlugin: Plugin = {
       id: 'x@remote',
       name: 'x-plugin',
       displayName: 'X Plugin',
@@ -456,7 +456,7 @@ describe('useChatComposerSuggestions', () => {
     expect(skillState.prompt.value).toBe('before frontend  after');
     expect(skillState.caretPosition.value).toBe('before frontend '.length);
 
-    const command: CodexCommandSummary = {
+    const command: CommandSummary = {
       id: 'explain',
       name: 'explain',
       submitOnSelect: false,
@@ -478,7 +478,7 @@ describe('useChatComposerSuggestions', () => {
       id: 'people',
       label: 'People',
       items: [{ id: 'person', value: 'person:nico', label: 'Nicolas' }],
-    } satisfies CodexComposerMentionGroup;
+    } satisfies ComposerMentionGroup;
     const state = setup('plain text', {
       mentionGroups: () => [group],
       plugins: () => plugins,
@@ -511,11 +511,11 @@ describe('useChatComposerSuggestions', () => {
 
   it('reports mention selection against the current catalog group', () => {
     const item = { id: 'person', value: 'person:nico', label: 'Nicolas' };
-    const staleGroup = { id: 'people', label: 'Old people', items: [item] } satisfies CodexComposerMentionGroup;
-    const currentGroup = { id: 'people', label: 'Current people', items: [item] } satisfies CodexComposerMentionGroup;
-    let groups: readonly CodexComposerMentionGroup[] = [staleGroup];
+    const staleGroup = { id: 'people', label: 'Old people', items: [item] } satisfies ComposerMentionGroup;
+    const currentGroup = { id: 'people', label: 'Current people', items: [item] } satisfies ComposerMentionGroup;
+    let groups: readonly ComposerMentionGroup[] = [staleGroup];
     const state = setup('@person', { mentionGroups: () => groups });
-    const otherGroup = { id: 'other', label: 'Other', items: [item] } satisfies CodexComposerMentionGroup;
+    const otherGroup = { id: 'other', label: 'Other', items: [item] } satisfies ComposerMentionGroup;
     groups = [otherGroup, currentGroup];
 
     state.suggestions.selectMention(item, staleGroup);
@@ -526,7 +526,7 @@ describe('useChatComposerSuggestions', () => {
 
   it('falls back to the selected group when optional host mention hooks are absent', () => {
     const item = { id: 'person', value: 'person:nico', label: 'Nicolas' };
-    const group = { id: 'people', label: 'People', items: [item] } satisfies CodexComposerMentionGroup;
+    const group = { id: 'people', label: 'People', items: [item] } satisfies ComposerMentionGroup;
     const state = setup('@person', { withMentionCallback: false });
 
     expect(() => state.suggestions.selectMention(item, group)).not.toThrow();
@@ -607,7 +607,7 @@ describe('useChatComposerSuggestions', () => {
         { id: 'x', value: 'person:x', label: 'x person' },
         { id: 'y', value: 'person:y', label: 'y person' },
       ],
-    } satisfies CodexComposerMentionGroup;
+    } satisfies ComposerMentionGroup;
     const atState = setup('@x', {
       mentionGroups: () => [group],
       plugins: () => plugins,
@@ -641,7 +641,7 @@ describe('useChatComposerSuggestions', () => {
   });
 
   it('resets the combined selection when only a host group changes', async () => {
-    const groups = ref<readonly CodexComposerMentionGroup[]>([{
+    const groups = ref<readonly ComposerMentionGroup[]>([{
       id: 'people',
       label: 'People',
       items: [{ id: 'x', value: 'person:x', label: 'x person' }],

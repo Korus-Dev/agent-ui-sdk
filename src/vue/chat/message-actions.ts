@@ -1,7 +1,7 @@
 import { renderMarkdown } from './message-markdown'
 import { stripMessageContext } from './message-blocks'
-import type { CodexHostCapabilities } from '@korus-dev/agent-ui-sdk/host.js'
-import { getCodexGlobalHostCapabilities } from '../native-capabilities'
+import type { HostCapabilities } from '@korus-dev/agent-ui-sdk/host'
+import { getGlobalHostCapabilities } from '../native-capabilities'
 
 const toolTagRegex = /<tool\s+(id|index)="[^"]*"><\/tool>/g
 const followUpTagRegex = /<follow-up>[\s\S]*?<\/follow-up>/g
@@ -24,7 +24,7 @@ export function copyableMessageHtml(content: string) {
 
 export async function copyMessageToClipboard(
   content: string,
-  hostCapabilities: CodexHostCapabilities | undefined = getCodexGlobalHostCapabilities(),
+  hostCapabilities: HostCapabilities | undefined = getGlobalHostCapabilities(),
 ) {
   const plainText = copyableMessageText(content)
   const html = copyableMessageHtml(content)
@@ -53,7 +53,7 @@ export async function copyMessageToClipboard(
 
 export async function copyTextToClipboard(
   text: string,
-  hostCapabilities: CodexHostCapabilities | undefined = getCodexGlobalHostCapabilities(),
+  hostCapabilities: HostCapabilities | undefined = getGlobalHostCapabilities(),
 ) {
   if (hostCapabilities) {
     await hostCapabilities.copyToClipboard({ text })

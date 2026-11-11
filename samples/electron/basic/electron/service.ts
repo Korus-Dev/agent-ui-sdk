@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { createHarnessDriver } from '@korus-dev/multi-agent-sdk';
-import { toHarnessPromptOptions } from '@korus-dev/agent-ui-sdk/host.js';
+import { createHarness } from '@korus-dev/multi-agent-sdk';
+import { toHarnessPromptOptions } from '@korus-dev/agent-ui-sdk/host';
 import type { ConversationRef, ConversationRefData, HarnessEvent, Message, PromptOptions, Session, HarnessProvider } from '@korus-dev/multi-agent-sdk';
 import type { ClientAttachment } from '@korus-dev/multi-agent-sdk';
 import { chatOperations, type ChatOperation, type ChatStateEvent, type ChatSummary, type ChatView, type SampleApi } from '../shared/api';
@@ -24,7 +24,7 @@ export function createChatService(
   resolveAttachment: (attachment: ClientAttachment) => NonNullable<PromptOptions['attachments']>[number],
   emit: (event: ChatStateEvent) => void,
   backend: HarnessProvider = 'codex',
-  factory = createHarnessDriver,
+  factory = createHarness,
 ) {
   // The selected runtime resolves its standard home, auth and config.
   const harness = factory(backend, {

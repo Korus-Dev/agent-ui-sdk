@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-vi.mock('../../../src/vue/native-capabilities', async original => ({ ...await original<typeof import('../../../src/vue/native-capabilities')>(), getCodexNativeRendererApi: () => ({ capabilities: { transcription: true } }) }));
+vi.mock('../../../src/vue/native-capabilities', async original => ({ ...await original<typeof import('../../../src/vue/native-capabilities')>(), getNativeRendererApi: () => ({ capabilities: { transcription: true } }) }));
 import { flushPromises, mount } from '@vue/test-utils';
 import { computed, nextTick, ref } from 'vue';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -30,8 +30,8 @@ vi.mock('../../../src/vue/chat/use-chat-composer-voice', async (importOriginal) 
   });
   return {
     ...actual,
-    getCodexNativeRendererApi: () => ({ capabilities: { transcription: true } }),
-    useCodexComposerVoice: (options: { onTranscript(text: string): void }) => {
+    getNativeRendererApi: () => ({ capabilities: { transcription: true } }),
+    useComposerVoice: (options: { onTranscript(text: string): void }) => {
       voiceMock.onTranscript = options.onTranscript;
       return {
         buttonDisabled: computed(() => isTranscribing.value),

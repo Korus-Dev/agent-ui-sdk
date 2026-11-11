@@ -29,4 +29,4 @@ class PcmCapture extends AudioWorkletProcessor {
     return true;
   }
 }
-registerProcessor('codex-pcm-capture', PcmCapture);
+registerProcessor('agent-ui-pcm-capture', PcmCapture);

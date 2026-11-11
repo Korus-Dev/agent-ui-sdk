@@ -1,8 +1,8 @@
 import { questionPayload } from './conversation-request';
-import { getMessageToolCallArgs, getMessageToolCallName, type Message, type MessageAttachment, type MessageMedia, type MessagePhase, type MessageToolCall, type MessagePart } from './types'
+import { getMessageToolCallArgs, getMessageToolCallName, type ChatMessage, type MessageAttachment, type MessageMedia, type MessagePhase, type MessageToolCall, type MessagePart } from './types'
 import { findInlineHtmlBlocks } from './inline-html'
 import { renderedChatMessage, type ChatMessageInput } from './renderer-message-adapter'
-import { promptContentText } from '@korus-dev/multi-agent-sdk/prompt.js';
+import { promptContentText } from '@korus-dev/multi-agent-sdk/prompt';
 
 /** A later model work item supersedes earlier final text in the same turn. */
 export function withoutSupersededFinalAnswers(messages: readonly ChatMessageInput[]): ChatMessageInput[] {
@@ -31,7 +31,7 @@ export type MessageBlock =
   | { type: 'attachment'; attachment: MessageAttachment }
   | Extract<MessagePart, { type: 'question' }>
   | ({ type: 'text'; content: string } & PhasedMessageBlock)
-  | { type: 'user-text'; content: string; promptContent?: Message['promptContent'] }
+  | { type: 'user-text'; content: string; promptContent?: ChatMessage['promptContent'] }
   | ({ type: 'reasoning'; content: string } & PhasedMessageBlock)
   | ({ type: 'mermaid'; code: string } & PhasedMessageBlock)
   | ({ type: 'custom'; language: string; code: string; complete: boolean } & PhasedMessageBlock)
@@ -66,7 +66,7 @@ const ungroupedToolNames = new Set([
   'ask_user_question',
 ])
 
-export function computeMessageBlocks(message: Message, customLanguages: readonly string[] = []): MessageBlock[] {
+export function computeMessageBlocks(message: ChatMessage, customLanguages: readonly string[] = []): MessageBlock[] {
   customLanguages = message.role === 'assistant'
     ? customLanguages.filter(language => language !== 'mermaid' && language !== 'html') : [];
   if (message.role !== 'assistant') {
@@ -145,7 +145,7 @@ function sameBlockValue(a: unknown, b: unknown): boolean {
 }
 
 export function groupAssistantWorkBlocks(
-  message: Message,
+  message: ChatMessage,
   blocks: MessageBlock[],
   workActive = message.streaming === true,
   groupWork = hasExplicitAssistantWorkPhases(message),
@@ -444,7 +444,7 @@ function pushTextBlock(blocks: MessageBlock[], content: string, phase?: MessageP
   }
 }
 
-export function hasExplicitAssistantWorkPhases(message: Message) {
+export function hasExplicitAssistantWorkPhases(message: ChatMessage) {
   return message.parts?.some((part) => (
     part.type === 'reasoning' || ((part.type === 'text' || part.type === 'media') && part.phase !== undefined)
   )) ?? false

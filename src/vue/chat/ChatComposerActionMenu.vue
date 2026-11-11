@@ -1,5 +1,5 @@
 <template>
-  <CodexComposerMenu
+  <ComposerMenu
     v-if="menuItems.length > 0"
     class="chat-composer-action-menu__root"
     menu-class="chat-composer-action-menu"
@@ -24,17 +24,17 @@
     </template>
     <template v-if="$slots.icon" #icon="scope"><slot name="icon" v-bind="scope" /></template>
     <template v-if="$slots.item" #item="scope"><slot name="item" v-bind="scope" /></template>
-  </CodexComposerMenu>
+  </ComposerMenu>
 </template>
 
 <script setup lang="ts" generic="Payload = unknown">
 import { computed, type Component } from 'vue';
 import type { ApprovalPreset } from './contracts';
 import { approvalPresetOptions } from './approval-presets';
-import CodexComposerMenu from '../components/CodexComposerMenu.vue';
+import ComposerMenu from '../components/ComposerMenu.vue';
 import type {
-  CodexComposerMenuItem,
-  CodexComposerMenuSelectableItem,
+  ComposerMenuItem,
+  ComposerMenuSelectableItem,
 } from '../composer-menu';
 import { HandStopIcon, ListDetailsIcon, PaperclipIcon, PlusIcon, ShieldCheckIcon, Sparkles, TargetArrowIcon } from '../shared/icons/app-icons';
 
@@ -44,8 +44,8 @@ type ComposerMenuAction = { kind: 'approval'; preset: ApprovalPreset };
 const props = withDefaults(defineProps<{
   attachEnabled?: boolean;
   disabled?: boolean;
-  leadingMenuItems?: readonly CodexComposerMenuItem<Payload>[];
-  items?: readonly CodexComposerMenuItem<Payload>[];
+  leadingMenuItems?: readonly ComposerMenuItem<Payload>[];
+  items?: readonly ComposerMenuItem<Payload>[];
   approvalPreset?: ApprovalPreset | null;
   approvalPresets?: readonly ApprovalPreset[];
   goalMode?: boolean;
@@ -69,7 +69,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   attach: [];
-  select: [item: CodexComposerMenuSelectableItem<Payload>];
+  select: [item: ComposerMenuSelectableItem<Payload>];
   selectApprovalPreset: [preset: ApprovalPreset];
   'update:goalMode': [enabled: boolean];
   'update:planMode': [enabled: boolean];
@@ -77,8 +77,8 @@ const emit = defineEmits<{
 // Stryker restore all
 
 const allowedApprovalPresets = computed(() => new Set(props.approvalPresets));
-const menuItems = computed<CodexComposerMenuItem<ComposerMenuAction | Payload>[]>(() => {
-  const items: CodexComposerMenuItem<ComposerMenuAction | Payload>[] = [];
+const menuItems = computed<ComposerMenuItem<ComposerMenuAction | Payload>[]>(() => {
+  const items: ComposerMenuItem<ComposerMenuAction | Payload>[] = [];
 
   if (props.showApprovalMenu) {
     items.push({
@@ -155,7 +155,7 @@ function approvalIcon(preset: ApprovalPreset): Component {
   return ShieldCheckIcon;
 }
 
-function selectMenuItem(item: CodexComposerMenuSelectableItem<ComposerMenuAction | Payload>): void {
+function selectMenuItem(item: ComposerMenuSelectableItem<ComposerMenuAction | Payload>): void {
   const action = item.payload;
   if (item.id === 'plan-mode') {
     emit('update:planMode', !props.planMode);
@@ -174,7 +174,7 @@ function selectMenuItem(item: CodexComposerMenuSelectableItem<ComposerMenuAction
     return;
   }
 
-  emit('select', item as CodexComposerMenuSelectableItem<Payload>);
+  emit('select', item as ComposerMenuSelectableItem<Payload>);
 }
 
 function isComposerMenuAction(value: unknown): value is ComposerMenuAction {
@@ -184,8 +184,8 @@ function isComposerMenuAction(value: unknown): value is ComposerMenuAction {
 
 <style scoped>
 .chat-composer-action-menu__root {
-  --codex-composer-menu-radius: var(--radius-xl);
-  --codex-composer-menu-shadow: var(--shadow-menu);
+  --agent-ui-composer-menu-radius: var(--radius-xl);
+  --agent-ui-composer-menu-shadow: var(--shadow-menu);
 }
 
 .chat-composer-action-menu__button {
@@ -216,7 +216,7 @@ function isComposerMenuAction(value: unknown): value is ComposerMenuAction {
   stroke-width: 1.5;
 }
 
-:deep(.chat-composer-action-menu .codex-composer-menu-list__submenu-list) {
+:deep(.chat-composer-action-menu .agent-ui-composer-menu-list__submenu-list) {
   width: 360px;
   max-width: min(360px, calc(100vw - var(--space-12)));
 }

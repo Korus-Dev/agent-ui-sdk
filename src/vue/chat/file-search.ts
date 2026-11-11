@@ -1,8 +1,8 @@
-import type { CodexFileSearchItem } from './contracts';
+import type { FileSearchItem } from './contracts';
 
 export const MAX_FILE_SEARCH_RESULTS = 50;
 
-export function filterFileSearchItems<T extends CodexFileSearchItem>(
+export function filterFileSearchItems<T extends FileSearchItem>(
   files: T[],
   query: string,
   maxResults = MAX_FILE_SEARCH_RESULTS,

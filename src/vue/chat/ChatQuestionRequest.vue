@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { questionPayload, type ConversationRequest as CodexSurfaceClientRequest } from './conversation-request';
+import { questionPayload, type ConversationRequest as ClientRequest } from './conversation-request';
 import { computed, inject } from 'vue'
 import { questionResponsesKey } from './message-work-state'
 import ChatToolUserInputRequest from './ChatToolUserInputRequest.vue'
@@ -19,7 +19,7 @@ import type { MessageToolCall } from './types'
 const props = defineProps<{
   answeredClientRequestIds?: ReadonlySet<string>
   historical?: boolean
-  request: Extract<CodexSurfaceClientRequest, { kind: 'question' | 'ask_user' }>
+  request: Extract<ClientRequest, { kind: 'question' | 'ask_user' }>
 }>()
 
 const emit = defineEmits<{

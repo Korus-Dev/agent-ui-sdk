@@ -1,4 +1,4 @@
-import type { HarnessCapabilities, HarnessDriver, ModelOption, SessionState, HarnessProvider } from '@korus-dev/multi-agent-sdk';
+import type { HarnessCapabilities, Harness, ModelOption, SessionState, HarnessProvider } from '@korus-dev/multi-agent-sdk';
 import type { ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
 
 export type ChatSummary = { id: string; title: string; updatedAt: string; };
@@ -19,7 +19,7 @@ export const chatOperations = [
 export type ChatOperation = typeof chatOperations[number];
 type AfterSession<F> = F extends (session: never, ...args: infer A) => unknown ? A : never;
 
-type ChatOperationResult<M extends ChatOperation> = M extends 'readConversationContent' ? Awaited<ReturnType<HarnessDriver['readConversationContent']>> : void;
+type ChatOperationResult<M extends ChatOperation> = M extends 'readConversationContent' ? Awaited<ReturnType<Harness['readConversationContent']>> : void;
 
 /** Surface exposed to the renderer by the preload script. */
 export type SampleApi = {
@@ -28,6 +28,6 @@ export type SampleApi = {
   newChat(): Promise<ChatView>;
   chat(id: string): Promise<ChatView>;
   prompt(id: string, prompt: string, options?: ClientSendMessageOptions): Promise<void>;
-  call<M extends ChatOperation>(id: string, method: M, ...args: AfterSession<HarnessDriver[M]>): Promise<ChatOperationResult<M>>;
+  call<M extends ChatOperation>(id: string, method: M, ...args: AfterSession<Harness[M]>): Promise<ChatOperationResult<M>>;
   onChatState(listener: (event: ChatStateEvent) => void): () => void;
 };

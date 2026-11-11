@@ -1,15 +1,15 @@
 import { computed, type ComputedRef } from 'vue';
-import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt.js';
-import type { SurfaceMessage, SurfaceMessagePart } from '@korus-dev/multi-agent-sdk';
-import type { Message, MessagePart, MessageToolCall, ToolExecutionState } from './types';
+import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
+import type { ConversationMessage, ConversationMessagePart } from '@korus-dev/multi-agent-sdk';
+import type { ChatMessage, MessagePart, MessageToolCall, ToolExecutionState } from './types';
 
-export type ChatMessageInput = Message | SurfaceMessage;
+export type ChatMessageInput = ChatMessage | ConversationMessage;
 
 // Rendering receives immutable snapshots or Vue-reactive objects. A weak key
 // keeps settled conversions shared by the list, turn and message without owning
 // their lifetime; reactive in-place updates invalidate the computed normally.
-const renderedMessages = new WeakMap<ChatMessageInput, ComputedRef<Message>>();
-export function renderedChatMessage(message: ChatMessageInput): Message {
+const renderedMessages = new WeakMap<ChatMessageInput, ComputedRef<ChatMessage>>();
+export function renderedChatMessage(message: ChatMessageInput): ChatMessage {
   let cached = renderedMessages.get(message);
   if (!cached) {
     cached = computed(() => chatMessageFromInput(message));
@@ -18,17 +18,17 @@ export function renderedChatMessage(message: ChatMessageInput): Message {
   return cached.value;
 }
 
-export function chatMessagesFromInputs(messages: readonly ChatMessageInput[]): Message[] {
+export function chatMessagesFromInputs(messages: readonly ChatMessageInput[]): ChatMessage[] {
   return messages.map(chatMessageFromInput);
 }
 
-export function chatMessageFromInput(message: ChatMessageInput): Message {
+export function chatMessageFromInput(message: ChatMessageInput): ChatMessage {
   return settleTerminalMessageToolCalls(
-    'content' in message ? message : surfaceMessageToChatMessage(message),
+    'content' in message ? message : conversationMessageToChatMessage(message),
   );
 }
 
-export function surfaceMessageToChatMessage(message: SurfaceMessage): Message {
+export function conversationMessageToChatMessage(message: ConversationMessage): ChatMessage {
   const contentParts: string[] = [];
   const parts: MessagePart[] = [];
   const toolCalls: MessageToolCall[] = [];
@@ -89,7 +89,7 @@ export function surfaceMessageToChatMessage(message: SurfaceMessage): Message {
   });
 }
 
-function settleTerminalMessageToolCalls(message: Message): Message {
+function settleTerminalMessageToolCalls(message: ChatMessage): ChatMessage {
   if (message.streaming === true) return message;
 
   const settledCalls = new Map<MessageToolCall, MessageToolCall>();
@@ -133,7 +133,7 @@ function terminalToolStatus(status: string | undefined): string {
   return 'failed';
 }
 
-function rendererToolPartToToolCall(message: SurfaceMessage, part: Extract<SurfaceMessagePart, { type: 'tool' }>, index: number): MessageToolCall {
+function rendererToolPartToToolCall(message: ConversationMessage, part: Extract<ConversationMessagePart, { type: 'tool' }>, index: number): MessageToolCall {
   const turnId = message.turnId ?? stringMetadata(message.metadata, 'turnId');
   return {
     args: part.input ?? (part.body ? { output: part.body } : undefined),
@@ -156,7 +156,7 @@ function stringMetadata(metadata: Record<string, unknown> | undefined, key: stri
   return typeof value === 'string' && value ? value : undefined;
 }
 
-function rendererToolPartResult(part: Extract<SurfaceMessagePart, { type: 'tool' }>): unknown {
+function rendererToolPartResult(part: Extract<ConversationMessagePart, { type: 'tool' }>): unknown {
   if (isRecord(part.output) && 'structuredContent' in part.output) {
     return part.output.structuredContent;
   }
@@ -164,7 +164,7 @@ function rendererToolPartResult(part: Extract<SurfaceMessagePart, { type: 'tool'
   return part.body ?? part.output;
 }
 
-function rendererToolStatusToState(status: Extract<SurfaceMessagePart, { type: 'tool' }>['status']): ToolExecutionState {
+function rendererToolStatusToState(status: Extract<ConversationMessagePart, { type: 'tool' }>['status']): ToolExecutionState {
   if (status === 'running') {
     return 'running';
   }

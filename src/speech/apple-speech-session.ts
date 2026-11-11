@@ -3,25 +3,25 @@ import { mkdtemp, copyFile, chmod, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
-import type { CodexSpeechSessionEvent, CodexSpeechSessionOptions, CodexSpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host.js';
+import type { SpeechSessionEvent, SpeechSessionOptions, SpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host';
 import { resolveAppleSpeechAnalyzerPath } from './apple-speech-transcription';
 
 export type AppleSpeechSession = {
   append(audio: ArrayBuffer): Promise<void>;
-  stop(): Promise<CodexSpeechTranscriptionResult>;
+  stop(): Promise<SpeechTranscriptionResult>;
   cancel(): Promise<void>;
 };
 
 export async function startAppleSpeechSession(
-  options: CodexSpeechSessionOptions,
-  onEvent: (event: CodexSpeechSessionEvent) => void,
+  options: SpeechSessionOptions,
+  onEvent: (event: SpeechSessionEvent) => void,
   dependencies: { assetsPath?: string; signal?: AbortSignal; spawn?: (command: string, args: string[]) => ChildProcessWithoutNullStreams } = {},
 ): Promise<AppleSpeechSession> {
   dependencies.signal?.throwIfAborted();
   if (!Number.isInteger(options.sampleRate) || options.sampleRate < 8000 || options.sampleRate > 96000) {
     throw new Error('Unsupported speech sample rate.');
   }
-  const temp = await mkdtemp(path.join(tmpdir(), 'codex-sdk-live-speech-'));
+  const temp = await mkdtemp(path.join(tmpdir(), 'agent-ui-sdk-live-speech-'));
   let child: ChildProcessWithoutNullStreams;
   try {
     const executable = path.join(temp, 'apple-speechanalyzer-cli');
@@ -36,15 +36,15 @@ export async function startAppleSpeechSession(
   }
   let closed = false;
   let stopping = false;
-  let result: CodexSpeechTranscriptionResult | undefined;
+  let result: SpeechTranscriptionResult | undefined;
   let line = '';
   const decoder = new StringDecoder('utf8');
   let stderr = '';
   let readyResolve!: () => void;
   let readyReject!: (error: Error) => void;
   const ready = new Promise<void>((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
-  let resolveDone!: (result: CodexSpeechTranscriptionResult) => void;
-  const done = new Promise<CodexSpeechTranscriptionResult>((resolve) => { resolveDone = resolve; });
+  let resolveDone!: (result: SpeechTranscriptionResult) => void;
+  const done = new Promise<SpeechTranscriptionResult>((resolve) => { resolveDone = resolve; });
   let timeout = setTimeout(() => fail('Speech recognition took too long to start.'), 120_000);
   const finish = async () => {
     if (closed) return;
@@ -64,7 +64,7 @@ export async function startAppleSpeechSession(
     child.kill('SIGKILL');
     void finish();
   }
-  function publish(event: CodexSpeechSessionEvent): void {
+  function publish(event: SpeechSessionEvent): void {
     try { onEvent(event); } catch { /* A disconnected consumer cannot prevent process cleanup. */ }
   }
   function abort(): void {

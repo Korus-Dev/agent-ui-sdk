@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils';
 import { h } from 'vue';
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import ChatComposerActionMenu from '../../../src/vue/chat/ChatComposerActionMenu.vue';
-import type { CodexComposerMenuItem, CodexComposerMenuSelectableItem } from '../../../src/vue/composer-menu';
+import type { ComposerMenuItem, ComposerMenuSelectableItem } from '../../../src/vue/composer-menu';
 
 describe('ChatComposerActionMenu', () => {
   it('closes when clicking outside the menu', async () => {
@@ -36,20 +36,20 @@ describe('ChatComposerActionMenu', () => {
 
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
 
-    expect(wrapper.get('.codex-composer-menu-list__submenu > button').text()).toBe('Permissions');
-    expect(wrapper.get('.codex-composer-menu-list__submenu > button > svg').classes()).toContain('tabler-icon-shield-check');
+    expect(wrapper.get('.agent-ui-composer-menu-list__submenu > button').text()).toBe('Permissions');
+    expect(wrapper.get('.agent-ui-composer-menu-list__submenu > button > svg').classes()).toContain('tabler-icon-shield-check');
     expect(wrapper.text()).toContain('Ask for approval');
     expect(wrapper.text()).toContain('Approve for me');
     expect(wrapper.text()).toContain('Automatically approve safe tool calls for this session.');
     expect(wrapper.text()).toContain('Full access');
-    expect(wrapper.find('.codex-composer-menu-list__chevron').exists()).toBe(true);
+    expect(wrapper.find('.agent-ui-composer-menu-list__chevron').exists()).toBe(true);
     const approvalItems = wrapper.findAll('[role="menuitemradio"]');
     expect(approvalItems.map((item) => item.attributes('aria-checked')))
       .toStrictEqual(['false', 'false', 'true']);
     expect(approvalItems.map((item) => item.get('svg').attributes('class'))).toStrictEqual([
       expect.stringContaining('tabler-icon-hand-stop'),
       expect.stringContaining('tabler-icon-sparkles'),
-      expect.stringContaining('codex-composer-menu-list__radio-check'),
+      expect.stringContaining('agent-ui-composer-menu-list__radio-check'),
     ]);
     await wrapper.findAll('[role="menuitemradio"]')[1]?.trigger('click');
 
@@ -63,8 +63,8 @@ describe('ChatComposerActionMenu', () => {
     });
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
     const children = [...wrapper.get('.chat-composer-action-menu').element.children];
-    expect(children[1]!.classList.contains('codex-composer-menu-list__separator')).toBe(true);
-    expect(children.filter(child => child.classList.contains('codex-composer-menu-list__separator'))).toHaveLength(1);
+    expect(children[1]!.classList.contains('agent-ui-composer-menu-list__separator')).toBe(true);
+    expect(children.filter(child => child.classList.contains('agent-ui-composer-menu-list__separator'))).toHaveLength(1);
   });
 
   it.each([
@@ -76,7 +76,7 @@ describe('ChatComposerActionMenu', () => {
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
     const planItem = wrapper.get('[role="menuitemcheckbox"]');
     expect(planItem.attributes('aria-checked')).toBe(String(planMode));
-    expect(planItem.find('.codex-composer-menu-list__switch').exists()).toBe(true);
+    expect(planItem.find('.agent-ui-composer-menu-list__switch').exists()).toBe(true);
     await planItem.trigger('click');
 
     expect(wrapper.emitted('update:planMode')).toStrictEqual([[expected]]);
@@ -92,10 +92,10 @@ describe('ChatComposerActionMenu', () => {
     });
 
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
-    const approvalSubmenu = wrapper.get('.codex-composer-menu-list__submenu');
+    const approvalSubmenu = wrapper.get('.agent-ui-composer-menu-list__submenu');
     await approvalSubmenu.trigger('mouseenter');
 
-    expect(approvalSubmenu.classes()).toContain('codex-composer-menu-list__submenu--open');
+    expect(approvalSubmenu.classes()).toContain('agent-ui-composer-menu-list__submenu--open');
     const fullAccess = wrapper.findAll('[role="menuitemradio"]')
       .find((item) => item.text().includes('Full access'))!;
 
@@ -107,7 +107,7 @@ describe('ChatComposerActionMenu', () => {
     (fullAccess.element as HTMLButtonElement).focus();
     await vi.runOnlyPendingTimersAsync();
 
-    expect(approvalSubmenu.classes()).toContain('codex-composer-menu-list__submenu--open');
+    expect(approvalSubmenu.classes()).toContain('agent-ui-composer-menu-list__submenu--open');
     await fullAccess.trigger('click');
 
     expect(wrapper.emitted('selectApprovalPreset')).toStrictEqual([['full-access']]);
@@ -123,8 +123,8 @@ describe('ChatComposerActionMenu', () => {
 
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
 
-    expect(wrapper.get('.codex-composer-menu-list__submenu > button').text()).toBe('Permissions');
-    expect(wrapper.get('.codex-composer-menu-list__submenu > button > svg').classes()).toContain('tabler-icon-shield-check');
+    expect(wrapper.get('.agent-ui-composer-menu-list__submenu > button').text()).toBe('Permissions');
+    expect(wrapper.get('.agent-ui-composer-menu-list__submenu > button > svg').classes()).toContain('tabler-icon-shield-check');
     expect(wrapper.text()).toContain('Ask for approval');
     expect(wrapper.text()).toContain('Approve for me');
     expect(wrapper.text()).toContain('Full access');
@@ -171,7 +171,7 @@ describe('ChatComposerActionMenu', () => {
       const button = child instanceof HTMLButtonElement
         ? child
         : child.querySelector(':scope > button');
-      const label = button?.querySelector('.codex-composer-menu-list__label')?.textContent?.trim();
+      const label = button?.querySelector('.agent-ui-composer-menu-list__label')?.textContent?.trim();
       return label ? [label] : [];
     });
     expect(labels).toStrictEqual(['Permissions', 'Permissions', 'Goal mode', 'Plan mode', 'Refresh']);
@@ -189,11 +189,11 @@ describe('ChatComposerActionMenu', () => {
   it('adds exactly one attachment separator only after an existing action', async () => {
     const attachOnly = mountMenu({ attachEnabled: true, showPlanMode: false });
     await attachOnly.get('.chat-composer-action-menu__button').trigger('click');
-    expect(attachOnly.findAll('.codex-composer-menu-list__separator')).toHaveLength(0);
+    expect(attachOnly.findAll('.agent-ui-composer-menu-list__separator')).toHaveLength(0);
 
     const afterAction = mountMenu({ attachEnabled: true, showPlanMode: true });
     await afterAction.get('.chat-composer-action-menu__button').trigger('click');
-    expect(afterAction.findAll('.codex-composer-menu-list__separator')).toHaveLength(1);
+    expect(afterAction.findAll('.agent-ui-composer-menu-list__separator')).toHaveLength(1);
 
     const afterSeparator = mountMenu({
       attachEnabled: true,
@@ -201,7 +201,7 @@ describe('ChatComposerActionMenu', () => {
       showPlanMode: false,
     });
     await afterSeparator.get('.chat-composer-action-menu__button').trigger('click');
-    expect(afterSeparator.findAll('.codex-composer-menu-list__separator')).toHaveLength(1);
+    expect(afterSeparator.findAll('.agent-ui-composer-menu-list__separator')).toHaveLength(1);
   });
 
   it.each([
@@ -214,7 +214,7 @@ describe('ChatComposerActionMenu', () => {
       id: 'approval:attach', type: 'custom', label: 'Approval attach', payload: { kind: 'attach' },
     }],
     ['primitive payload', { id: 'approval:text', type: 'custom', label: 'Approval text', payload: 'host' }],
-  ] satisfies Array<[string, CodexComposerMenuItem<unknown>]>)('routes a host item with %s to the host', async (_, item) => {
+  ] satisfies Array<[string, ComposerMenuItem<unknown>]>)('routes a host item with %s to the host', async (_, item) => {
     const wrapper = mountMenu({ items: [item] });
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
     await wrapper.findAll('button').find((button) => button.text().includes(item.label))!.trigger('click');
@@ -238,11 +238,11 @@ describe('ChatComposerActionMenu', () => {
 
     expect(wrapper.text()).toContain('Plan mode');
     expect(wrapper.text()).not.toContain('Add Files & Photos');
-    expect(wrapper.find('.codex-composer-menu-list__separator').exists()).toBe(false);
+    expect(wrapper.find('.agent-ui-composer-menu-list__separator').exists()).toBe(false);
   });
 
   it('forwards host item and icon slots through both composer menu layers', async () => {
-    const item: CodexComposerMenuItem<{ source: string }> = {
+    const item: ComposerMenuItem<{ source: string }> = {
       id: 'host-action',
       type: 'custom',
       label: 'Host action',
@@ -255,7 +255,7 @@ describe('ChatComposerActionMenu', () => {
         showPlanMode: false,
       },
       slots: {
-        item: ({ item: slotItem }: { item: CodexComposerMenuSelectableItem }) => (
+        item: ({ item: slotItem }: { item: ComposerMenuSelectableItem }) => (
           h('span', { class: 'host-menu-item' }, `item:${slotItem.label}`)
         ),
       },
@@ -270,7 +270,7 @@ describe('ChatComposerActionMenu', () => {
         showPlanMode: false,
       },
       slots: {
-        icon: ({ item: slotItem }: { item: CodexComposerMenuSelectableItem }) => (
+        icon: ({ item: slotItem }: { item: ComposerMenuSelectableItem }) => (
           h('span', { class: 'host-menu-icon' }, `icon:${slotItem.id}`)
         ),
       },
@@ -286,8 +286,8 @@ function mountMenu(props: Partial<{
   approvalPresets: ('ask-for-approval' | 'approve-for-me' | 'full-access')[];
   attachEnabled: boolean;
   disabled: boolean;
-  leadingMenuItems: CodexComposerMenuItem<unknown>[];
-  items: CodexComposerMenuItem<unknown>[];
+  leadingMenuItems: ComposerMenuItem<unknown>[];
+  items: ComposerMenuItem<unknown>[];
   planMode: boolean;
   showApprovalMenu: boolean;
   showGoalMode: boolean;

@@ -78,7 +78,7 @@ describe('neutral session composition', () => {
     await actions.clientResponse?.({ id: 'question-1', payload: { answers: { language: { answers: ['TypeScript'] } } } });
     expect(driver.respondToRequest).toHaveBeenLastCalledWith(session, { id: 'question-1', outcome: { kind: 'answered', answers: { language: { answers: ['TypeScript'] } } } });
     const pane = mount(ConversationPane, { props: { controller: binding.controller, escapeInterrupt: false } });
-    const approval = pane.get('.codex-approval-prompt');
+    const approval = pane.get('.agent-ui-approval-prompt');
     expect(approval.text()).toContain('Run checks');
     expect(approval.text()).toContain('npm test');
     const allow = approval.findAll('button').find(button => button.text() === 'Allow');
@@ -88,7 +88,7 @@ describe('neutral session composition', () => {
     expect(driver.respondToRequest).toHaveBeenLastCalledWith(session, { id: 'approval-1', outcome: { kind: 'decision', decision: 'allow' } });
     receive({ type: 'session.changed', session, state: { ...sessionFixture, requests: [] } });
     await pane.vm.$nextTick();
-    expect(pane.find('.codex-approval-prompt').exists()).toBe(false);
+    expect(pane.find('.agent-ui-approval-prompt').exists()).toBe(false);
     binding.dispose();
     expect(unsubscribe).toHaveBeenCalledOnce();
   });
@@ -124,7 +124,7 @@ describe('neutral session composition', () => {
     expect(renderedTurn().error).toBe(failedTurnFixture.error);
     // Provider duration is authoritative even when wall-clock timestamps differ.
     expect(pane.get('.chat-work-group__title').text()).toBe('Failed · 12s · Hide details');
-    expect(pane.findComponent({ name: 'CodexMessageTurn' }).props()).toMatchObject({
+    expect(pane.findComponent({ name: 'MessageTurn' }).props()).toMatchObject({
       status: 'failed', startedAt: failedTurnFixture.startedAt, durationMs: 12_000,
     });
     const retryButton = pane.findAll('button').find(button => button.attributes('aria-label') === 'Retry');
@@ -162,7 +162,7 @@ describe('neutral session composition', () => {
     expect(list().props('answeredClientRequestIds')).toEqual(new Set(['question-1']));
     expect(list().props('hasOlderMessages')).toBe(true);
     expect(list().props('loadingOlderMessages')).toBe(true);
-    expect(pane.find('.codex-conversation-pane__question-composer').exists()).toBe(false);
+    expect(pane.find('.agent-ui-conversation-pane__question-composer').exists()).toBe(false);
     const mapped = sessionStateToConversationPaneState(state.value, capabilitiesFixture);
     expect(mapped.history).toEqual({ loading: false, hasOlder: true, loadingOlder: true });
     state.value = { ...snapshot, historyLoading: true };
@@ -180,7 +180,7 @@ describe('neutral session composition', () => {
     const knownEmpty = sessionStateToConversationPaneState({ ...sessionFixture, answeredClientRequestIds: [] }, capabilitiesFixture);
     expect(knownEmpty.thread?.answeredClientRequestIds).toEqual(new Set());
     expect(list().props('answeredClientRequestIds')?.has('question-1')).toBe(false);
-    expect(pane.find('.codex-conversation-pane__question-composer').exists()).toBe(true);
+    expect(pane.find('.agent-ui-conversation-pane__question-composer').exists()).toBe(true);
   });
 
   it('projects canonical state without a provider branch or message copy', () => {
@@ -207,12 +207,12 @@ describe('neutral session composition', () => {
     const pane = mount(ConversationPane, { props: { controller, escapeInterrupt: false } });
     expect(pane.text()).toContain('I found the entry point.');
     expect(pane.findComponent(MessageList).props('messages')[0]).toBe(state.value.messages[0]);
-    pane.findComponent({ name: 'CodexComposer' }).vm.$emit('send', 'Explain the entry point');
+    pane.findComponent({ name: 'Composer' }).vm.$emit('send', 'Explain the entry point');
     expect(submit).toHaveBeenCalledWith('Explain the entry point', undefined);
     state.value = { ...state.value, busy: true, activeTurnId: 'turn-1' };
     await pane.vm.$nextTick();
-    expect(pane.findComponent({ name: 'CodexComposer' }).props('isSending')).toBe(true);
-    pane.findComponent({ name: 'CodexComposer' }).vm.$emit('interrupt');
+    expect(pane.findComponent({ name: 'Composer' }).props('isSending')).toBe(true);
+    pane.findComponent({ name: 'Composer' }).vm.$emit('interrupt');
     expect(interrupt).toHaveBeenCalledOnce();
     state.value = { ...state.value, busy: false, error: 'Connection lost', messages: [{ ...sessionFixture.messages[1]!, status: 'error' }] };
     await pane.vm.$nextTick();

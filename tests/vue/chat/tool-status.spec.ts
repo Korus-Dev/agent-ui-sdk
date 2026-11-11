@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from 'vitest';
-import { defaultToolTranslate, getToolDisplayTargetLink, getToolDisplayTargetParts, getToolDisplayTitle, getToolDisplayTitleParts, getToolFallbackTitle, getToolGroupLineDiff, getToolLineDiff, parseToolStatusDescriptor, registerCodexToolTitlePresenter } from '../../../src/vue/chat/tool-status';
+import { defaultToolTranslate, getToolDisplayTargetLink, getToolDisplayTargetParts, getToolDisplayTitle, getToolDisplayTitleParts, getToolFallbackTitle, getToolGroupLineDiff, getToolLineDiff, parseToolStatusDescriptor, registerToolTitlePresenter } from '../../../src/vue/chat/tool-status';
 import type { MessageToolCall } from '../../../src/vue/chat/types';
 
 describe('tool status helpers', () => {
@@ -651,11 +651,11 @@ describe('tool status helpers', () => {
       state: 'running',
       status: 'running',
     };
-    const unregisterMiss = registerCodexToolTitlePresenter(() => undefined);
-    const unregister = registerCodexToolTitlePresenter(({ toolCall }) => (
+    const unregisterMiss = registerToolTitlePresenter(() => undefined);
+    const unregister = registerToolTitlePresenter(({ toolCall }) => (
       toolCall.function === 'host.display' ? 'Displaying host preview' : undefined
     ));
-    const unregisterFallback = registerCodexToolTitlePresenter(() => 'fallback presenter');
+    const unregisterFallback = registerToolTitlePresenter(() => 'fallback presenter');
 
     expect(getToolDisplayTitle(tool, undefined)).toBe('Displaying host preview');
     unregister();

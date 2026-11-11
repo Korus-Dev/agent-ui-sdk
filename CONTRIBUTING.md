@@ -9,3 +9,8 @@ Keep the package focused on reusable conversation UI, host capability contracts 
 Add tests at the owning public boundary and prove meaningful regressions red before green. Preserve the coverage floor. Document public API changes and verify the built npm archive. Never commit credentials, runtime homes, local conversations or `.env` files.
 
 Do not create branches, commit, push or publish without explicit authorization. Preserve unrelated work. See [release setup](docs/guide/releasing.md) for publication prerequisites.
+
+SDK working trees must run successfully in Korus using `SDK_LOCAL_SOURCE=1`
+before release approval. Tarballs are for isolated consumer checks only.
+A green CI run alone is insufficient. Wait for Nicolas's explicit confirmation
+and go before version bumps, commits, pushes or publication.

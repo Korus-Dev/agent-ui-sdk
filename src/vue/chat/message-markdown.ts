@@ -3,7 +3,7 @@ import katex from 'katex'
 import markedKatex from 'marked-katex-extension'
 import { escapeAttribute, escapeHtml } from './html-escape'
 import { renderCodeBlock, syntaxHighlightRevision } from './syntax-highlighting'
-import { parseCodexEditorFileReference } from './conversation-links'
+import { parseEditorFileReference } from './conversation-links'
 
 const renderer = new Renderer()
 
@@ -53,13 +53,13 @@ markdown.use(markedKatex({
 markdown.use({
   extensions: [
     {
-      name: 'codexBlockKatex',
+      name: 'blockKatex',
       level: 'block',
       tokenizer(src) {
         const match = /^\\\[[ \t]*(?:\n([\s\S]+?)\n|([^\n]*?))[ \t]*\\\](?:\n|$)/.exec(src)
         if (!match) return undefined
         return {
-          type: 'codexBlockKatex',
+          type: 'blockKatex',
           raw: match[0],
           text: (match[1] ?? match[2])!.trim(),
         }
@@ -69,13 +69,13 @@ markdown.use({
       },
     },
     {
-      name: 'codexInlineKatex',
+      name: 'inlineKatex',
       level: 'inline',
       tokenizer(src) {
         const match = /^\\\((.+?)\\\)/.exec(src)
         if (!match) return undefined
         return {
-          type: 'codexInlineKatex',
+          type: 'inlineKatex',
           raw: match[0],
           text: match[1]!.trim(),
         }
@@ -210,7 +210,7 @@ export function safeMarkdownHref(value: string): string | null {
     return href
   }
 
-  if (parseCodexEditorFileReference(href)) {
+  if (parseEditorFileReference(href)) {
     return href
   }
 

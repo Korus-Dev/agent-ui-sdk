@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { flushPromises, mount } from '@vue/test-utils';
-import type { CodexNativeRendererApi, CodexSpeechSessionEvent } from '../../../src/host/contracts';
+import type { NativeRendererApi, SpeechSessionEvent } from '../../../src/host/contracts';
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import ChatToolUserInputRequest from '../../../src/vue/chat/ChatToolUserInputRequest.vue';
 import type { AskUserQuestion } from '../../../src/vue/chat/contracts';
@@ -78,11 +78,11 @@ describe('ChatToolUserInputRequest normalization and resolution', () => {
     vi.stubGlobal('AudioContext', class { sampleRate = 16000; destination = {}; audioWorklet = { addModule: async () => {} };
       async resume() {} async close() {} createMediaStreamSource() { return { connect: noop, disconnect: noop }; } });
     vi.stubGlobal('AudioWorkletNode', class { port = port; connect = noop; disconnect = noop; });
-    let publish: (event: CodexSpeechSessionEvent) => void = noop;
+    let publish: (event: SpeechSessionEvent) => void = noop;
     let sessionId = '';
     let finish!: (result: { text: string; error?: string }) => void;
-    const nativeWindow = window as Window & { codexAppSdkNative?: CodexNativeRendererApi };
-    nativeWindow.codexAppSdkNative = {
+    const nativeWindow = window as Window & { agentUiHostCapabilities?: NativeRendererApi };
+    nativeWindow.agentUiHostCapabilities = {
       capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: true },
       copyToClipboard: async () => {}, ingestAttachments: async () => [], openExternal: async () => {}, pickAttachments: async () => [],
       transcribeAudio: async () => ({ text: '' }),
@@ -141,7 +141,7 @@ describe('ChatToolUserInputRequest normalization and resolution', () => {
       await wrapper.setProps({ historical: true });
       expect(wrapper.find('[aria-label="Stop dictation"]').exists()).toBe(false);
       expect(wrapper.emitted('client-response')).toBeUndefined();
-    } finally { wrapper.unmount(); delete nativeWindow.codexAppSdkNative; vi.unstubAllGlobals(); }
+    } finally { wrapper.unmount(); delete nativeWindow.agentUiHostCapabilities; vi.unstubAllGlobals(); }
   });
 
   it.each([undefined, null, false, 0, '', {}, { id: 'not-an-array' }])

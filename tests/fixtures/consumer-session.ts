@@ -27,7 +27,7 @@ export const capabilitiesFixture = {
   attachments: false, models: false, skills: false, reasoningEffort: false, thinkingBudget: false,
   planMode: 'unsupported', goals: false, steerPrompt: false, interrupt: true, history: false,
   deleteTurn: false, editTurn: false, retryTurn: false, approvals: true,
-  permissions: [{ id: 'read-only' }],
+  permissions: [{ id: 'read-only' }], login: [], realtime: false, remoteControl: false, accountUsage: false,
 } satisfies HarnessCapabilities;
 
 export const failedTurnFixture = {

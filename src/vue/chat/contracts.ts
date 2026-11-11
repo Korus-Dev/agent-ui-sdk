@@ -1,11 +1,11 @@
-import type { CodexSpeechTranscriptionResult as NativeSpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host.js';
-import type { ServiceTier as CodexSurfaceServiceTier } from '@korus-dev/multi-agent-sdk';
+import type { SpeechTranscriptionResult as NativeSpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host';
+import type { ServiceTier } from '@korus-dev/multi-agent-sdk';
 
 export type ApprovalPreset = 'ask-for-approval' | 'approve-for-me' | 'full-access';
 
 export type ReasoningEffort = string;
 
-export type CodexCapabilities = {
+export type Capabilities = {
   models: boolean;
   skills: boolean;
   reasoningEffort: boolean;
@@ -22,26 +22,26 @@ export type CodexCapabilities = {
   approvalPresets?: readonly ApprovalPreset[];
 };
 
-export type CodexReasoningEffortOption = {
+export type ReasoningEffortOption = {
   reasoningEffort: ReasoningEffort;
   description: string;
 };
 
-export type CodexModelOption = {
+export type ModelOption = {
   id: string;
   model: string;
   displayName: string;
   description?: string;
   hidden?: boolean;
-  supportedReasoningEfforts?: readonly CodexReasoningEffortOption[];
+  supportedReasoningEfforts?: readonly ReasoningEffortOption[];
   defaultReasoningEffort?: ReasoningEffort | null;
-  serviceTiers?: readonly CodexSurfaceServiceTier[];
+  serviceTiers?: readonly ServiceTier[];
   defaultServiceTier?: string | null;
   isDefault?: boolean;
   providerMetadata?: Record<string, unknown>;
 };
 
-export type CodexSkillSummary = {
+export type SkillSummary = {
   id?: string;
   name: string;
   description?: string;
@@ -57,7 +57,7 @@ export type CodexSkillSummary = {
   providerMetadata?: Record<string, unknown>;
 };
 
-export type CodexCommandSummary = {
+export type CommandSummary = {
   id: string;
   name: string;
   displayName?: string;
@@ -71,14 +71,14 @@ export type CodexCommandSummary = {
   providerMetadata?: Record<string, unknown>;
 };
 
-export type CodexFileSearchItem = {
+export type FileSearchItem = {
   name: string;
   path: string;
 };
 
-export type CodexConversationFileAction = 'read' | 'edit' | 'create';
+export type ConversationFileAction = 'read' | 'edit' | 'create';
 
-export type CodexConversationLink =
+export type ConversationLink =
   | { href: string; kind: 'external' }
   | {
     href: string;
@@ -87,7 +87,7 @@ export type CodexConversationLink =
     /** Canonical alias for hosts handling a clicked tool target. */
     filepath?: string;
     /** Present for file-operation tool targets; absent for ordinary markdown links. */
-    action?: CodexConversationFileAction;
+    action?: ConversationFileAction;
     /** Conversation turn that produced the tool target, when available. */
     turnId?: string;
     /** Assistant message that contains the tool target, when available. */
@@ -105,7 +105,7 @@ export type PromptSkillInput = {
   path: string;
 };
 
-export type CodexContextUsage = {
+export type ContextUsage = {
   totalTokens: number;
   inputTokens: number;
   cachedInputTokens: number;
@@ -116,19 +116,19 @@ export type CodexContextUsage = {
   usedPercent: number | null;
 };
 
-export type CodexComposerPresentation = {
+export type ComposerPresentation = {
   actionMenu?: boolean;
   contextUsage?: boolean;
   voice?: boolean;
 };
 
-export type CodexComposerShelfPresentation = {
+export type ComposerShelfPresentation = {
   goal?: boolean;
   queuedPrompts?: boolean;
   turnGitDiff?: boolean;
 };
 
-export type CodexMessageActionsPresentation = {
+export type MessageActionsPresentation = {
   copy?: boolean;
   delete?: boolean;
   edit?: boolean;
@@ -137,8 +137,8 @@ export type CodexMessageActionsPresentation = {
   retry?: boolean;
 };
 
-export type CodexMessagesPresentation = {
-  actions?: CodexMessageActionsPresentation;
+export type MessagesPresentation = {
+  actions?: MessageActionsPresentation;
   toolBlocks?: boolean;
 };
 
@@ -147,22 +147,22 @@ export type CodexMessagesPresentation = {
  * Omitted values preserve the full SDK experience. This never changes surface
  * capabilities or the operations available through the surface controller.
  */
-export type CodexConversationPresentation = {
-  composer?: CodexComposerPresentation;
-  messages?: CodexMessagesPresentation;
-  shelf?: CodexComposerShelfPresentation;
+export type ConversationPresentation = {
+  composer?: ComposerPresentation;
+  messages?: MessagesPresentation;
+  shelf?: ComposerShelfPresentation;
 };
 
-export type ResolvedCodexConversationPresentation = {
-  readonly composer: Readonly<Required<CodexComposerPresentation>>;
+export type ResolvedConversationPresentation = {
+  readonly composer: Readonly<Required<ComposerPresentation>>;
   readonly messages: {
-    readonly actions: Readonly<Required<CodexMessageActionsPresentation>>;
+    readonly actions: Readonly<Required<MessageActionsPresentation>>;
     readonly toolBlocks: boolean;
   };
-  readonly shelf: Readonly<Required<CodexComposerShelfPresentation>>;
+  readonly shelf: Readonly<Required<ComposerShelfPresentation>>;
 };
 
-export const defaultCodexConversationPresentation: ResolvedCodexConversationPresentation = Object.freeze({
+export const defaultConversationPresentation: ResolvedConversationPresentation = Object.freeze({
   composer: Object.freeze({
     actionMenu: true,
     contextUsage: true,
@@ -186,30 +186,30 @@ export const defaultCodexConversationPresentation: ResolvedCodexConversationPres
   }),
 });
 
-export function resolveCodexConversationPresentation(
-  presentation?: CodexConversationPresentation,
-): ResolvedCodexConversationPresentation {
+export function resolveConversationPresentation(
+  presentation?: ConversationPresentation,
+): ResolvedConversationPresentation {
   return {
     composer: {
-      actionMenu: presentation?.composer?.actionMenu ?? defaultCodexConversationPresentation.composer.actionMenu,
-      contextUsage: presentation?.composer?.contextUsage ?? defaultCodexConversationPresentation.composer.contextUsage,
-      voice: presentation?.composer?.voice ?? defaultCodexConversationPresentation.composer.voice,
+      actionMenu: presentation?.composer?.actionMenu ?? defaultConversationPresentation.composer.actionMenu,
+      contextUsage: presentation?.composer?.contextUsage ?? defaultConversationPresentation.composer.contextUsage,
+      voice: presentation?.composer?.voice ?? defaultConversationPresentation.composer.voice,
     },
     messages: {
       actions: {
-        copy: presentation?.messages?.actions?.copy ?? defaultCodexConversationPresentation.messages.actions.copy,
-        delete: presentation?.messages?.actions?.delete ?? defaultCodexConversationPresentation.messages.actions.delete,
-        edit: presentation?.messages?.actions?.edit ?? defaultCodexConversationPresentation.messages.actions.edit,
-        fork: presentation?.messages?.actions?.fork ?? defaultCodexConversationPresentation.messages.actions.fork,
-        quote: presentation?.messages?.actions?.quote ?? defaultCodexConversationPresentation.messages.actions.quote,
-        retry: presentation?.messages?.actions?.retry ?? defaultCodexConversationPresentation.messages.actions.retry,
+        copy: presentation?.messages?.actions?.copy ?? defaultConversationPresentation.messages.actions.copy,
+        delete: presentation?.messages?.actions?.delete ?? defaultConversationPresentation.messages.actions.delete,
+        edit: presentation?.messages?.actions?.edit ?? defaultConversationPresentation.messages.actions.edit,
+        fork: presentation?.messages?.actions?.fork ?? defaultConversationPresentation.messages.actions.fork,
+        quote: presentation?.messages?.actions?.quote ?? defaultConversationPresentation.messages.actions.quote,
+        retry: presentation?.messages?.actions?.retry ?? defaultConversationPresentation.messages.actions.retry,
       },
-      toolBlocks: presentation?.messages?.toolBlocks ?? defaultCodexConversationPresentation.messages.toolBlocks,
+      toolBlocks: presentation?.messages?.toolBlocks ?? defaultConversationPresentation.messages.toolBlocks,
     },
     shelf: {
-      goal: presentation?.shelf?.goal ?? defaultCodexConversationPresentation.shelf.goal,
-      queuedPrompts: presentation?.shelf?.queuedPrompts ?? defaultCodexConversationPresentation.shelf.queuedPrompts,
-      turnGitDiff: presentation?.shelf?.turnGitDiff ?? defaultCodexConversationPresentation.shelf.turnGitDiff,
+      goal: presentation?.shelf?.goal ?? defaultConversationPresentation.shelf.goal,
+      queuedPrompts: presentation?.shelf?.queuedPrompts ?? defaultConversationPresentation.shelf.queuedPrompts,
+      turnGitDiff: presentation?.shelf?.turnGitDiff ?? defaultConversationPresentation.shelf.turnGitDiff,
     },
   };
 }
@@ -273,9 +273,9 @@ export type TurnGitDiff = {
   updatedAt: string;
 };
 
-export type CodexSpeechTranscriptionResult = NativeSpeechTranscriptionResult;
+export type SpeechTranscriptionResult = NativeSpeechTranscriptionResult;
 
-export type CodexChatTranscription = (
+export type ChatTranscription = (
   audioData: ArrayBuffer,
   options?: { locale?: string },
-) => Promise<CodexSpeechTranscriptionResult>;
+) => Promise<SpeechTranscriptionResult>;

@@ -1,4 +1,4 @@
-import type { ConversationRequest as CodexSurfaceClientRequest } from './conversation-request';
+import type { ConversationRequest as ClientRequest } from './conversation-request';
 export type ToolExecutionState = 'running' | 'completed' | 'error' | 'canceled';
 
 export type ToolStatusDescriptor = {
@@ -65,7 +65,7 @@ export type MessagePhase = 'commentary' | 'partial_answer' | 'final_answer';
 export type MessagePart =
   | { type: 'attachment'; attachment: MessageAttachment }
   | { type: 'media'; media: MessageMedia; phase?: MessagePhase }
-  | { type: 'question'; historical?: boolean; request: Extract<CodexSurfaceClientRequest, { kind: 'question' | 'ask_user' }> }
+  | { type: 'question'; historical?: boolean; request: Extract<ClientRequest, { kind: 'question' | 'ask_user' }> }
   | { type: 'reasoning'; summary: string; itemId?: string; summaryIndex?: number }
   | { type: 'text'; content: string; itemId?: string; phase?: MessagePhase }
   | { type: 'tool'; toolCall: MessageToolCall };
@@ -75,7 +75,7 @@ export type MessageSuggestedPrompt = {
   text: string;
 };
 
-export type Message = {
+export type ChatMessage = {
   promptContent?: readonly import('@korus-dev/multi-agent-sdk').PromptPart[];
   compactionStatus?: 'completed' | 'running';
   role: 'user' | 'assistant';

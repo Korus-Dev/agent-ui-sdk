@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from 'vitest';
-import type { CodexCommandSummary, CodexSkillSummary } from '../../../src/vue/chat/contracts';
+import type { CommandSummary, SkillSummary } from '../../../src/vue/chat/contracts';
 import { filterComposerSearchItems } from '../../../src/vue/chat/composer-search';
 import {
   commandDescription,
@@ -118,7 +118,7 @@ describe('composer search ranking', () => {
   });
 
   it('ranks skill identity and name matches before descriptions', () => {
-    const skills: CodexSkillSummary[] = [
+    const skills: SkillSummary[] = [
       skill({
         name: 'frontend-polish',
         displayName: 'Frontend Polish',
@@ -164,7 +164,7 @@ describe('composer search ranking', () => {
   });
 
   it('ranks command id matches before command name matches and descriptions', () => {
-    const commands: CodexCommandSummary[] = [
+    const commands: CommandSummary[] = [
       command({
         id: 'codex.ship',
         name: 'ship',
@@ -195,7 +195,7 @@ describe('composer search ranking', () => {
   });
 
   it('keeps original ordering for empty queries', () => {
-    const skills: CodexSkillSummary[] = [
+    const skills: SkillSummary[] = [
       skill({ name: 'alpha' }),
       skill({ name: 'beta' }),
     ];
@@ -287,7 +287,7 @@ describe('composer search ranking', () => {
   });
 });
 
-function skill(overrides: Partial<CodexSkillSummary>): CodexSkillSummary {
+function skill(overrides: Partial<SkillSummary>): SkillSummary {
   return {
     name: 'frontend-polish',
     path: '/Users/nbonamy/.codex/skills/frontend-polish/SKILL.md',
@@ -296,7 +296,7 @@ function skill(overrides: Partial<CodexSkillSummary>): CodexSkillSummary {
   };
 }
 
-function command(overrides: Partial<CodexCommandSummary>): CodexCommandSummary {
+function command(overrides: Partial<CommandSummary>): CommandSummary {
   return {
     id: 'codex.ship',
     name: 'ship',

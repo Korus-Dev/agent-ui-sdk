@@ -1,5 +1,5 @@
 <template>
-  <figure ref="rootElement" class="codex-chat-theme chat-media-block"
+  <figure ref="rootElement" class="agent-ui-theme chat-media-block"
     :style="aspectRatio ? { '--image-aspect-ratio': aspectRatio, '--image-natural-width': `${dimensions?.width}px` } : undefined"
   >
     <button
@@ -67,14 +67,14 @@ import ChatCopyButton from './ChatCopyButton.vue'
 import ChatFoldTransition from './ChatFoldTransition.vue'
 import ChatImageLightbox from './ChatImageLightbox.vue'
 import ChatIconButton from './ChatIconButton.vue'
-import type { CodexMessageImageOpenHandler, CodexMessageImageOpenIntent } from './message-image'
+import type { MessageImageOpenHandler, MessageImageOpenIntent } from './message-image'
 import type { MessageMedia } from './types'
 import { imageAspectRatio, useHostImageSource, useManagedImagePreview } from './host-image-previews'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   media: MessageMedia
-  openImage?: CodexMessageImageOpenHandler
+  openImage?: MessageImageOpenHandler
 }>()
 // Stryker restore all
 
@@ -96,7 +96,7 @@ const detailsOpen = ref(false)
 const fullscreenOpen = ref(false)
 const downloadName = computed(() => mediaDownloadName(props.media))
 
-async function handleImageAction(intent: CodexMessageImageOpenIntent) {
+async function handleImageAction(intent: MessageImageOpenIntent) {
   if (managedPreview && !previewSource.value) { await managedPreview.reload(); if (previewSource.value && intent === 'open') return }
   const image = {
     alt: props.media.alt || generatedAltLabel,

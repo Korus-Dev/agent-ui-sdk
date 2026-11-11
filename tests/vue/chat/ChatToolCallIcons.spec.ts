@@ -5,7 +5,7 @@ import { defineComponent, h } from 'vue';
 import { describe, expect, it } from 'vitest';
 import ChatToolCall from '../../../src/vue/chat/ChatToolCall.vue';
 import ChatToolIcon from '../../../src/vue/chat/ChatToolIcon.vue';
-import { provideCodexToolPresentation } from '../../../src/vue/chat/tool-presentation';
+import { provideToolPresentation } from '../../../src/vue/chat/tool-presentation';
 import type { MessageToolCall } from '../../../src/vue/chat/types';
 
 const actions = [
@@ -267,7 +267,7 @@ describe('ChatToolCall action icons', () => {
     };
     const Host = defineComponent({
       setup() {
-        provideCodexToolPresentation(({ kind, metadata }) => (
+        provideToolPresentation(({ kind, metadata }) => (
           kind === 'mcp' && metadata?.server === 'codex_claw' && metadata.tool === 'browser_open'
             ? { icon: BrowserIcon, title: 'Opened in-app browser' }
             : undefined
@@ -297,7 +297,7 @@ describe('ChatToolCall action icons', () => {
     };
     const Host = defineComponent({
       setup() {
-        provideCodexToolPresentation(() => undefined);
+        provideToolPresentation(() => undefined);
         return () => h(ChatToolCall, { summaryOnly: true, toolCall });
       },
     });
@@ -488,7 +488,7 @@ describe('ChatToolCall action icons', () => {
     };
     const Host = defineComponent({
       setup() {
-        provideCodexToolPresentation(() => ({ icon: undefined }));
+        provideToolPresentation(() => ({ icon: undefined }));
         return () => h(ChatToolCall, { summaryOnly: true, toolCall });
       },
     });
@@ -516,7 +516,7 @@ describe('ChatToolCall action icons', () => {
     };
     const Host = defineComponent({
       setup() {
-        provideCodexToolPresentation(() => undefined);
+        provideToolPresentation(() => undefined);
         return () => h(ChatToolCall, { summaryOnly: true, toolCall });
       },
     });
@@ -589,7 +589,7 @@ describe('ChatToolCall action icons', () => {
     };
     const Host = defineComponent({
       setup() {
-        provideCodexToolPresentation(() => ({ icon: null }));
+        provideToolPresentation(() => ({ icon: null }));
         return () => h(ChatToolCall, { summaryOnly: true, toolCall });
       },
     });

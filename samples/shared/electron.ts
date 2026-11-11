@@ -5,7 +5,7 @@ import { mkdir } from 'node:fs/promises';
 import { createCodexSignIn } from './codex-sign-in';
 import { sparkInstructions } from '../electron/spark/instructions';
 import { pathToFileURL } from 'node:url';
-import { installWindowPolicy, isRendererSender, registerNativeIpc, ElectronAttachmentRegistry } from '@korus-dev/agent-ui-sdk/electron.js';
+import { installWindowPolicy, isRendererSender, registerNativeIpc, ElectronAttachmentRegistry } from '@korus-dev/agent-ui-sdk/electron';
 import { startRelayHost } from '../electron/relay/host';
 import { createSampleHost } from './host';
 import { parseSampleLaunchArgs, sampleDirectories } from './launch-options';
@@ -22,7 +22,7 @@ const signIn = backend === 'codex' ? createCodexSignIn(directories.home, url => 
 const renderer = pathToFileURL(path.resolve('dist-samples/renderer/index.html')).href;
 const relay = shape === 'relay' ? await startRelayHost(path.join(directories.home, 'relay-operations.json')) : undefined;
 const attachments = new ElectronAttachmentRegistry();
-const host = createSampleHost({ client: { name: `agent-ui-${shape}-sample`, version: '1' }, home: directories.home, stateDirectory: () => directories.state, ...(shape === 'spark' ? { instructions: () => sparkInstructions, codex: { surface: { permissionMode: 'read-only', approvalMode: 'never' } } } : {})  , ...(relay ? { mcpServers: () => [relay.endpoint] } : {}) }, directories.workspace, undefined, relay, attachment => attachments.resolve(attachment), { backend, login: signIn ? () => signIn.login() : undefined, loginCommand: backend === 'claude' ? `CLAUDE_CONFIG_DIR='${directories.home}' claude auth login` : undefined });
+const host = createSampleHost({ client: { name: `agent-ui-${shape}-sample`, version: '1' }, home: directories.home, stateDirectory: () => directories.state, ...(shape === 'spark' ? { instructions: () => sparkInstructions, codex: { readOnly: true } } : {})  , ...(relay ? { mcpServers: () => [relay.endpoint] } : {}) }, directories.workspace, undefined, relay, attachment => attachments.resolve(attachment), { backend, login: signIn ? () => signIn.login() : undefined, loginCommand: backend === 'claude' ? `CLAUDE_CONFIG_DIR='${directories.home}' claude auth login` : undefined });
 const window = new BrowserWindow({ width: 1280, height: 860, webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, preload: path.resolve('dist-samples/main/preload.cjs') } });
 installWindowPolicy(window.webContents, { rendererUrl: renderer, openExternal: url => shell.openExternal(url) });
 const trusted = (event: unknown) => { if (!isRendererSender(event, renderer)) throw new Error('Untrusted renderer.'); };

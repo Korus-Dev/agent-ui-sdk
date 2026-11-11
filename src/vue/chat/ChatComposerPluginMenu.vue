@@ -1,7 +1,7 @@
 <template>
   <div
     ref="menuEl"
-    class="codex-chat-theme chat-composer-plugin-menu"
+    class="agent-ui-theme chat-composer-plugin-menu"
     role="listbox"
     aria-label="Plugins"
   >
@@ -35,18 +35,18 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
-import type { Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
+import type { Plugin } from '@korus-dev/multi-agent-sdk';
 import { PlugIcon } from '../shared/icons/app-icons';
 import { pluginDescription, pluginDisplayName } from './composer-plugins';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   activeIndex: number;
-  visiblePlugins: CodexSurfacePlugin[];
+  visiblePlugins: Plugin[];
 }>();
 
 defineEmits<{
-  select: [plugin: CodexSurfacePlugin];
+  select: [plugin: Plugin];
 }>();
 // Stryker restore all
 
@@ -87,7 +87,7 @@ watch(
 .chat-composer-plugin-menu__section {
   padding: var(--space-2) var(--space-4);
   color: var(--color-text-muted);
-  font-size: var(--codex-composer-menu-heading-font-size, var(--chat-menu-font-size));
+  font-size: var(--agent-ui-composer-menu-heading-font-size, var(--chat-menu-font-size));
   font-weight: var(--font-weight-regular);
   line-height: 18px;
 }

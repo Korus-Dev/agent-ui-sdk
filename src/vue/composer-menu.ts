@@ -1,6 +1,6 @@
 import type { Component } from 'vue';
 
-export type CodexComposerMenuItemBase<Payload = unknown> = {
+export type ComposerMenuItemBase<Payload = unknown> = {
   id: string;
   label: string;
   description?: string;
@@ -13,56 +13,56 @@ export type CodexComposerMenuItemBase<Payload = unknown> = {
   valueIconLabel?: string;
 };
 
-export type CodexComposerMenuActionItem<Payload = unknown> = CodexComposerMenuItemBase<Payload> & {
+export type ComposerMenuActionItem<Payload = unknown> = ComposerMenuItemBase<Payload> & {
   type: 'action' | 'custom';
   closeOnSelect?: boolean;
   danger?: boolean;
   leadingColor?: string;
 };
 
-export type CodexComposerMenuCheckboxItem<Payload = unknown> = CodexComposerMenuItemBase<Payload> & {
+export type ComposerMenuCheckboxItem<Payload = unknown> = ComposerMenuItemBase<Payload> & {
   type: 'checkbox';
   accessory?: 'check' | 'switch' | Component;
   checked: boolean;
   closeOnSelect?: boolean;
 };
 
-export type CodexComposerMenuRadioItem<Payload = unknown> = CodexComposerMenuItemBase<Payload> & {
+export type ComposerMenuRadioItem<Payload = unknown> = ComposerMenuItemBase<Payload> & {
   type: 'radio';
   checked: boolean;
   closeOnSelect?: boolean;
 };
 
-export type CodexComposerMenuSeparatorItem = {
+export type ComposerMenuSeparatorItem = {
   id: string;
   type: 'separator';
 };
 
-export type CodexComposerMenuHeadingItem<Payload = unknown> = {
+export type ComposerMenuHeadingItem<Payload = unknown> = {
   id: string;
   type: 'heading';
   label: string;
-  actions?: readonly CodexComposerMenuActionItem<Payload>[];
+  actions?: readonly ComposerMenuActionItem<Payload>[];
 };
 
-export type CodexComposerMenuSubmenuItem<Payload = unknown> = CodexComposerMenuItemBase<Payload> & {
+export type ComposerMenuSubmenuItem<Payload = unknown> = ComposerMenuItemBase<Payload> & {
   type: 'submenu';
-  items: readonly CodexComposerMenuItem<Payload>[];
+  items: readonly ComposerMenuItem<Payload>[];
   /** Optional action for click/Enter; hover and ArrowRight still open the submenu. */
-  selectAction?: CodexComposerMenuActionItem<Payload>;
+  selectAction?: ComposerMenuActionItem<Payload>;
   submenuAlignment?: 'top' | 'bottom';
   submenuWidth?: 'default' | 'wide';
 };
 
-export type CodexComposerMenuItem<Payload = unknown> =
-  | CodexComposerMenuActionItem<Payload>
-  | CodexComposerMenuCheckboxItem<Payload>
-  | CodexComposerMenuHeadingItem<Payload>
-  | CodexComposerMenuRadioItem<Payload>
-  | CodexComposerMenuSeparatorItem
-  | CodexComposerMenuSubmenuItem<Payload>;
+export type ComposerMenuItem<Payload = unknown> =
+  | ComposerMenuActionItem<Payload>
+  | ComposerMenuCheckboxItem<Payload>
+  | ComposerMenuHeadingItem<Payload>
+  | ComposerMenuRadioItem<Payload>
+  | ComposerMenuSeparatorItem
+  | ComposerMenuSubmenuItem<Payload>;
 
-export type CodexComposerMenuSelectableItem<Payload = unknown> = Exclude<
-  CodexComposerMenuItem<Payload>,
-  CodexComposerMenuHeadingItem<Payload> | CodexComposerMenuSeparatorItem | CodexComposerMenuSubmenuItem<Payload>
+export type ComposerMenuSelectableItem<Payload = unknown> = Exclude<
+  ComposerMenuItem<Payload>,
+  ComposerMenuHeadingItem<Payload> | ComposerMenuSeparatorItem | ComposerMenuSubmenuItem<Payload>
 >;

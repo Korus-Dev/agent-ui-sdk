@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-chat-theme chat-user-text codex-markdown">
+  <div class="agent-ui-theme chat-user-text agent-ui-markdown">
     <p>
       <template v-for="(token, index) in tokens" :key="`${token.type}-${index}`">
         <span v-if="token.type === 'text'">{{ token.text }}</span>
@@ -71,19 +71,19 @@
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
-import type { PromptPart as CodexPromptPart, Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill } from '@korus-dev/multi-agent-sdk';
+import type { PromptPart, Plugin, Skill } from '@korus-dev/multi-agent-sdk';
 import { PlugIcon, SparklesIcon } from '../shared/icons/app-icons';
 import ChatMentionChip from './ChatMentionChip.vue';
-import { parseAuthoredUserText, type CodexUserTextToken } from './user-text';
-import type { CodexComposerMentionGroup } from './composer-mentions-custom';
+import { parseAuthoredUserText, type UserTextToken } from './user-text';
+import type { ComposerMentionGroup } from './composer-mentions-custom';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{
   content: string;
-  promptContent?: readonly CodexPromptPart[];
-  mentionGroups?: readonly CodexComposerMentionGroup[];
-  plugins?: readonly CodexSurfacePlugin[];
-  skills?: readonly CodexSurfaceSkill[];
+  promptContent?: readonly PromptPart[];
+  mentionGroups?: readonly ComposerMentionGroup[];
+  plugins?: readonly Plugin[];
+  skills?: readonly Skill[];
 }>(), {
   plugins: () => [],
   mentionGroups: () => [],
@@ -97,16 +97,16 @@ const tokens = computed(() => parseAuthoredUserText(props.content, props.promptC
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 defineSlots<{
   mention(props: {
-    group: Extract<CodexUserTextToken, { type: 'custom-mention' }>['group'];
-    item: Extract<CodexUserTextToken, { type: 'custom-mention' }>['item'];
+    group: Extract<UserTextToken, { type: 'custom-mention' }>['group'];
+    item: Extract<UserTextToken, { type: 'custom-mention' }>['item'];
     surface: 'message';
-    token: Extract<CodexUserTextToken, { type: 'custom-mention' }>;
+    token: Extract<UserTextToken, { type: 'custom-mention' }>;
   }): unknown;
 }>();
 // Stryker restore all
 
 function mentionIcon(
-  token: Extract<CodexUserTextToken, { type: 'plugin-mention' | 'skill-mention' }>,
+  token: Extract<UserTextToken, { type: 'plugin-mention' | 'skill-mention' }>,
   theme: 'light' | 'dark',
 ): string | null {
   const value = token.type === 'plugin-mention'
@@ -120,7 +120,7 @@ function mentionIcon(
   return /^data:image\/(?:avif|bmp|gif|jpeg|png|svg\+xml|webp|x-icon);base64,/i.test(value) ? value : null;
 }
 
-function mentionTitle(token: Extract<CodexUserTextToken, { type: 'plugin-mention' | 'skill-mention' }>): string {
+function mentionTitle(token: Extract<UserTextToken, { type: 'plugin-mention' | 'skill-mention' }>): string {
   if (token.type === 'plugin-mention') {
     return token.plugin?.shortDescription || token.displayName;
   }
@@ -160,34 +160,34 @@ function mentionTitle(token: Extract<CodexUserTextToken, { type: 'plugin-mention
   display: none;
 }
 
-:global(.codex-chat-theme--dark) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--light,
-:global([data-codex-theme="dark"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--light {
+:global(.agent-ui-theme--dark) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--light,
+:global([data-theme="dark"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--light {
   display: none;
 }
 
-:global(.codex-chat-theme--dark) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--dark,
-:global([data-codex-theme="dark"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--dark {
+:global(.agent-ui-theme--dark) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--dark,
+:global([data-theme="dark"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--dark {
   display: block;
 }
 
-:global(.codex-chat-theme--dark) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-icon,
-:global([data-codex-theme="dark"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-icon {
+:global(.agent-ui-theme--dark) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-icon,
+:global([data-theme="dark"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-icon {
   display: none;
 }
 
 @media (prefers-color-scheme: dark) {
-  :global(.codex-chat-theme--system) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--light,
-  :global([data-codex-theme="system"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--light {
+  :global(.agent-ui-theme--system) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--light,
+  :global([data-theme="system"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--light {
     display: none;
   }
 
-  :global(.codex-chat-theme--system) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--dark,
-  :global([data-codex-theme="system"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--dark {
+  :global(.agent-ui-theme--system) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--dark,
+  :global([data-theme="system"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-image--dark {
     display: block;
   }
 
-  :global(.codex-chat-theme--system) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-icon,
-  :global([data-codex-theme="system"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-icon {
+  :global(.agent-ui-theme--system) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-icon,
+  :global([data-theme="system"]) .chat-user-text__mention-icon-frame--has-dark .chat-user-text__mention-icon {
     display: none;
   }
 }

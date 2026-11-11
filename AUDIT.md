@@ -82,7 +82,7 @@ Compared against `codex-app-sdk` at `564f7f6` and the release/quality convention
   - `packages/vue/src/components/CodexConversationSidebar.vue`: Host-owned navigation, intentionally excluded.
 - `packages/vue/tests`: 87 files reviewed; 85 have same-name destinations.
   - `packages/vue/tests/CodexConversationSidebar.spec.ts`: Host-owned navigation, intentionally excluded.
-  - `packages/vue/tests/CodexConversationPane.spec.ts`: Native wrapper test retained as tests/vue/native/NativeConversationPane.spec.ts.
+  - `packages/vue/tests/CodexConversationPane.spec.ts`: Generic pane behaviors retained in tests/vue/ConversationPane.spec.ts; provider-specific wrapper tests retired with that API.
 - `packages/electron/src`: 11 files reviewed; 11 have same-name destinations.
 - `packages/electron/tests`: 8 files reviewed; 8 have same-name destinations.
 
@@ -91,3 +91,13 @@ The basename inventory is an extraction completeness check, not a claim of byte-
 ## Sample refinement
 
 Launch commands are `dev:basic`, `dev:spark` and `dev:relay`, accepting `-- --backend <provider>`. Basic was mechanically copied from multi-agent-sample before entry-import/backend adaptations; its sidebar and styles remain exact. Spark App/components/styles and Relay login/styles were mechanically copied from the original repository and verified before adapters changed. Spark and Relay styles remain byte-identical; their isolated homes are per sample/backend, while Basic intentionally uses standard runtime homes.
+
+## Capability-driven boundary update
+
+The provider-specific pane, hooks, catalogs, realtime protocol client and Electron execution bridge are removed. All harnesses use the same root `ConversationPane` and neutral session/controller composition. Generic attachment, clipboard, speech, browser and typed IPC adapters remain. Korus confirmed zero consumers of the retired APIs.
+
+The capability boundary regression covers Codex, Claude, Cursor, Antigravity and an unknown backend label with identical normalized inputs and client actions. Controls change only when capabilities change. Generic pane behavior tests remain; 13 tests dedicated to the retired native wrapper were removed with it, and the mixed controller/event tests were retained. Retired provider hook/bridge suites were removed with those modules.
+
+Validation against published Multi 0.26.0: `npm run check` passes with 1,824 library/lab tests, 40 sample tests and 95.08% statement coverage; the 85% gate is unchanged. The actual packed consumer validates eight plain Node runtime imports and nine strict Bundler entries. The generic native IPC bridge passes a real packaged Electron round trip and the Apple helper smoke check.
+
+Remaining upstream dependency: UI transcript normalization still understands legacy Codex context framing. Multi confirmed that current 0.26.0 does not normalize all transcript paths. Keep the parser until the provider-owned fix is approved and qualified; removing it now would change visible conversation behavior. Multi's planned 0.27.0 Host vocabulary migration is also pending its approved map and public release; final dependency/type migration and release qualification follow that publication.

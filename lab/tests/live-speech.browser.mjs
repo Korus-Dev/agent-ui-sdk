@@ -22,8 +22,8 @@ try {
     const { createApp, h } = await import('/tests/fixtures/vue-api.ts');
     if (packaged) await import('/@fs/' + root + 'dist/styles.css');
     const Composer = packaged
-      ? (await import('/@fs/' + root + 'dist/vue/index.js')).CodexComposer
-      : (await import('/@fs/' + root + 'src/vue/components/CodexComposer.vue')).default;
+      ? (await import('/@fs/' + root + 'dist/vue/index.js')).Composer
+      : (await import('/@fs/' + root + 'src/vue/components/Composer.vue')).default;
     window.speechProbe = { chunks: 0, bytes: 0, sent: [], stops: 0, cancelled: [], listeners: new Set(), holdPreparation: true };
     const probe = window.speechProbe;
     const NativeAudioWorkletNode = window.AudioWorkletNode;
@@ -45,7 +45,7 @@ try {
       if (probe.holdMicrophone) await new Promise(resolve => { probe.microphoneReady = resolve; });
       return destination.stream;
     };
-    window.codexAppSdkNative = {
+    window.agentUiHostCapabilities = {
       capabilities: { transcription: true },
       streamingTranscription: {
         prepare: async ({ sessionId }) => {
@@ -62,7 +62,7 @@ try {
     const target = document.createElement('div');
     target.id = 'speech-fixture';
     target.style.cssText = 'position:fixed;inset:40px;background:white;z-index:9999;padding:30px';
-    target.style.setProperty('--codex-primary-color', 'rgb(24, 88, 196)');
+    target.style.setProperty('--agent-ui-primary-color', 'rgb(24, 88, 196)');
     document.body.append(target);
     createApp({ render: () => h(Composer, {
       capabilities: {models:true,reasoningEffort:true},
@@ -186,7 +186,7 @@ try {
   await page.evaluate(async ({ root, packaged }) => {
     const { createApp, h } = await import('/tests/fixtures/vue-api.ts');
     const Question = packaged
-      ? (await import('/@fs/' + root + 'dist/vue/index.js')).CodexQuestionRequest
+      ? (await import('/@fs/' + root + 'dist/vue/index.js')).QuestionRequest
       : (await import('/@fs/' + root + 'src/vue/chat/ChatQuestionRequest.vue')).default;
     const probe = window.speechProbe;
     probe.startReady = undefined; probe.finish = undefined; probe.answers = [];

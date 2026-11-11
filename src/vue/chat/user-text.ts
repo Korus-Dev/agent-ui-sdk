@@ -1,16 +1,16 @@
 import { Lexer } from 'marked';
-import { codexConversationLinkFromHref } from './conversation-links';
-import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt.js';
-import type { PromptMention as CodexPromptMention, PromptPart as CodexPromptPart, Plugin as CodexSurfacePlugin, Skill as CodexSurfaceSkill } from '@korus-dev/multi-agent-sdk';
+import { conversationLinkFromHref } from './conversation-links';
+import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
+import type { PromptMention, PromptPart, Plugin, Skill } from '@korus-dev/multi-agent-sdk';
 import { skillDisplayName, skillMatchesMention } from './composer-skills';
 import { pluginMatchesMention } from './composer-plugins';
 import {
   findComposerMention,
-  type CodexComposerMentionGroup,
-  type CodexComposerMentionItem,
+  type ComposerMentionGroup,
+  type ComposerMentionItem,
 } from './composer-mentions-custom';
 
-export type CodexUserTextToken =
+export type UserTextToken =
   | { type: 'text'; text: string }
   | { type: 'code'; text: string }
   | { type: 'link'; text: string; href: string }
@@ -19,8 +19,8 @@ export type CodexUserTextToken =
   | {
     type: 'custom-mention';
     displayName: string;
-    group: CodexComposerMentionGroup;
-    item: CodexComposerMentionItem;
+    group: ComposerMentionGroup;
+    item: ComposerMentionItem;
     label: string;
   }
   | {
@@ -28,25 +28,25 @@ export type CodexUserTextToken =
     displayName: string;
     href: string;
     label: string;
-    plugin?: CodexSurfacePlugin;
+    plugin?: Plugin;
   }
   | {
     type: 'skill-mention';
     displayName: string;
     href: string;
     label: string;
-    skill?: CodexSurfaceSkill;
+    skill?: Skill;
   };
 
 export function parseAuthoredUserText(
   text: string,
-  content?: readonly CodexPromptPart[],
-  plugins: readonly CodexSurfacePlugin[] = [],
-  skills: readonly CodexSurfaceSkill[] = [],
-  groups: readonly CodexComposerMentionGroup[] = [],
-): CodexUserTextToken[] {
-  if (content === undefined) return parseCodexUserText(text, plugins, skills, groups, false);
-  return normalizePromptContent(content).flatMap((part): CodexUserTextToken[] => {
+  content?: readonly PromptPart[],
+  plugins: readonly Plugin[] = [],
+  skills: readonly Skill[] = [],
+  groups: readonly ComposerMentionGroup[] = [],
+): UserTextToken[] {
+  if (content === undefined) return parseUserText(text, plugins, skills, groups, false);
+  return normalizePromptContent(content).flatMap((part): UserTextToken[] => {
     if (part.type === 'text') {
       return withWebLinks(part.text, text => text.split(/(`[^`\n]+`|\n)/g).filter(Boolean).map(value => value === '\n'
         ? { type: 'line-break' } : value.startsWith('`') && value.endsWith('`')
@@ -65,7 +65,7 @@ export function parseAuthoredUserText(
   });
 }
 
-function customMentionToken(part: CodexPromptMention, groups: readonly CodexComposerMentionGroup[]): Extract<CodexUserTextToken, { type: 'custom-mention' }> {
+function customMentionToken(part: PromptMention, groups: readonly ComposerMentionGroup[]): Extract<UserTextToken, { type: 'custom-mention' }> {
   const group = groups.find(group => group.id === part.groupId);
   const item = group?.items.find(item => item.id === part.id);
   return {
@@ -75,24 +75,24 @@ function customMentionToken(part: CodexPromptMention, groups: readonly CodexComp
   };
 }
 
-export function parseCodexUserText(
+export function parseUserText(
   content: string,
-  plugins: readonly CodexSurfacePlugin[] = [],
-  skills: readonly CodexSurfaceSkill[] = [],
-  mentionGroups: readonly CodexComposerMentionGroup[] = [],
+  plugins: readonly Plugin[] = [],
+  skills: readonly Skill[] = [],
+  mentionGroups: readonly ComposerMentionGroup[] = [],
   allowBareMentions = true,
-): CodexUserTextToken[] {
+): UserTextToken[] {
   return withWebLinks(content, text => parseUserTextTokens(text, plugins, skills, mentionGroups, allowBareMentions));
 }
 
 /** Rehydrate serialized selected references without interpreting bare typed triggers. */
 export function recalledPromptContent(
   text: string,
-  plugins: readonly CodexSurfacePlugin[] = [],
-  skills: readonly CodexSurfaceSkill[] = [],
-  groups: readonly CodexComposerMentionGroup[] = [],
-): CodexPromptPart[] {
-  return normalizePromptContent(parseCodexUserText(text, plugins, skills, groups, false).map((token): CodexPromptPart => {
+  plugins: readonly Plugin[] = [],
+  skills: readonly Skill[] = [],
+  groups: readonly ComposerMentionGroup[] = [],
+): PromptPart[] {
+  return normalizePromptContent(parseUserText(text, plugins, skills, groups, false).map((token): PromptPart => {
     switch (token.type) {
       case 'skill-mention': return {
         type: 'mention', kind: 'skill', id: skillPathFromHref(token.href)!,
@@ -114,11 +114,11 @@ export function recalledPromptContent(
   }));
 }
 
-function withWebLinks(content: string, literal: (text: string) => CodexUserTextToken[]): CodexUserTextToken[] {
+function withWebLinks(content: string, literal: (text: string) => UserTextToken[]): UserTextToken[] {
   if (!/https?:\/\//i.test(content)) return literal(content);
-  return Lexer.lexInline(content, { gfm: true }).flatMap((token): CodexUserTextToken[] => {
+  return Lexer.lexInline(content, { gfm: true }).flatMap((token): UserTextToken[] => {
     const link = token.type === 'link' && /^https?:\/\//i.test(token.raw)
-      ? codexConversationLinkFromHref(token.href) : null;
+      ? conversationLinkFromHref(token.href) : null;
     return link?.kind === 'external'
       ? [{ type: 'link', text: token.raw, href: link.href }]
       : literal(token.raw);
@@ -127,12 +127,12 @@ function withWebLinks(content: string, literal: (text: string) => CodexUserTextT
 
 function parseUserTextTokens(
   content: string,
-  plugins: readonly CodexSurfacePlugin[],
-  skills: readonly CodexSurfaceSkill[],
-  mentionGroups: readonly CodexComposerMentionGroup[],
+  plugins: readonly Plugin[],
+  skills: readonly Skill[],
+  mentionGroups: readonly ComposerMentionGroup[],
   allowBareMentions: boolean,
-): CodexUserTextToken[] {
-  const tokens: CodexUserTextToken[] = [];
+): UserTextToken[] {
+  const tokens: UserTextToken[] = [];
   let lastIndex = 0;
 
   for (const match of content.matchAll(userTextTokenRegex())) {
@@ -164,10 +164,10 @@ function parseUserTextTokens(
 function bareMentionToken(
   trigger: string,
   name: string,
-  plugins: readonly CodexSurfacePlugin[],
-  skills: readonly CodexSurfaceSkill[],
-  mentionGroups: readonly CodexComposerMentionGroup[],
-): Extract<CodexUserTextToken, { type: 'custom-mention' | 'plugin-mention' | 'skill-mention' }> | null {
+  plugins: readonly Plugin[],
+  skills: readonly Skill[],
+  mentionGroups: readonly ComposerMentionGroup[],
+): Extract<UserTextToken, { type: 'custom-mention' | 'plugin-mention' | 'skill-mention' }> | null {
   if (trigger === '$') {
     const skill = skills.find((candidate) => skillMatchesMention(candidate, name));
     if (skill) {
@@ -219,10 +219,10 @@ function bareMentionToken(
 function mentionToken(
   rawLabel: string,
   rawHref: string,
-  plugins: readonly CodexSurfacePlugin[],
-  skills: readonly CodexSurfaceSkill[],
-  groups: readonly CodexComposerMentionGroup[],
-): Extract<CodexUserTextToken, { type: 'custom-mention' | 'plugin-mention' | 'skill-mention' }> | null {
+  plugins: readonly Plugin[],
+  skills: readonly Skill[],
+  groups: readonly ComposerMentionGroup[],
+): Extract<UserTextToken, { type: 'custom-mention' | 'plugin-mention' | 'skill-mention' }> | null {
   const label = rawLabel.trim().replace(/\\([\\[\]])/g, '$1');
   const href = markdownDestination(rawHref);
 

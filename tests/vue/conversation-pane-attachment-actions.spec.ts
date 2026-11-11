@@ -4,13 +4,13 @@ import { mount } from '@vue/test-utils';
 import { h } from 'vue';
 import { describe, expect, it } from 'vitest';
 import {
-  CodexConversationPane,
-  type CodexNativeAttachment,
+  ConversationPane,
+  type NativeAttachment,
 } from '../../src/vue';
 
-describe('CodexConversationPane composer attachment actions', () => {
+describe('ConversationPane composer attachment actions', () => {
   it('renders the scoped slot once per attachment immediately before remove', () => {
-    const attachments: CodexNativeAttachment[] = [
+    const attachments: NativeAttachment[] = [
       {
         id: 'first',
         type: 'file',
@@ -29,7 +29,7 @@ describe('CodexConversationPane composer attachment actions', () => {
       },
     ];
     const receivedScopes: object[] = [];
-    const wrapper = mount(CodexConversationPane, {
+    const wrapper = mount(ConversationPane, {
       props: {
         attachments,
         disabled: true,
@@ -38,7 +38,7 @@ describe('CodexConversationPane composer attachment actions', () => {
       },
       slots: {
         'composer-attachment-actions': (scope: {
-          attachments: readonly CodexNativeAttachment[];
+          attachments: readonly NativeAttachment[];
           disabled: boolean;
           index: number;
         }) => {
@@ -58,9 +58,9 @@ describe('CodexConversationPane composer attachment actions', () => {
       },
     });
 
-    const rows = wrapper.findAll('.codex-conversation-pane__attachment');
+    const rows = wrapper.findAll('.agent-ui-conversation-pane__attachment');
     expect(rows).toHaveLength(2);
-    const attachmentsRow = wrapper.get('.codex-conversation-pane__attachments');
+    const attachmentsRow = wrapper.get('.agent-ui-conversation-pane__attachments');
     const composer = wrapper.get('.chat-composer');
     expect(attachmentsRow.element.parentElement).toBe(composer.element);
     expect(attachmentsRow.element.nextElementSibling)
@@ -71,14 +71,14 @@ describe('CodexConversationPane composer attachment actions', () => {
     expect(Object.keys(receivedScopes[0]!).sort()).toStrictEqual(['attachments', 'disabled', 'index']);
 
     for (const row of rows) {
-      const actions = row.get('.codex-conversation-pane__attachment-actions');
+      const actions = row.get('.agent-ui-conversation-pane__attachment-actions');
       const action = actions.get('.host-attachment-action');
       const secondaryAction = actions.get('.host-secondary-attachment-action');
       expect(action.attributes('disabled')).toBeDefined();
       expect(action.element.nextElementSibling).toBe(secondaryAction.element);
       expect(secondaryAction.element.nextElementSibling)
-        .toBe(actions.get('.codex-conversation-pane__attachment-remove').element);
-      expect(actions.get('.codex-conversation-pane__attachment-remove').attributes('title')).toBeUndefined();
+        .toBe(actions.get('.agent-ui-conversation-pane__attachment-remove').element);
+      expect(actions.get('.agent-ui-conversation-pane__attachment-remove').attributes('title')).toBeUndefined();
       expect(actions.findAll('button')).toHaveLength(3);
       expect(row.element.children).toHaveLength(3);
     }

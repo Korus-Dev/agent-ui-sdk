@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { mount } from '@vue/test-utils';
-import CodexMessage from '../../../src/vue/components/CodexMessage.vue';
+import Message from '../../../src/vue/components/Message.vue';
 import { describe, expect, it, vi } from 'vitest';
 import { languageForFilePath, renderCodeBlock } from '../../../src/vue/chat/syntax-highlighting';
 
@@ -65,7 +65,7 @@ describe('syntax highlighting', () => {
   it('upgrades finished code after initialization without replacing the surrounding paragraph', async () => {
     const input = '<script>\nconst answer = 42 & 7';
     const content = `Finished paragraph.\n\n\`\`\`typescript\n${input}\n\`\`\`\n\nTail`;
-    const wrapper = mount(CodexMessage, { props: { message: { role: 'assistant', content, streaming: true } } });
+    const wrapper = mount(Message, { props: { message: { role: 'assistant', content, streaming: true } } });
     const paragraph = wrapper.get('p').element;
     expect(wrapper.html()).toContain('--shiki-light');
     await wrapper.setProps({ message: { role: 'assistant', content: content + ' grows', streaming: true } });

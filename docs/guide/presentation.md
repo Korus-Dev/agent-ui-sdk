@@ -21,7 +21,7 @@ const restore = applyTheme(element, {
 // Later: restore();
 ```
 
-Semantic CSS tokens include `--codex-font-family`, `--codex-mono-font-family`, `--codex-primary-color`, `--codex-background-color`, `--codex-surface-color`, `--codex-text-color`, `--codex-muted-text-color`, `--codex-border-color`, `--codex-message-font-size`, `--codex-message-line-height`, `--codex-composer-font-size` and `--codex-menu-font-size`. Existing token names remain stable across neutral component aliases.
+Semantic CSS tokens include `--agent-ui-font-family`, `--agent-ui-mono-font-family`, `--agent-ui-primary-color`, `--agent-ui-background-color`, `--agent-ui-surface-color`, `--agent-ui-text-color`, `--agent-ui-muted-text-color`, `--agent-ui-border-color`, `--agent-ui-message-font-size`, `--agent-ui-message-line-height`, `--agent-ui-composer-font-size` and `--agent-ui-menu-font-size`. Apply these tokens to an application-owned `.agent-ui-theme` element or pass them through `applyTheme`.
 
 Call scoped providers during Vue setup. Descendants use the nearest provider:
 

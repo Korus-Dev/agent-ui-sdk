@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visible" class="codex-chat-theme chat-composer-shelf">
+  <div v-if="visible" class="agent-ui-theme chat-composer-shelf">
     <ChatTurnGitInfo
       v-if="visibleTurnGitDiff"
       :diff="visibleTurnGitDiff"
@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { Comment, Fragment, Text, computed, type VNode } from 'vue';
-import type { CodexComposerShelfPresentation, ThreadGoal, TurnGitDiff } from './contracts';
+import type { ComposerShelfPresentation, ThreadGoal, TurnGitDiff } from './contracts';
 import ChatGoal from './ChatGoal.vue';
 import ChatQueuedPrompts from './ChatQueuedPrompts.vue';
 import ChatTurnGitInfo from './ChatTurnGitInfo.vue';
@@ -38,7 +38,7 @@ import type { QueuedChatPrompt } from './queued-prompts';
 const props = defineProps<{
   disabled?: boolean;
   goal: ThreadGoal | null;
-  presentation?: CodexComposerShelfPresentation;
+  presentation?: ComposerShelfPresentation;
   queuedPrompts: readonly QueuedChatPrompt[];
   queuedPromptEditDisabled?: boolean;
   queuedPromptSteerDisabled?: boolean;

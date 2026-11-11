@@ -1,5 +1,5 @@
 <template>
-  <main class="lab" :data-codex-theme="theme">
+  <main class="lab" :data-theme="theme">
     <aside class="lab__sidebar">
       <div>
         <p class="lab__eyebrow">Agent UI SDK</p>
@@ -88,7 +88,7 @@
       </div>
 
       <div class="lab__frame">
-        <CodexConversationPane
+        <ConversationPane
           :key="`${selected.id}:${resetRevision}`"
           v-model="draft"
           :capabilities="labCapabilities"
@@ -141,7 +141,7 @@
               </div>
             </div>
           </template>
-        </CodexConversationPane>
+        </ConversationPane>
         <button
           v-if="selected.id === 'message-selection' && selectedMessageText"
           type="button"
@@ -166,30 +166,30 @@
 </template>
 
 <script setup lang="ts">
-import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt.js';
+import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
 import { computed, defineComponent, h, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 const labCapabilities = { models: true, skills: true, reasoningEffort: true, serviceTier: true, planMode: true, goals: true, steerPrompt: true, interrupt: true, history: true, deleteTurn: true, editTurn: true, retryTurn: true, approvals: true, approvalPresets: ['ask-for-approval', 'approve-for-me', 'full-access'] as const };
 import { chartHtmlChunks, inlineHtmlChunks } from './inline-html-demo';
 import {
-  CodexConversationPane,
-  provideCodexToolPresentation,
-  type CodexChatMessage,
-  type CodexChatTranscription,
-  type CodexContextUsage,
+  ConversationPane,
+  provideToolPresentation,
+  type ChatMessage,
+  type ChatTranscription,
+  type ContextUsage,
   type ClientRequestResponse,
-  type CodexModelOption,
-  type CodexMessageTextSelection,
-  type CodexNativeAttachment,
-  type CodexNativeAttachmentInput,
-  type CodexQueuedPromptData,
-  type CodexSkillSummary,
-  type CodexRendererSendMessageOptions,
+  type ModelOption,
+  type MessageTextSelection,
+  type NativeAttachment,
+  type NativeAttachmentInput,
+  type QueuedPromptData,
+  type SkillSummary,
+  type ClientSendMessageOptions,
   type ReasoningEffort,
-  type SurfaceMessage,
-  type SurfaceMessagePart,
+  type ConversationMessage,
+  type ConversationMessagePart,
   type TurnGitDiff,
 } from '@korus-dev/agent-ui-sdk';
-import type { CodexSurfaceApproval, CodexSurfaceApprovalDecision, CodexSurfaceAskUserQuestion, CodexSurfaceClientRequest, CodexSurfacePlugin, CodexSurfaceTurn } from '@korus-dev/multi-agent-sdk';
+import type { Approval, ApprovalDecision, AskUserQuestion, ClientRequest, Plugin, Turn } from '@korus-dev/multi-agent-sdk';
 
 type Scenario = {
   id: string;
@@ -197,30 +197,30 @@ type Scenario = {
   summary: string;
   title: string;
   description: string;
-  messages: SurfaceMessage[];
+  messages: ConversationMessage[];
   activeTurnId?: string | null;
-  turns?: readonly CodexSurfaceTurn[];
+  turns?: readonly Turn[];
   busy?: boolean;
   error?: string;
-  queuedPrompts?: CodexQueuedPromptData[];
-  contextUsage?: CodexContextUsage;
+  queuedPrompts?: QueuedPromptData[];
+  contextUsage?: ContextUsage;
   turnGitDiff?: TurnGitDiff;
 };
 
-const plugins: CodexSurfacePlugin[] = [
+const plugins: Plugin[] = [
   { id: 'gmail@remote', name: 'gmail', displayName: 'Gmail', shortDescription: 'Read and manage Gmail', brandColor: '#EA4335', enabled: true },
   { id: 'google-drive@remote', name: 'google-drive', displayName: 'Google Drive', shortDescription: 'Search files and documents', brandColor: '#0F9D58', enabled: true },
 ];
-const skills: CodexSkillSummary[] = [
+const skills: SkillSummary[] = [
   { name: 'Commit-Push (cp)', displayName: 'Commit-Push', shortDescription: 'Commit and publish completed work', brandColor: '#6D5BD0', path: '/mock/skills/commit-push/SKILL.md', enabled: true },
   { name: 'review', displayName: 'Code Review', shortDescription: 'Review local changes', brandColor: '#D97708', path: '/mock/skills/review/SKILL.md', enabled: true },
 ];
 const files = [
   { name: 'README.md', path: 'README.md' },
   { name: 'ChatRichTextEditor.vue', path: 'src/vue/chat/ChatRichTextEditor.vue' },
-  { name: 'CodexComposer.vue', path: 'src/vue/components/CodexComposer.vue' },
+  { name: 'Composer.vue', path: 'src/vue/components/Composer.vue' },
 ];
-const models: [CodexModelOption, ...CodexModelOption[]] = [{
+const models: [ModelOption, ...ModelOption[]] = [{
   id: 'gpt-5.6-sol',
   model: 'gpt-5.6-sol',
   displayName: '5.6-Sol',
@@ -248,13 +248,13 @@ const models: [CodexModelOption, ...CodexModelOption[]] = [{
   supportedReasoningEfforts: [], defaultReasoningEffort: null, isDefault: false,
 }];
 
-const transcribeAudio: CodexChatTranscription = async () => ({ text: 'Mock voice prompt' });
+const transcribeAudio: ChatTranscription = async () => ({ text: 'Mock voice prompt' });
 
 const messageHeaders: Readonly<Record<string, string>> = {
   'conversation-steer': 'Message from codex-claw',
 };
 
-function messageHeaderFor(message: CodexChatMessage): string | undefined {
+function messageHeaderFor(message: ChatMessage): string | undefined {
   return message.id ? messageHeaders[message.id] : undefined;
 }
 
@@ -272,7 +272,7 @@ const InAppBrowserIcon = defineComponent({
   ]),
 });
 
-provideCodexToolPresentation(({ kind, metadata }) => (
+provideToolPresentation(({ kind, metadata }) => (
   kind === 'mcp' && metadata?.server === 'codex_claw' && metadata.tool === 'browser_open'
     ? { icon: InAppBrowserIcon, title: 'Opened in-app browser' }
     : undefined
@@ -363,7 +363,7 @@ const scenarios: [Scenario, ...Scenario[]] = [
     summary: 'Submit and stream from a deep transcript',
     title: 'Long conversation',
     description: 'Scroll away from the tail, submit a prompt, and verify that the streamed response stays visible.',
-    messages: Array.from({ length: 48 }, (_, index): SurfaceMessage[] => [
+    messages: Array.from({ length: 48 }, (_, index): ConversationMessage[] => [
       {
         id: `history-user-${index}`, role: 'user', status: 'complete',
         parts: [{ type: 'text', text: `Earlier question ${index + 1}: explain the current state and next step.` }],
@@ -432,7 +432,7 @@ const scenarios: [Scenario, ...Scenario[]] = [
           { type: 'tool', id: 'tool-plan', title: 'update plan', kind: 'plan', status: 'completed', statusText: JSON.stringify({ source: 'codex', action: 'plan', phase: 'completed', params: { operation: 'update' } }) },
           { type: 'tool', id: 'tool-read', title: 'read file', kind: 'command', status: 'completed', statusText: JSON.stringify({ source: 'codex', action: 'read', phase: 'completed', params: { target: 'README.md' } }) },
           { type: 'tool', id: 'tool-run', title: 'run command', kind: 'command', status: 'completed', statusText: JSON.stringify({ source: 'codex', action: 'run', phase: 'completed', params: { target: '/bin/bash -lc "npm test && npm run typecheck && npm run build"' } }) },
-          { type: 'tool', id: 'tool-search', title: 'search source', kind: 'search', status: 'completed', statusText: JSON.stringify({ source: 'codex', action: 'search', phase: 'completed', params: { target: 'registerCodexToolTitlePresenter' } }) },
+          { type: 'tool', id: 'tool-search', title: 'search source', kind: 'search', status: 'completed', statusText: JSON.stringify({ source: 'codex', action: 'search', phase: 'completed', params: { target: 'registerToolTitlePresenter' } }) },
           { type: 'tool', id: 'tool-browser', title: 'codex_claw.browser_open', kind: 'mcp', status: 'completed', statusText: 'completed', metadata: { server: 'codex_claw', tool: 'browser_open' } },
           { type: 'tool', id: 'tool-generic', title: 'Claw status sync', kind: 'generic', status: 'completed', statusText: 'Claw synchronization complete' },
           { type: 'text', text: 'Known Codex actions use SDK icons, the app-owned browser tool uses a provided icon, and unknown tools use the generic tool icon.' },
@@ -565,12 +565,12 @@ const selectedModelId = ref(models[0].id);
 const selectedEffort = ref<ReasoningEffort>('medium');
 const selectedServiceTier = ref<string | null>(null);
 const activity = ref('Ready');
-const messages = ref<SurfaceMessage[]>([]);
+const messages = ref<ConversationMessage[]>([]);
 const mockBusy = ref(false);
 const mockActiveTurnId = ref<string | null>(null);
-const mockTurns = shallowRef<readonly CodexSurfaceTurn[]>([]);
-const clientRequests = ref<CodexSurfaceClientRequest[]>([]);
-const approvals = ref<CodexSurfaceApproval[]>([]);
+const mockTurns = shallowRef<readonly Turn[]>([]);
+const clientRequests = ref<ClientRequest[]>([]);
+const approvals = ref<Approval[]>([]);
 const questionFormat = ref<'choices' | 'text'>('choices');
 const questionSteps = ref<'single' | 'multiple'>('single');
 const questionDelivery = ref<'tool' | 'async'>('async');
@@ -579,8 +579,8 @@ const hasActiveAsyncQuestion = computed(() => messages.value.some((message) =>
     part.type === 'question' && !answeredClientRequestIds.value.has(part.request.id))));
 let requestSequence = 0;
 const answeredClientRequestIds = ref<ReadonlySet<string>>(new Set());
-const selectedMessageText = ref<CodexMessageTextSelection | null>(null);
-const selectedMessageContexts = ref<CodexMessageTextSelection[]>([]);
+const selectedMessageText = ref<MessageTextSelection | null>(null);
+const selectedMessageContexts = ref<MessageTextSelection[]>([]);
 const resetConfirmed = ref(false);
 const resetRevision = ref(0);
 const selected = computed<Scenario>(() => scenarios.find((scenario) => scenario.id === selectedId.value) ?? scenarios[0]);
@@ -593,7 +593,7 @@ const htmlChunkIndex = ref(0);
 const htmlPlaying = ref(false);
 const htmlExample = ref('interactive');
 const htmlChunks = computed(() => htmlExample.value === 'chart' ? chartHtmlChunks : inlineHtmlChunks);
-const mockAttachments = new Map<string, CodexNativeAttachment>();
+const mockAttachments = new Map<string, NativeAttachment>();
 let resetFeedbackTimer: number | undefined;
 
 watch(selected, () => resetScenario(false), { immediate: true });
@@ -655,7 +655,7 @@ function addSelectedContext(): void {
   activity.value = 'Selected message text added as host context';
 }
 
-function removeSelectedContext(context: CodexMessageTextSelection): void {
+function removeSelectedContext(context: MessageTextSelection): void {
   selectedMessageContexts.value = selectedMessageContexts.value.filter((candidate) => candidate !== context);
   activity.value = 'Selected message context removed';
 }
@@ -736,7 +736,7 @@ function requestApproval(): void {
   });
 }
 
-function resolveApproval(id: string, decision: CodexSurfaceApprovalDecision): void {
+function resolveApproval(id: string, decision: ApprovalDecision): void {
   approvals.value = approvals.value.filter((approval) => approval.id !== id);
   activity.value = `Approval ${decision}`;
 }
@@ -747,7 +747,7 @@ function requestQuestion(): void {
   const turnId = `lab-request-turn-${requestSequence}`;
   const textQuestion = { id: `${id}-context`, header: 'What should I know before continuing?',
     question: 'What should I know before continuing?', isOther: false, isSecret: false, options: null };
-  const questions: CodexSurfaceAskUserQuestion[] = questionFormat.value === 'text' ? [textQuestion] : [{
+  const questions: AskUserQuestion[] = questionFormat.value === 'text' ? [textQuestion] : [{
     id: `${id}-framework`, header: 'Framework', question: 'Which framework should I use?',
     isOther: true, isSecret: false, options: [
       { label: 'Vue', description: 'Use the SDK component package' },
@@ -758,7 +758,7 @@ function requestQuestion(): void {
     ...textQuestion, id: `${id}-details`, header: 'Context',
     question: questionFormat.value === 'text' ? 'Anything else I should know?' : textQuestion.question,
   });
-  const request: Extract<CodexSurfaceClientRequest, { kind: 'ask_user' }> = {
+  const request: Extract<ClientRequest, { kind: 'ask_user' }> = {
     id, kind: 'ask_user', conversationId: selectedId.value, turnId, itemId: id,
     payload: { request: { itemId: id, delivery, blocking: delivery === 'tool', questions } },
   };
@@ -844,14 +844,14 @@ function startReasoningActivityLifecycle(): void {
   streamTimers.add(commentaryTimer);
 }
 
-function updateReasoningActivity(parts: SurfaceMessagePart[]): void {
+function updateReasoningActivity(parts: ConversationMessagePart[]): void {
   messages.value = messages.value.map((message) => message.id === 'reasoning-activity-assistant'
     ? { ...message, parts }
     : message);
 }
 
-function reasoningActivityParts(stage: 'planning' | 'inspecting' | 'commentary'): SurfaceMessagePart[] {
-  const parts: SurfaceMessagePart[] = [
+function reasoningActivityParts(stage: 'planning' | 'inspecting' | 'commentary'): ConversationMessagePart[] {
+  const parts: ConversationMessagePart[] = [
     {
       type: 'reasoning',
       itemId: 'reasoning-activity-planning',
@@ -896,12 +896,12 @@ function reasoningActivityParts(stage: 'planning' | 'inspecting' | 'commentary')
   return parts;
 }
 
-function submitPrompt(prompt: string, options?: CodexRendererSendMessageOptions): void {
+function submitPrompt(prompt: string, options?: ClientSendMessageOptions): void {
   const contextText = selectedMessageContexts.value.length > 0
     ? `Selected message context:\n${selectedMessageContexts.value.map(({ text }) => `- ${text}`).join('\n')}`
     : '';
   const submittedPrompt = [prompt, contextText].filter(Boolean).join('\n\n');
-  const attachmentParts: SurfaceMessagePart[] = (options?.attachments ?? []).map((attachment) => {
+  const attachmentParts: ConversationMessagePart[] = (options?.attachments ?? []).map((attachment) => {
     const resolved = mockAttachments.get(attachment.reference);
     return {
       type: 'attachment',
@@ -928,9 +928,9 @@ function submitPrompt(prompt: string, options?: CodexRendererSendMessageOptions)
   startMockStream();
 }
 
-async function ingestMockAttachments(inputs: readonly CodexNativeAttachmentInput[]): Promise<CodexNativeAttachment[]> {
+async function ingestMockAttachments(inputs: readonly NativeAttachmentInput[]): Promise<NativeAttachment[]> {
   return inputs.map((input, index) => {
-    const attachment: CodexNativeAttachment = {
+    const attachment: NativeAttachment = {
       id: `mock-attachment-${index}-${input.name}`,
       type: input.mimeType?.startsWith('image/') ? 'image' : 'file',
       reference: `mock-attachment:${index}:${input.name}`,

@@ -1,10 +1,10 @@
 # Documents and browser panels
 
-Import `MarkdownPanel`, `SourcePreviewPanel`, `DiffPreviewPanel`, `AnnotationPopup` and `CodeSelectionAnnotation` from the root. Element Plus is required by panels using its controls. File classification and diff-overview contracts are available from `/documents.js`.
+Import `MarkdownPanel`, `SourcePreviewPanel`, `DiffPreviewPanel`, `AnnotationPopup` and `CodeSelectionAnnotation` from the root. Element Plus is required by panels using its controls. File classification and diff-overview contracts are available from `/documents`.
 
 Document panels support selection and annotation while applications own file loading, navigation and authorization. `DiffPreviewPanel` can use `overview` and the `#overview="{ files, select }"` slot for a host-owned summary. Selecting a path emits `select`; the host switches out of overview mode. Loading and error states remain SDK-owned.
 
-Import browser controls from `/browser-ui.js`, safe contracts/bookmark/partition/viewport helpers from `/browser.js`, and the Electron browser manager from `/electron/browser.js`. Keep the Electron manager outside the renderer dependency graph.
+Import browser controls from `/browser-ui`, safe contracts/bookmark/partition/viewport helpers from `/browser`, and the Electron browser manager from `/electron/browser`. Keep the Electron manager outside the renderer dependency graph.
 
 Browser panes use `ownerId` for host identity. Hosts supply navigation, permissions, bookmarks, annotation dispatch and persistence through `BrowserUiApi`/`BrowserUiHost`. Owner IDs are application identities, not provider sessions. Keep wire identity mapping in your adapter.
 

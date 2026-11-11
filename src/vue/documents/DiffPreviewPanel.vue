@@ -7,7 +7,7 @@
   >
     <div
       v-if="state === 'loading'"
-      class="git-diff-preview-panel__empty codex-text-shimmer"
+      class="git-diff-preview-panel__empty agent-ui-text-shimmer"
     > {{ $t('surface.gitDiffPreviewPanel.loadingDiff') }} </div>
     <div
       v-else-if="state === 'error'"

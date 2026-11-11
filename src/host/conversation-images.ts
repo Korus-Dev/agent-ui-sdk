@@ -1,6 +1,6 @@
-import type { HarnessDriver } from '@korus-dev/multi-agent-sdk';
-type ConversationContentInput = Parameters<HarnessDriver['readConversationContent']>[1] & { sessionId: string };
-type ConversationContentChunk = Awaited<ReturnType<HarnessDriver['readConversationContent']>>;
+import type { Harness } from '@korus-dev/multi-agent-sdk';
+type ConversationContentInput = Parameters<Harness['readConversationContent']>[1] & { sessionId: string };
+type ConversationContentChunk = Awaited<ReturnType<Harness['readConversationContent']>>;
 
 /** SDK image references are scoped by the host to an agent and provider session. */
 export function conversationImageInput(reference: string): Omit<ConversationContentInput, 'offset'> | null {

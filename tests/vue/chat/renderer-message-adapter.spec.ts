@@ -1,21 +1,21 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it } from 'vitest';
-import type { Message, MessageToolCall } from '../../../src/vue/chat/types';
+import type { ChatMessage, MessageToolCall } from '../../../src/vue/chat/types';
 import {
   chatMessageFromInput,
   chatMessagesFromInputs,
-  surfaceMessageToChatMessage,
+  conversationMessageToChatMessage,
 } from '../../../src/vue/chat/renderer-message-adapter';
-import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk';
+import type { ConversationMessage } from '@korus-dev/multi-agent-sdk';
 
 describe('renderer message adapter', () => {
   it('adapts mixed input collections while preserving unchanged compatibility messages', () => {
-    const compatibilityMessage: Message = {
+    const compatibilityMessage: ChatMessage = {
       role: 'user',
       content: 'legacy input',
     };
-    const surfaceMessage: SurfaceMessage = {
+    const surfaceMessage: ConversationMessage = {
       id: 'surface-input',
       parts: [{ type: 'text', text: 'surface input' }],
       role: 'assistant',
@@ -30,7 +30,7 @@ describe('renderer message adapter', () => {
   });
 
   it('preserves assistant phases and safe reasoning summaries as structured parts', () => {
-    const message = surfaceMessageToChatMessage({
+    const message = conversationMessageToChatMessage({
       id: 'assistant-phased',
       role: 'assistant',
       status: 'streaming',
@@ -62,7 +62,7 @@ describe('renderer message adapter', () => {
   });
 
   it('maps surface parts into rich chat messages without losing tool display data', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-1',
       parts: [
@@ -82,7 +82,7 @@ describe('renderer message adapter', () => {
       status: 'streaming',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage)).toStrictEqual({
+    expect(conversationMessageToChatMessage(rendererMessage)).toStrictEqual({
       content: 'Done.\n\nchecked workspace',
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-1',
@@ -126,7 +126,7 @@ describe('renderer message adapter', () => {
   });
 
   it('converts system messages to assistant display messages for the renderer stack', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'system-1',
       parts: [{ type: 'status', text: 'Codex app-server error' }],
@@ -134,12 +134,12 @@ describe('renderer message adapter', () => {
       status: 'error',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage).role).toBe('assistant');
-    expect(surfaceMessageToChatMessage(rendererMessage).content).toBe('Codex app-server error');
+    expect(conversationMessageToChatMessage(rendererMessage).role).toBe('assistant');
+    expect(conversationMessageToChatMessage(rendererMessage).content).toBe('Codex app-server error');
   });
 
   it('propagates message, turn, and item context to adapted tool calls', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       id: 'assistant-turn-context',
       metadata: { conversationId: 'thread-1' },
       parts: [{
@@ -154,7 +154,7 @@ describe('renderer message adapter', () => {
       turnId: 'turn-context',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage).toolCalls?.[0]).toMatchObject({
+    expect(conversationMessageToChatMessage(rendererMessage).toolCalls?.[0]).toMatchObject({
       itemId: 'item-read',
       messageId: 'assistant-turn-context',
       turnId: 'turn-context',
@@ -162,7 +162,7 @@ describe('renderer message adapter', () => {
   });
 
   it('marks steered user messages for timeline rendering', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-06-05T00:00:03.000Z',
       id: 'steer-turn-1',
       kind: 'steer',
@@ -171,7 +171,7 @@ describe('renderer message adapter', () => {
       status: 'complete',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage)).toStrictEqual({
+    expect(conversationMessageToChatMessage(rendererMessage)).toStrictEqual({
       content: 'read all the markdown files',
       createdAt: '2026-06-05T00:00:03.000Z',
       id: 'steer-turn-1',
@@ -184,7 +184,7 @@ describe('renderer message adapter', () => {
   });
 
   it('marks compaction messages for timeline rendering', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-06-05T00:00:03.000Z',
       id: 'compaction-turn-1',
       kind: 'compaction',
@@ -193,7 +193,7 @@ describe('renderer message adapter', () => {
       status: 'streaming',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage)).toStrictEqual({
+    expect(conversationMessageToChatMessage(rendererMessage)).toStrictEqual({
       compactionStatus: 'running',
       content: '',
       createdAt: '2026-06-05T00:00:03.000Z',
@@ -207,7 +207,7 @@ describe('renderer message adapter', () => {
   });
 
   it('marks a completed compaction with its terminal timeline status', () => {
-    const message = surfaceMessageToChatMessage({
+    const message = conversationMessageToChatMessage({
       id: 'compaction-complete',
       kind: 'compaction',
       parts: [],
@@ -224,7 +224,7 @@ describe('renderer message adapter', () => {
 
 
   it('maps failed and bodyless tools into displayable tool calls', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-2',
       parts: [
@@ -234,7 +234,7 @@ describe('renderer message adapter', () => {
       status: 'complete',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage).toolCalls).toStrictEqual([
+    expect(conversationMessageToChatMessage(rendererMessage).toolCalls).toStrictEqual([
       {
         args: undefined,
       done: true,
@@ -251,7 +251,7 @@ describe('renderer message adapter', () => {
   });
 
   it('settles stale running tools when their surface message is terminal', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       id: 'assistant-interrupted',
       parts: [{
         type: 'tool',
@@ -265,7 +265,7 @@ describe('renderer message adapter', () => {
       status: 'complete',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage).toolCalls?.[0]).toMatchObject({
+    expect(conversationMessageToChatMessage(rendererMessage).toolCalls?.[0]).toMatchObject({
       done: true,
       state: 'error',
       status: JSON.stringify({ source: 'codex', action: 'read', phase: 'failed' }),
@@ -321,7 +321,7 @@ describe('renderer message adapter', () => {
       state: 'running',
       status: 'Still running',
     };
-    const message: Message = {
+    const message: ChatMessage = {
       role: 'assistant',
       content: 'terminal',
       parts: [
@@ -349,7 +349,7 @@ describe('renderer message adapter', () => {
   });
 
   it('returns an already settled terminal compatibility message by identity', () => {
-    const message: Message = {
+    const message: ChatMessage = {
       role: 'assistant',
       content: 'done',
       streaming: false,
@@ -388,7 +388,7 @@ describe('renderer message adapter', () => {
   );
 
   it('prefers structuredContent over the MCP model-facing placeholder result', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-structured',
       parts: [
@@ -417,7 +417,7 @@ describe('renderer message adapter', () => {
       status: 'complete',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage).toolCalls).toStrictEqual([
+    expect(conversationMessageToChatMessage(rendererMessage).toolCalls).toStrictEqual([
       {
         args: {
           agentId: 'agent-dina',
@@ -440,7 +440,7 @@ describe('renderer message adapter', () => {
   });
 
   it('keeps a null tool output as the exact result', () => {
-    const message = surfaceMessageToChatMessage({
+    const message = conversationMessageToChatMessage({
       id: 'assistant-null-output',
       parts: [{
         type: 'tool',
@@ -457,7 +457,7 @@ describe('renderer message adapter', () => {
   });
 
   it('derives body arguments, fallback item identity, and turn context from metadata', () => {
-    const message = surfaceMessageToChatMessage({
+    const message = conversationMessageToChatMessage({
       id: 'assistant-fallback-tool',
       metadata: { turnId: 'turn-from-metadata' },
       parts: [{
@@ -487,7 +487,7 @@ describe('renderer message adapter', () => {
   });
 
   it.each([undefined, '', false, 42])('rejects non-usable metadata turn ids: %j', (turnId) => {
-    const toolCall = surfaceMessageToChatMessage({
+    const toolCall = conversationMessageToChatMessage({
       id: 'assistant-invalid-turn',
       metadata: turnId === undefined ? undefined : { turnId },
       parts: [{ type: 'tool', id: 'read', title: 'read', status: 'completed' }],
@@ -499,7 +499,7 @@ describe('renderer message adapter', () => {
   });
 
   it('preserves ordered renderer parts so tools can render between text chunks', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-ordered',
       parts: [
@@ -519,7 +519,7 @@ describe('renderer message adapter', () => {
       status: 'complete',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage).parts).toStrictEqual([
+    expect(conversationMessageToChatMessage(rendererMessage).parts).toStrictEqual([
       { type: 'text', content: 'Before the read.' },
       {
         type: 'tool',
@@ -541,7 +541,7 @@ describe('renderer message adapter', () => {
   });
 
   it('preserves generated media as an ordered renderer part', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       id: 'assistant-generated',
       parts: [{
         type: 'media',
@@ -558,7 +558,7 @@ describe('renderer message adapter', () => {
       status: 'complete',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage)).toMatchObject({
+    expect(conversationMessageToChatMessage(rendererMessage)).toMatchObject({
       content: '',
       parts: [{
         type: 'media',
@@ -572,7 +572,7 @@ describe('renderer message adapter', () => {
   });
 
   it('preserves ordered user attachments without flattening filenames into editable text', () => {
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-07-18T00:00:00.000Z',
       id: 'user-turn-attachments',
       parts: [
@@ -602,7 +602,7 @@ describe('renderer message adapter', () => {
       status: 'complete',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage)).toMatchObject({
+    expect(conversationMessageToChatMessage(rendererMessage)).toMatchObject({
       content: 'Compare these.\n\nKeep their order.',
       parts: [
         { type: 'text', content: 'Compare these.' },
@@ -639,7 +639,7 @@ describe('renderer message adapter', () => {
         requestId: 'approval-1',
       },
     });
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-confirm',
       parts: [
@@ -656,12 +656,12 @@ describe('renderer message adapter', () => {
       status: 'streaming',
     };
 
-    expect(surfaceMessageToChatMessage(rendererMessage).toolCalls?.at(0)?.status).toBe(statusText);
+    expect(conversationMessageToChatMessage(rendererMessage).toolCalls?.at(0)?.status).toBe(statusText);
   });
 
   it('preserves app-owned MCP identity for Vue presentation resolvers', () => {
     const metadata = { server: 'codex_claw', tool: 'browser_open', durationMs: 12 };
-    const rendererMessage: SurfaceMessage = {
+    const rendererMessage: ConversationMessage = {
       id: 'assistant-mcp-presentation',
       parts: [{
         type: 'tool',
@@ -675,7 +675,7 @@ describe('renderer message adapter', () => {
       status: 'complete',
     };
 
-    const toolCall = surfaceMessageToChatMessage(rendererMessage).toolCalls?.at(0);
+    const toolCall = conversationMessageToChatMessage(rendererMessage).toolCalls?.at(0);
     expect(toolCall).toMatchObject({
       kind: 'mcp',
       metadata: { server: 'codex_claw', tool: 'browser_open', durationMs: 12 },

@@ -3,41 +3,41 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
-import type { CodexNativeAttachment, CodexNativeRendererApi } from '../../src/host/contracts';
+import type { NativeAttachment, NativeRendererApi } from '../../src/host/contracts';
 import {
-  getCodexNativeRendererApi,
-  ingestCodexAttachments,
-  pickCodexAttachments,
-  provideCodexHostCapabilities,
-  useCodexHostCapabilities,
+  getNativeRendererApi,
+  ingestAttachments,
+  pickAttachments,
+  provideHostCapabilities,
+  useHostCapabilities,
 } from '../../src/vue/native-capabilities';
 
 describe('native renderer capabilities', () => {
   afterEach(() => {
-    Reflect.deleteProperty(window, 'codexAppSdkNative');
+    Reflect.deleteProperty(window, 'agentUiHostCapabilities');
   });
 
   it('discovers the native renderer bridge when present', () => {
-    expect(getCodexNativeRendererApi()).toBeUndefined();
-    const bridge = { pickAttachments: vi.fn() } as unknown as CodexNativeRendererApi;
-    Object.defineProperty(window, 'codexAppSdkNative', { configurable: true, value: bridge });
-    expect(getCodexNativeRendererApi()).toBe(bridge);
+    expect(getNativeRendererApi()).toBeUndefined();
+    const bridge = { pickAttachments: vi.fn() } as unknown as NativeRendererApi;
+    Object.defineProperty(window, 'agentUiHostCapabilities', { configurable: true, value: bridge });
+    expect(getNativeRendererApi()).toBe(bridge);
   });
 
   it('scopes host capabilities to the current Vue tree', () => {
-    const globalBridge = { capabilities: { attachments: false } } as unknown as CodexNativeRendererApi;
-    const scopedBridge = { capabilities: { attachments: true } } as unknown as CodexNativeRendererApi;
-    Object.defineProperty(window, 'codexAppSdkNative', { configurable: true, value: globalBridge });
-    let resolved: CodexNativeRendererApi | undefined;
+    const globalBridge = { capabilities: { attachments: false } } as unknown as NativeRendererApi;
+    const scopedBridge = { capabilities: { attachments: true } } as unknown as NativeRendererApi;
+    Object.defineProperty(window, 'agentUiHostCapabilities', { configurable: true, value: globalBridge });
+    let resolved: NativeRendererApi | undefined;
     const Child = defineComponent({
       setup() {
-        resolved = useCodexHostCapabilities();
+        resolved = useHostCapabilities();
         return () => h('span');
       },
     });
     const Parent = defineComponent({
       setup() {
-        provideCodexHostCapabilities(scopedBridge);
+        provideHostCapabilities(scopedBridge);
         return () => h(Child);
       },
     });
@@ -50,30 +50,30 @@ describe('native renderer capabilities', () => {
   it('picks attachments through an override, native bridge, or empty fallback', async () => {
     const picked = [nativeAttachment('one.txt')];
     const override = vi.fn(async () => picked);
-    await expect(pickCodexAttachments(override)).resolves.toBe(picked);
+    await expect(pickAttachments(override)).resolves.toBe(picked);
 
     const nativePick = vi.fn(async () => picked);
-    Object.defineProperty(window, 'codexAppSdkNative', {
+    Object.defineProperty(window, 'agentUiHostCapabilities', {
       configurable: true,
-      value: { pickAttachments: nativePick } as unknown as CodexNativeRendererApi,
+      value: { pickAttachments: nativePick } as unknown as NativeRendererApi,
     });
-    await expect(pickCodexAttachments()).resolves.toBe(picked);
-    Reflect.deleteProperty(window, 'codexAppSdkNative');
-    await expect(pickCodexAttachments()).resolves.toStrictEqual([]);
+    await expect(pickAttachments()).resolves.toBe(picked);
+    Reflect.deleteProperty(window, 'agentUiHostCapabilities');
+    await expect(pickAttachments()).resolves.toStrictEqual([]);
   });
 
   it('short-circuits empty ingestion and missing native support', async () => {
     const override = vi.fn();
-    await expect(ingestCodexAttachments([], override)).resolves.toStrictEqual([]);
+    await expect(ingestAttachments([], override)).resolves.toStrictEqual([]);
     expect(override).not.toHaveBeenCalled();
-    await expect(ingestCodexAttachments([file('one.txt', '', new Uint8Array([1]))])).resolves.toStrictEqual([]);
+    await expect(ingestAttachments([file('one.txt', '', new Uint8Array([1]))])).resolves.toStrictEqual([]);
   });
 
   it('serializes browser files for override ingestion', async () => {
     const ingested = [nativeAttachment('one.txt')];
     const override = vi.fn(async () => ingested);
     const bytes = new Uint8Array([1, 2, 3]);
-    await expect(ingestCodexAttachments([
+    await expect(ingestAttachments([
       file('one.txt', 'text/plain', bytes),
       file('unknown.bin', '', new Uint8Array([4])),
     ], override)).resolves.toBe(ingested);
@@ -84,13 +84,13 @@ describe('native renderer capabilities', () => {
   });
 
   it('uses the native ingestion bridge by default', async () => {
-    const ingestAttachments = vi.fn(async () => []);
-    Object.defineProperty(window, 'codexAppSdkNative', {
+    const ingest = vi.fn(async () => []);
+    Object.defineProperty(window, 'agentUiHostCapabilities', {
       configurable: true,
-      value: { ingestAttachments } as unknown as CodexNativeRendererApi,
+      value: { ingestAttachments: ingest } as unknown as NativeRendererApi,
     });
-    await ingestCodexAttachments([file('one.txt', 'text/plain', new Uint8Array([1]))]);
-    expect(ingestAttachments).toHaveBeenCalledOnce();
+    await ingestAttachments([file('one.txt', 'text/plain', new Uint8Array([1]))]);
+    expect(ingest).toHaveBeenCalledOnce();
   });
 });
 
@@ -104,7 +104,7 @@ function file(name: string, type: string, data: Uint8Array): File {
   return value;
 }
 
-function nativeAttachment(name: string): CodexNativeAttachment {
+function nativeAttachment(name: string): NativeAttachment {
   return {
     id: `attachment-${name}`,
     type: 'file',

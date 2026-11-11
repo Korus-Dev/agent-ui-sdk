@@ -1,14 +1,14 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 import SparkSidebar from '../src/renderer/components/SparkSidebar.vue';
-const surfaceSnapshot = () => ({ conversations: [{ id: 'thread-1', title: 'Silly Dragon Story', preview: 'Let’s imagine something!' }] });
+const hostSnapshot = () => ({ conversations: [{ id: 'thread-1', title: 'Silly Dragon Story', preview: 'Let’s imagine something!' }] });
 
 describe('SparkSidebar', () => {
   it('renders friendly SDK conversation data and emits navigation actions', async () => {
     const conversations = [
-      ...surfaceSnapshot().conversations,
+      ...hostSnapshot().conversations,
       {
-        ...surfaceSnapshot().conversations[0]!,
+        ...hostSnapshot().conversations[0]!,
         id: 'thread-2',
         title: 'Space Questions',
         preview: 'Why do stars shine?',

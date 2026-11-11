@@ -1,6 +1,6 @@
 import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron';
-import { registerElectronMain } from '@korus-dev/agent-ui-sdk/electron.js';
-import * as browser from '@korus-dev/agent-ui-sdk/electron/browser.js';
+import { registerNativeIpc, registerIpcMainHandlers } from '@korus-dev/agent-ui-sdk/electron';
+import * as browser from '@korus-dev/agent-ui-sdk/electron/browser';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 
@@ -22,16 +22,13 @@ app.whenReady().then(async () => {
     app.exit(1);
   });
 
-  const dispose = registerElectronMain({
+  const dispose = registerNativeIpc({
     clipboard, dialog, ipcMain, shell,
-    sender: window.webContents,
-    isTrustedSender: event => event.sender === window.webContents,
-    surface: {
-      getSnapshot: () => ({ smoke: 'packaged-sdk', connected: true }),
-      onStateChange: () => () => {},
-      onEvent: () => () => {},
-    },
-  });
+  }, { isTrustedSender: event => event.sender === window.webContents });
+  const unregister = registerIpcMainHandlers(ipcMain, {
+    'smoke:snapshot': () => ({ smoke: 'packaged-sdk', connected: true }),
+  }, { isTrustedSender: event => event.sender === window.webContents });
+  app.on('before-quit', unregister);
   app.on('before-quit', dispose);
   await window.loadFile(path.join(import.meta.dirname, 'index.html'));
 }).catch(error => {

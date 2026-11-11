@@ -1,8 +1,8 @@
-export type CodexConversationVisualization = {
+export type ConversationVisualization = {
   readonly path: string;
   readonly title: string;
 };
 
-export type CodexConversationVisualizationOpenHandler = (
-  visualization: CodexConversationVisualization,
+export type ConversationVisualizationOpenHandler = (
+  visualization: ConversationVisualization,
 ) => void | Promise<void>;

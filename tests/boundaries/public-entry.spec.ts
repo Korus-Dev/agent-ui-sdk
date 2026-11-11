@@ -4,6 +4,8 @@ import path from 'node:path';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 import * as ui from '../../src/vue/index';
+import * as electron from '../../src/electron/index';
+import * as preload from '../../src/electron/preload';
 
 // Follow emitted runtime imports only; type-only host contracts do not load a runtime.
 function runtimeGraph(entry: string, seen = new Set<string>()): Set<string> {
@@ -15,7 +17,7 @@ function runtimeGraph(entry: string, seen = new Set<string>()): Set<string> {
   const imports = ts.preProcessFile(emitted).importedFiles.map(item => item.fileName);
   for (const name of imports) {
     if (!name.startsWith('.')) {
-      expect(name).not.toMatch(/^(node:|electron(?:\/|$)|ws$|@korus-dev\/agent-ui-sdk\/(native|electron|speech|browser)|@korus-dev\/multi-agent-sdk\/(surface(?:-bridge)?|codex|native|providers|backend)(?:\/|$))/);
+      expect(name).not.toMatch(/^(node:|electron(?:\/|$)|ws$|@korus-dev\/agent-ui-sdk\/(native|electron|speech|browser)|@korus-dev\/multi-agent-sdk\/(host-bridge|surface(?:-bridge)?|codex|native|providers|backend)(?:\/|$))/);
       continue;
     }
     const base = path.resolve(path.dirname(entry), name);
@@ -26,13 +28,19 @@ function runtimeGraph(entry: string, seen = new Set<string>()): Set<string> {
 }
 
 describe('public UI boundary', () => {
-  it('offers neutral controls as the same implementations as compatibility names', () => {
-    expect(ui.Composer).toBe(ui.CodexComposer);
-    expect(ui.ConversationPane).toBe(ui.CodexConversationPane);
-    expect(ui.MessageList).toBe(ui.CodexMessageList);
-    for (const name of ['useSurface', 'useLiveChat', 'useCodexSurface', 'useCodexLiveChat', 'useNativeSurface', 'useNativeLiveChat', 'codexCommands', 'codexCapabilities']) expect(ui).not.toHaveProperty(name);
-    expect(ui.createConversationPaneController).toBe(ui.createCodexConversationPaneController);
-    expect(ui).not.toHaveProperty('CodexConversationSidebar');
+  it('keeps backend-specific adapters outside every UI entry', () => {
+    for (const entry of [ui, electron, preload]) {
+      expect(Object.keys(entry).filter(name => /codex|claude|antigravity/i.test(name))).toEqual([]);
+    }
+    const metadata = JSON.parse(readFileSync(path.resolve(import.meta.dirname, '../../package.json'), 'utf8'));
+    expect(metadata.exports).not.toHaveProperty('./native');
+  });
+  it('exports provider-neutral controls and keeps Codex integrations opt-in', () => {
+    for (const name of ['Composer', 'ConversationPane', 'MessageList', 'Message', 'ApprovalPrompt', 'createConversationPaneController']) {
+      expect(ui).toHaveProperty(name);
+    }
+    expect(Object.keys(ui).filter(name => /codex/i.test(name))).toEqual([]);
+    for (const name of ['useSurface', 'useLiveChat', 'useCodexHost', 'useCodexLiveChat', 'codexCommands', 'codexCapabilities']) expect(ui).not.toHaveProperty(name);
   });
 
   // This audit transpiles the complete source graph on cold CI workers.
@@ -41,7 +49,7 @@ describe('public UI boundary', () => {
     for (const name of ['MarkdownPanel', 'SourcePreviewPanel', 'DiffPreviewPanel']) runtimeGraph(path.resolve(import.meta.dirname, `../../src/vue/documents/${name}.vue`), graph);
     const files = [...graph];
     for (const file of files) {
-      expect(readFileSync(file, 'utf8')).not.toMatch(/(?:from\s*|import\()['"]@korus-dev\/multi-agent-sdk\/(?:surface(?:-bridge)?|codex|native|providers)(?:['"/])/);
+      expect(readFileSync(file, 'utf8')).not.toMatch(/(?:from\s*|import\()['"]@korus-dev\/multi-agent-sdk\/(?:host-bridge|surface(?:-bridge)?|codex|native|providers)(?:['"/])/);
       expect(path.relative(path.resolve(import.meta.dirname, '../../src'), file)).not.toMatch(/(?:Korus|ConversationSidebar|Treemap)/i);
     }
     expect(Object.keys(ui).filter(name => /korus|sidebar|treemap/i.test(name))).toEqual([]);

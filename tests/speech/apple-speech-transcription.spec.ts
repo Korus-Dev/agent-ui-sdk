@@ -27,31 +27,31 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
     });
 
     expect(result).toStrictEqual({ text: 'ship the feature' });
-    expect(fs.writeFile).toHaveBeenCalledWith('/tmp/codex-app-sdk-apple-stt-123/input.wav', Buffer.from('audio'));
+    expect(fs.writeFile).toHaveBeenCalledWith('/tmp/agent-ui-sdk-apple-stt-123/input.wav', Buffer.from('audio'));
     expect(fs.copyFile).toHaveBeenCalledWith(
       '/app/assets/apple-speechanalyzer-cli',
-      '/tmp/codex-app-sdk-apple-stt-123/apple-speechanalyzer-cli',
+      '/tmp/agent-ui-sdk-apple-stt-123/apple-speechanalyzer-cli',
     );
     expect(fs.chmod).toHaveBeenCalledWith(
-      '/tmp/codex-app-sdk-apple-stt-123/apple-speechanalyzer-cli',
+      '/tmp/agent-ui-sdk-apple-stt-123/apple-speechanalyzer-cli',
       0o700,
     );
-    expect(spawn).toHaveBeenCalledWith('/tmp/codex-app-sdk-apple-stt-123/apple-speechanalyzer-cli', [
+    expect(spawn).toHaveBeenCalledWith('/tmp/agent-ui-sdk-apple-stt-123/apple-speechanalyzer-cli', [
       '--input-audio-path',
-      '/tmp/codex-app-sdk-apple-stt-123/input.wav',
+      '/tmp/agent-ui-sdk-apple-stt-123/input.wav',
       '--output-txt-path',
-      '/tmp/codex-app-sdk-apple-stt-123/output.txt',
+      '/tmp/agent-ui-sdk-apple-stt-123/output.txt',
       '--locale',
       'en-US',
     ]);
-    expect(fs.rm).toHaveBeenCalledWith('/tmp/codex-app-sdk-apple-stt-123', { recursive: true, force: true });
-    expect(fs.readFile).toHaveBeenCalledWith('/tmp/codex-app-sdk-apple-stt-123/output.txt', 'utf8');
+    expect(fs.rm).toHaveBeenCalledWith('/tmp/agent-ui-sdk-apple-stt-123', { recursive: true, force: true });
+    expect(fs.readFile).toHaveBeenCalledWith('/tmp/agent-ui-sdk-apple-stt-123/output.txt', 'utf8');
   });
 
   it('normalizes optional locale and live CLI arguments', async () => {
     const required = [
-      '--input-audio-path', '/tmp/codex-app-sdk-apple-stt-123/input.wav',
-      '--output-txt-path', '/tmp/codex-app-sdk-apple-stt-123/output.txt',
+      '--input-audio-path', '/tmp/agent-ui-sdk-apple-stt-123/input.wav',
+      '--output-txt-path', '/tmp/agent-ui-sdk-apple-stt-123/output.txt',
     ];
     for (const [options, optional] of [
       [{ locale: '  fr-FR  ', live: true }, ['--locale', 'fr-FR', '--live']],
@@ -62,7 +62,7 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
         assetsPath: '/app/assets', fs: fakeFs('result'), spawn, tmpdir: () => '/tmp',
       });
       expect(spawn).toHaveBeenCalledWith(
-        '/tmp/codex-app-sdk-apple-stt-123/apple-speechanalyzer-cli', [...required, ...optional],
+        '/tmp/agent-ui-sdk-apple-stt-123/apple-speechanalyzer-cli', [...required, ...optional],
       );
     }
   });
@@ -78,7 +78,7 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
         assetsPath: '/app/assets', fs, spawn, tmpdir: () => '/tmp',
       })).resolves.toStrictEqual({ text: '', error: expected });
       expect(fs.rm).toHaveBeenCalledWith(
-        '/tmp/codex-app-sdk-apple-stt-123', { recursive: true, force: true },
+        '/tmp/agent-ui-sdk-apple-stt-123', { recursive: true, force: true },
       );
     }
 
@@ -103,10 +103,10 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
     expect(result).toStrictEqual({ text: 'from env' });
     expect(fs.copyFile).toHaveBeenCalledWith(
       '/configured/assets/apple-speechanalyzer-cli',
-      '/tmp/codex-app-sdk-apple-stt-123/apple-speechanalyzer-cli',
+      '/tmp/agent-ui-sdk-apple-stt-123/apple-speechanalyzer-cli',
     );
     expect(spawn).toHaveBeenCalledWith(
-      '/tmp/codex-app-sdk-apple-stt-123/apple-speechanalyzer-cli',
+      '/tmp/agent-ui-sdk-apple-stt-123/apple-speechanalyzer-cli',
       expect.any(Array),
     );
   });
@@ -186,7 +186,7 @@ describe('transcribeWithAppleSpeechAnalyzer', () => {
       (filePath) => filePath === packagePath,
       {
         packageResolve: (specifier) => {
-          if (specifier !== '@korus-dev/agent-ui-sdk/speech.js') throw new Error('unexpected package');
+          if (specifier !== '@korus-dev/agent-ui-sdk/speech') throw new Error('unexpected package');
           return entryUrl;
         },
       },

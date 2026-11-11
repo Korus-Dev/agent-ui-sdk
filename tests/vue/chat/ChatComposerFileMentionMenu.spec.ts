@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import ChatComposerFileMentionMenu from '../../../src/vue/chat/ChatComposerFileMentionMenu.vue';
-import type { CodexFileSearchItem } from '../../../src/vue/chat/contracts';
+import type { FileSearchItem } from '../../../src/vue/chat/contracts';
 
 const files = [
   { name: 'README.md', path: 'README.md' },
@@ -58,7 +58,7 @@ describe('ChatComposerFileMentionMenu', () => {
 function mountMenu(props: Partial<{
   activeIndex: number;
   showHint: boolean;
-  visibleFiles: CodexFileSearchItem[];
+  visibleFiles: FileSearchItem[];
 }> = {}) {
   return mount(ChatComposerFileMentionMenu, {
     props: {

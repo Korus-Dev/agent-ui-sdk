@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-chat-theme chat-message__edit-card">
+  <div class="agent-ui-theme chat-message__edit-card">
     <ChatRichTextEditor
       v-if="promptContent?.some(part => part.type === 'mention')"
       ref="richInput"
@@ -37,15 +37,15 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { trimPromptContent } from '@korus-dev/multi-agent-sdk/prompt.js';
-import type { PromptPart as CodexPromptPart, ClientSendMessageOptions as CodexRendererSendMessageOptions } from '@korus-dev/multi-agent-sdk';
-import ChatRichTextEditor, { type CodexRichTextEditorExpose } from './ChatRichTextEditor.vue'
+import { trimPromptContent } from '@korus-dev/multi-agent-sdk/prompt';
+import type { PromptPart, ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
+import ChatRichTextEditor, { type RichTextEditorExpose } from './ChatRichTextEditor.vue'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   cancelLabel: string
   content: string
-  promptContent?: readonly CodexPromptPart[]
+  promptContent?: readonly PromptPart[]
   inputLabel: string
   saveLabel: string
 }>()
@@ -54,12 +54,12 @@ const props = defineProps<{
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const emit = defineEmits<{
   cancel: []
-  save: [content: string, options?: Pick<CodexRendererSendMessageOptions, 'content'>]
+  save: [content: string, options?: Pick<ClientSendMessageOptions, 'content'>]
 }>()
 // Stryker restore all
 
 const draft = ref(props.content)
-const richInput = ref<CodexRichTextEditorExpose | null>(null)
+const richInput = ref<RichTextEditorExpose | null>(null)
 const input = ref<HTMLTextAreaElement | null>(null)
 let focusFrame: number | null = null
 

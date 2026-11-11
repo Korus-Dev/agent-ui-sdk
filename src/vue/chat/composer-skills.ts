@@ -1,5 +1,5 @@
-import type { Plugin as CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
-import type { CodexSkillSummary, PromptSkillInput } from './contracts';
+import type { Plugin } from '@korus-dev/multi-agent-sdk';
+import type { SkillSummary, PromptSkillInput } from './contracts';
 import { filterComposerSearchItems } from './composer-search';
 
 export type ActiveSkillSlash = {
@@ -40,11 +40,11 @@ export function findActiveSkillSlash(value: string, caretPosition: number): Acti
 }
 
 export function filterComposerSkills(
-  skills: CodexSkillSummary[],
+  skills: SkillSummary[],
   query: string,
   maxResults = -1,
-  plugins: readonly CodexSurfacePlugin[] = [],
-): CodexSkillSummary[] {
+  plugins: readonly Plugin[] = [],
+): SkillSummary[] {
   return filterComposerSearchItems(skills, query, [
     { values: (skill) => [skill.id, skillInsertText(skill), skill.name, skill.displayName, skillDisplayName(skill, plugins)] },
     { values: (skill) => [skill.shortDescription, skill.description] },
@@ -52,8 +52,8 @@ export function filterComposerSkills(
 }
 
 export function skillDisplayName(
-  skill: CodexSkillSummary,
-  plugins: readonly CodexSurfacePlugin[] = [],
+  skill: SkillSummary,
+  plugins: readonly Plugin[] = [],
 ): string {
   if (skill.displayName) return skill.displayName;
   const separator = skill.name.indexOf(':');
@@ -72,11 +72,11 @@ export function skillDisplayName(
   return `${namespace}:${skill.name.slice(separator + 1)}`;
 }
 
-export function skillDescription(skill: CodexSkillSummary): string {
+export function skillDescription(skill: SkillSummary): string {
   return skill.shortDescription || skill.description || '';
 }
 
-export function skillInsertText(skill: Pick<CodexSkillSummary, 'name' | 'path'>): string {
+export function skillInsertText(skill: Pick<SkillSummary, 'name' | 'path'>): string {
   const alias = /\(([A-Za-z0-9_.-]+)\)\s*$/.exec(skill.name)?.[1];
   if (alias) return alias;
   if (/^[A-Za-z0-9_.-]+$/.test(skill.name)) return skill.name;
@@ -94,7 +94,7 @@ export function skillMatchesMention(
     .some((candidate) => candidate?.trim().toLowerCase() === normalized);
 }
 
-export function promptSkillInputsFromText(text: string, skills: CodexSkillSummary[]): PromptSkillInput[] {
+export function promptSkillInputsFromText(text: string, skills: SkillSummary[]): PromptSkillInput[] {
   const names = new Set<string>();
   const pattern = /(?:^|[^\w.%+-])[$/]([A-Za-z0-9_.-]+)/g;
   let match: RegExpExecArray | null;

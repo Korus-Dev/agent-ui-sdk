@@ -1,7 +1,7 @@
 <template>
   <button
     v-if="path"
-    class="codex-chat-theme chat-visualization-block"
+    class="agent-ui-theme chat-visualization-block"
     type="button"
     @click="open"
   >
@@ -9,7 +9,7 @@
     <span>{{ title }}</span>
     <ExternalLinkIcon class="chat-visualization-block__open" />
   </button>
-  <div v-else class="codex-chat-theme chat-visualization-block">
+  <div v-else class="agent-ui-theme chat-visualization-block">
     <DashboardIcon class="chat-visualization-block__icon" />
     <span>{{ title }}</span>
   </div>
@@ -17,12 +17,12 @@
 
 <script setup lang="ts">
 import { DashboardIcon, ExternalLinkIcon } from '../shared/icons/app-icons'
-import type { CodexConversationVisualization } from './visualization'
+import type { ConversationVisualization } from './visualization'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{ path?: string; title: string }>()
 const emit = defineEmits<{
-  'open-visualization': [visualization: CodexConversationVisualization]
+  'open-visualization': [visualization: ConversationVisualization]
 }>()
 // Stryker restore all
 

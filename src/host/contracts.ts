@@ -1,40 +1,40 @@
-export type CodexSpeechTranscriptionResult = {
+export type SpeechTranscriptionResult = {
   text: string;
   error?: string;
 };
 
 /** Full replacement of the current transcript, not an append-only word delta. */
-export type CodexSpeechTranscript = { finalText: string; partialText: string };
-export type CodexSpeechPreparationOptions = { sessionId: string; locale?: string };
-export type CodexSpeechSessionOptions = CodexSpeechPreparationOptions & { sampleRate: number };
+export type SpeechTranscript = { finalText: string; partialText: string };
+export type SpeechPreparationOptions = { sessionId: string; locale?: string };
+export type SpeechSessionOptions = SpeechPreparationOptions & { sampleRate: number };
 /** Trusted-process session; PCM is delivered only after startup completes. */
-export type CodexSpeechSession = {
+export type SpeechSession = {
   append(audio: ArrayBuffer): Promise<void>;
-  stop(): Promise<CodexSpeechTranscriptionResult>;
+  stop(): Promise<SpeechTranscriptionResult>;
   cancel(): Promise<void>;
 };
 /** Preparation owns resources until activation at the actual capture sample rate. */
-export type CodexPreparedSpeechSession = {
-  start(sampleRate: number): Promise<CodexSpeechSession>;
+export type PreparedSpeechSession = {
+  start(sampleRate: number): Promise<SpeechSession>;
   cancel(): Promise<void>;
 };
-export type CodexSpeechSessionEvent =
-  | ({ type: 'transcript'; sessionId: string } & CodexSpeechTranscript)
+export type SpeechSessionEvent =
+  | ({ type: 'transcript'; sessionId: string } & SpeechTranscript)
   | { type: 'error'; sessionId: string; error: string };
 
 /** Mono Float32 little-endian PCM, sent once in capture order. Stop drains final results. */
-export type CodexStreamingTranscription = {
+export type StreamingTranscription = {
   /** Optional connection preparation, safe to run concurrently with microphone setup. */
-  prepare?(options: CodexSpeechPreparationOptions): Promise<void>;
-  start(options: CodexSpeechSessionOptions): Promise<void>;
+  prepare?(options: SpeechPreparationOptions): Promise<void>;
+  start(options: SpeechSessionOptions): Promise<void>;
   append(sessionId: string, audio: ArrayBuffer): Promise<void>;
-  stop(sessionId: string): Promise<CodexSpeechTranscriptionResult>;
+  stop(sessionId: string): Promise<SpeechTranscriptionResult>;
   cancel(sessionId: string): Promise<void>;
-  onEvent(listener: (event: CodexSpeechSessionEvent) => void): () => void;
+  onEvent(listener: (event: SpeechSessionEvent) => void): () => void;
 };
 
 /** Renderer-safe attachment metadata. `reference` is an opaque host capability, never a filesystem path. */
-export type CodexHostAttachment = {
+export type HostAttachment = {
   id: string;
   type: 'file' | 'image';
   reference: string;
@@ -44,65 +44,45 @@ export type CodexHostAttachment = {
   previewUrl?: string;
 };
 
-export type CodexHostAttachmentInput = {
+export type HostAttachmentInput = {
   name: string;
   mimeType?: string;
   data: ArrayBuffer;
 };
 
-/** @deprecated Use the platform-neutral `CodexHostAttachment` name. */
-export type CodexNativeAttachment = CodexHostAttachment;
-/** @deprecated Use the platform-neutral `CodexHostAttachmentInput` name. */
-export type CodexNativeAttachmentInput = CodexHostAttachmentInput;
+export type NativeAttachment = HostAttachment;
+export type NativeAttachmentInput = HostAttachmentInput;
 
-export type CodexNativeClipboardContent = {
+export type NativeClipboardContent = {
   text: string;
   html?: string;
 };
 
-export type CodexHostCapabilities = {
+export type HostCapabilities = {
   /** Absent when only batch transcription is available. */
-  streamingTranscription?: CodexStreamingTranscription;
+  streamingTranscription?: StreamingTranscription;
   capabilities: {
     attachments: boolean;
     clipboard: boolean;
     externalLinks: boolean;
     transcription: boolean;
   };
-  copyToClipboard(content: CodexNativeClipboardContent): Promise<void>;
-  ingestAttachments(files: readonly CodexHostAttachmentInput[]): Promise<CodexHostAttachment[]>;
+  copyToClipboard(content: NativeClipboardContent): Promise<void>;
+  ingestAttachments(files: readonly HostAttachmentInput[]): Promise<HostAttachment[]>;
   openExternal(href: string): Promise<void>;
-  pickAttachments(): Promise<CodexHostAttachment[]>;
+  pickAttachments(): Promise<HostAttachment[]>;
   readImagePreview?(reference: string): Promise<string | null>;
   transcribeAudio(
     audioData: ArrayBuffer,
     options?: { locale?: string; live?: boolean },
-  ): Promise<CodexSpeechTranscriptionResult>;
+  ): Promise<SpeechTranscriptionResult>;
 };
 
-/** @deprecated Use the platform-neutral `CodexHostCapabilities` name. */
-export type CodexNativeRendererApi = CodexHostCapabilities;
+export type NativeRendererApi = HostCapabilities;
 
-export const codexNativeRendererGlobal = 'codexAppSdkNative';
+export const nativeRendererGlobal = 'agentUiHostCapabilities';
 
-// Neutral public vocabulary; legacy names remain compatible.
-export type SpeechTranscriptionResult = CodexSpeechTranscriptionResult;
-export type SpeechTranscript = CodexSpeechTranscript;
-export type SpeechPreparationOptions = CodexSpeechPreparationOptions;
-export type SpeechSessionOptions = CodexSpeechSessionOptions;
-export type SpeechSession = CodexSpeechSession;
-export type PreparedSpeechSession = CodexPreparedSpeechSession;
-export type SpeechSessionEvent = CodexSpeechSessionEvent;
-export type StreamingTranscription = CodexStreamingTranscription;
-export type HostAttachment = CodexHostAttachment;
-export type HostAttachmentInput = CodexHostAttachmentInput;
-export type NativeAttachment = CodexNativeAttachment;
-export type NativeAttachmentInput = CodexNativeAttachmentInput;
-export type NativeClipboardContent = CodexNativeClipboardContent;
-export type HostCapabilities = CodexHostCapabilities;
-export type NativeRendererApi = CodexNativeRendererApi;
 
-export const nativeRendererGlobal = codexNativeRendererGlobal;
 
 export { toHarnessPromptOptions } from './session-prompt-options';
 

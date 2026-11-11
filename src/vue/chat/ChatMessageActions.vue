@@ -1,6 +1,6 @@
 <template>
   <div
-    class="codex-chat-theme chat-message-actions"
+    class="agent-ui-theme chat-message-actions"
     :class="`chat-message-actions--${message.role}`"
     :aria-busy="deleting ? 'true' : undefined"
     :aria-label="t('chat.actions.label')"
@@ -75,12 +75,12 @@
 <script setup lang="ts">
 import { ArrowForkIcon, Loader2Icon, PencilIcon, QuoteIcon, RotateClockwiseIcon, Trash2Icon } from '../shared/icons/app-icons'
 import { computed } from 'vue'
-import { useCodexChatTranslate } from './chat-i18n'
+import { useChatTranslate } from './chat-i18n'
 import ChatCopyButton from './ChatCopyButton.vue'
 import ChatIconButton from './ChatIconButton.vue'
 import { formatMessageSentAt, fullMessageSentAt } from './message-time'
-import type { CodexMessageActionsPresentation } from './contracts'
-import type { Message } from './types'
+import type { MessageActionsPresentation } from './contracts'
+import type { ChatMessage } from './types'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{
@@ -90,10 +90,10 @@ const props = withDefaults(defineProps<{
   canRetry?: boolean
   copyAction?: () => Promise<void> | void
   deleting?: boolean
-  message: Message
+  message: ChatMessage
   iconsVisible?: boolean
   mutationDisabled?: boolean
-  presentation?: CodexMessageActionsPresentation
+  presentation?: MessageActionsPresentation
 }>(), {
   iconsVisible: true,
   canDelete: true,
@@ -113,7 +113,7 @@ const emit = defineEmits<{
   retry: []
 }>()
 // Stryker restore all
-const t = useCodexChatTranslate()
+const t = useChatTranslate()
 const showCopy = computed(() => props.presentation?.copy !== false)
 const showDelete = computed(() => props.presentation?.delete !== false)
 const showEdit = computed(() => props.presentation?.edit !== false)

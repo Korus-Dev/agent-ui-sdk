@@ -4,6 +4,14 @@ Vue conversation controls for applications powered by Codex, Claude, Cursor and 
 
 Build a complete conversation pane or compose individual controls: rich prompt editing, streaming messages, approvals and questions, model selection, tools, queues, goals, attachments and document previews. Your host supplies state, capabilities, catalogs and actions.
 
+[![npm version](https://img.shields.io/npm/v/%40korus-dev%2Fagent-ui-sdk?color=0b7a65)](https://www.npmjs.com/package/@korus-dev/agent-ui-sdk)
+[![CI](https://github.com/Korus-Dev/agent-ui-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Korus-Dev/agent-ui-sdk/actions/workflows/ci.yml)
+[![Documentation](https://github.com/Korus-Dev/agent-ui-sdk/actions/workflows/docs.yml/badge.svg?branch=main)](https://korus-dev.github.io/agent-ui-sdk/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-0b7a65.svg)](LICENSE)
+[![Node.js](https://img.shields.io/node/v/%40korus-dev%2Fagent-ui-sdk?color=339933)](package.json)
+
+**[Documentation →](https://korus-dev.github.io/agent-ui-sdk/)**
+
 ## Install
 
 ```bash
@@ -26,7 +34,7 @@ Bind a reactive session snapshot and renderer-safe operations with `createSessio
 
 The [VitePress guides](https://korus-dev.github.io/agent-ui-sdk/) cover installation, session composition, the composer, messages, tools, history, themes, providers, documents, browser panels and native capabilities. Run `npm run dev:docs` to read them locally.
 
-The root import contains Vue controls. Named optional entries keep trusted host code separate: `/host.js`, `/native.js`, `/electron.js`, `/electron/preload.js`, `/electron/browser.js`, `/speech.js`, `/browser.js`, `/browser-ui.js` and `/documents.js`. See the [entry-point reference](https://korus-dev.github.io/agent-ui-sdk/api/). Applications own navigation, authorization, durable attachments and retention.
+The root import contains provider-neutral Vue controls. State, capabilities and application-owned actions determine their behavior. Named optional entries keep trusted host code separate: `/host`, `/electron`, `/electron/preload`, `/electron/browser`, `/speech`, `/browser`, `/browser-ui` and `/documents`. See the [entry-point reference](https://korus-dev.github.io/agent-ui-sdk/api/). Applications own navigation, authorization, durable attachments and retention.
 
 ## Samples
 

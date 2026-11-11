@@ -3,24 +3,24 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import ChatModelReasoningSelector from '../../../src/vue/chat/ChatModelReasoningSelector.vue';
-import CodexComposerMenu from '../../../src/vue/components/CodexComposerMenu.vue';
-import type { CodexModelOption, ReasoningEffort } from '../../../src/vue/chat/contracts';
-import type { CodexComposerMenuItem } from '../../../src/vue/composer-menu';
-import { CodexUltrafastIcon } from '../../../src/vue';
+import ComposerMenu from '../../../src/vue/components/ComposerMenu.vue';
+import type { ModelOption, ReasoningEffort } from '../../../src/vue/chat/contracts';
+import type { ComposerMenuItem } from '../../../src/vue/composer-menu';
+import { UltrafastIcon } from '../../../src/vue';
 
 type SelectorProps = {
   disabled?: boolean;
   modelCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   modelId?: string | null;
-  menuItems?: CodexComposerMenuItem<{ action: 'select' | 'remove'; id: string }>[];
-  models?: CodexModelOption[];
+  menuItems?: ComposerMenuItem<{ action: 'select' | 'remove'; id: string }>[];
+  models?: ModelOption[];
   reasoningEffort?: ReasoningEffort | null;
   serviceTier?: string | null;
   showReasoning?: boolean;
   showServiceTier?: boolean;
 };
 
-const models: CodexModelOption[] = [
+const models: ModelOption[] = [
   {
     id: 'codex-fast',
     model: 'gpt-5.1-codex-fast',
@@ -90,7 +90,7 @@ describe('ChatModelReasoningSelector', () => {
   });
 
   it('uses explicit, default, and first-supported reasoning efforts in order', () => {
-    const model: CodexModelOption = {
+    const model: ModelOption = {
       ...models[0]!,
       defaultReasoningEffort: null,
       supportedReasoningEfforts: [
@@ -122,7 +122,7 @@ describe('ChatModelReasoningSelector', () => {
   });
 
   it('renders exact fallback effort labels when a supported effort is blank', () => {
-    const blankEffortModel: CodexModelOption = {
+    const blankEffortModel: ModelOption = {
       ...models[0]!,
       defaultReasoningEffort: null,
       supportedReasoningEfforts: [{ reasoningEffort: '', description: 'Blank' }],
@@ -208,7 +208,7 @@ describe('ChatModelReasoningSelector', () => {
     await wrapper.get('.chat-model-selector__button').trigger('click');
 
     const rootMenu = wrapper.get('.chat-model-selector__menu');
-    expect(rootMenu.get('.codex-composer-menu-list__heading-label').text()).toBe('Favorites');
+    expect(rootMenu.get('.agent-ui-composer-menu-list__heading-label').text()).toBe('Favorites');
     expect(rootMenu.findAll('[role="separator"]')).toHaveLength(2);
     await rootMenu.get('button[aria-label="Add current to favorites"]').trigger('click');
     expect(wrapper.emitted('menuSelect')).toStrictEqual([[addFavorite]]);
@@ -220,11 +220,11 @@ describe('ChatModelReasoningSelector', () => {
     expect(wrapper.find('.chat-model-selector__menu').exists()).toBe(false);
 
     await wrapper.get('.chat-model-selector__button').trigger('click');
-    const removeMenu = wrapper.findAll('.codex-composer-menu-list__submenu')
+    const removeMenu = wrapper.findAll('.agent-ui-composer-menu-list__submenu')
       .find((submenu) => submenu.get(':scope > button').text().includes('Remove favorite'));
     expect(removeMenu).toBeDefined();
     await removeMenu!.get(':scope > button').trigger('click');
-    await removeMenu!.get(':scope > .codex-composer-menu-list__submenu-list > [role="menuitem"]').trigger('click');
+    await removeMenu!.get(':scope > .agent-ui-composer-menu-list__submenu-list > [role="menuitem"]').trigger('click');
     expect(wrapper.emitted('menuSelect')).toStrictEqual([[addFavorite], [selectFavorite], [removeFavorite]]);
   });
 
@@ -236,11 +236,11 @@ describe('ChatModelReasoningSelector', () => {
     const fastMode = wrapper.findAll('[role="menuitemcheckbox"]');
     expect(fastMode).toHaveLength(1);
     expect(fastMode[0]!.text()).toContain('Normal speed');
-    expect(fastMode[0]!.get('.codex-composer-menu-list__copy').text()).toBe('Normal speed');
+    expect(fastMode[0]!.get('.agent-ui-composer-menu-list__copy').text()).toBe('Normal speed');
     expect(fastMode[0]!.get('[aria-label="Default processing for this model."]').attributes('title')).toBe('Default processing for this model.');
     expect(fastMode[0]!.attributes('aria-checked')).toBe('false');
-    expect(fastMode[0]!.find('.codex-composer-menu-list__switch').exists()).toBe(false);
-    expect(fastMode[0]!.find('.codex-composer-menu-list__icon-toggle svg').exists()).toBe(true);
+    expect(fastMode[0]!.find('.agent-ui-composer-menu-list__switch').exists()).toBe(false);
+    expect(fastMode[0]!.find('.agent-ui-composer-menu-list__icon-toggle svg').exists()).toBe(true);
     await fastMode[0]!.trigger('click');
     expect(wrapper.emitted('update:serviceTier')).toStrictEqual([['priority']]);
     expect(wrapper.find('[role="menu"]').exists()).toBe(true);
@@ -256,13 +256,13 @@ describe('ChatModelReasoningSelector', () => {
     expect(speed().get('button').text()).toContain('Normal speed');
     await speed().trigger('mouseenter');
     const options = speed().findAll('[role="menuitemradio"]');
-    expect(options.map(option => option.get('.codex-composer-menu-list__label').text())).toEqual(['Normal speed', 'Fast mode', 'Ultrafast']);
+    expect(options.map(option => option.get('.agent-ui-composer-menu-list__label').text())).toEqual(['Normal speed', 'Fast mode', 'Ultrafast']);
     await options[2]!.trigger('click');
     expect(wrapper.emitted('update:serviceTier')).toEqual([['ultrafast']]);
     await wrapper.setProps({ serviceTier: 'ultrafast' });
-    expect(wrapper.findComponent(CodexUltrafastIcon).exists()).toBe(true);
+    expect(wrapper.findComponent(UltrafastIcon).exists()).toBe(true);
     await wrapper.get('.chat-model-selector__button').trigger('click');
-    expect(speed().get('.codex-composer-menu-list__label').text()).toBe('Ultrafast');
+    expect(speed().get('.agent-ui-composer-menu-list__label').text()).toBe('Ultrafast');
     await speed().trigger('mouseenter');
     await speed().findAll('[role="menuitemradio"]')[0]!.trigger('click');
     expect(wrapper.emitted('update:serviceTier')).toEqual([['ultrafast'], [null]]);
@@ -275,13 +275,13 @@ describe('ChatModelReasoningSelector', () => {
   it('turns an already selected Fast mode off', async () => {
     const wrapper = mountSelector({ modelId: 'codex-max', serviceTier: 'priority' });
     await wrapper.get('.chat-model-selector__button').trigger('click');
-    await wrapper.get('.codex-composer-menu-list__icon-toggle').trigger('click');
+    await wrapper.get('.agent-ui-composer-menu-list__icon-toggle').trigger('click');
 
     expect(wrapper.emitted('update:serviceTier')).toStrictEqual([[null]]);
   });
 
   it('recognizes a fast service tier by name and emits its exact id', async () => {
-    const nameMatchedModel: CodexModelOption = {
+    const nameMatchedModel: ModelOption = {
       ...models[0]!,
       serviceTiers: [{ id: 'turbo', name: 'Priority lane', description: 'Name-matched speed' }],
     };
@@ -332,12 +332,12 @@ describe('ChatModelReasoningSelector', () => {
     const wrapper = mountSelector({ modelId: 'codex-max', serviceTier: 'priority' });
     await wrapper.get('.chat-model-selector__button').trigger('click');
 
-    expect(wrapper.findAll('.codex-composer-menu-list__separator')).toHaveLength(1);
-    expect(wrapper.find('.codex-composer-menu-list__heading').exists()).toBe(false);
+    expect(wrapper.findAll('.agent-ui-composer-menu-list__separator')).toHaveLength(1);
+    expect(wrapper.find('.agent-ui-composer-menu-list__heading').exists()).toBe(false);
   });
 
   it('normalizes custom effort labels and marks only the effective effort as checked', async () => {
-    const customModel: CodexModelOption = {
+    const customModel: ModelOption = {
       ...models[0]!,
       defaultReasoningEffort: 'three_four',
       supportedReasoningEfforts: [
@@ -352,15 +352,15 @@ describe('ChatModelReasoningSelector', () => {
     await wrapper.get('[data-submenu-id="model:codex-fast"]').trigger('mouseenter');
     const choices = wrapper.findAll('[data-submenu-id="model:codex-fast"] [role="menuitemradio"]');
 
-    expect(wrapper.get('[data-submenu-id="model:codex-fast"] > button .codex-composer-menu-list__label').text())
+    expect(wrapper.get('[data-submenu-id="model:codex-fast"] > button .agent-ui-composer-menu-list__label').text())
       .toBe('GPT-5.1 Codex Fast');
-    expect(choices.map((choice) => choice.get('.codex-composer-menu-list__label').text())).toStrictEqual([
+    expect(choices.map((choice) => choice.get('.agent-ui-composer-menu-list__label').text())).toStrictEqual([
       'One Two',
       'Three Four',
       'Five Six',
       'Extra High',
     ]);
-    expect(choices[0]!.get('.codex-composer-menu-list__label').element.textContent).toBe('One Two');
+    expect(choices[0]!.get('.agent-ui-composer-menu-list__label').element.textContent).toBe('One Two');
     expect(choices.map((choice) => choice.attributes('aria-checked'))).toStrictEqual([
       'false',
       'true',
@@ -443,13 +443,13 @@ describe('ChatModelReasoningSelector', () => {
     expect(wrapper.get('[data-submenu-id="model:codex-fast"] > button').attributes('aria-expanded')).toBe('false');
     expect(wrapper.get('[data-submenu-id="model:codex-max"] > button').attributes('aria-expanded')).toBe('false');
     for (const submenuId of ['model:codex-fast', 'model:codex-max']) {
-      expect(wrapper.get(`[data-submenu-id="${submenuId}"] > .codex-composer-menu-list__submenu-list`).classes())
-        .toContain('codex-composer-menu-list__submenu-list--bottom-aligned');
+      expect(wrapper.get(`[data-submenu-id="${submenuId}"] > .agent-ui-composer-menu-list__submenu-list`).classes())
+        .toContain('agent-ui-composer-menu-list__submenu-list--bottom-aligned');
     }
     await wrapper.get('[data-submenu-id="model:codex-fast"]').trigger('mouseenter');
     expect(wrapper.get('[data-submenu-id="model:codex-fast"] > button').attributes('aria-expanded')).toBe('true');
     expect(wrapper.findAll('[data-submenu-id="model:codex-fast"] [role="menuitemradio"]')).toHaveLength(2);
-    expect(wrapper.findAll('.codex-composer-menu-list__description')).toHaveLength(0);
+    expect(wrapper.findAll('.agent-ui-composer-menu-list__description')).toHaveLength(0);
     expect(wrapper.findAll('.chat-model-selector__menu')).toHaveLength(1);
   });
 });
@@ -468,7 +468,7 @@ function emitMenuSelection(
   wrapper: ReturnType<typeof mountSelector>,
   item: Record<string, unknown>,
 ) {
-  const menu = wrapper.getComponent(CodexComposerMenu) as unknown as {
+  const menu = wrapper.getComponent(ComposerMenu) as unknown as {
     vm: { $emit: (event: string, payload: unknown) => void };
   };
   menu.vm.$emit('select', item);

@@ -1,12 +1,12 @@
-import type { CodexConversationLink } from './contracts';
+import type { ConversationLink } from './contracts';
 
-export type CodexEditorFileReference = {
+export type EditorFileReference = {
   path: string;
   line: number;
   column?: number;
 };
 
-export function parseCodexEditorFileReference(value: string): CodexEditorFileReference | null {
+export function parseEditorFileReference(value: string): EditorFileReference | null {
   const match = /^(.*\.[^./\\:\s]+):(\d+)(?::(\d+))?$/.exec(value.trim());
   if (!match) return null;
   const filePath = match[1]!;
@@ -18,7 +18,7 @@ export function parseCodexEditorFileReference(value: string): CodexEditorFileRef
   return { path: filePath, line, ...(column === undefined ? {} : { column }) };
 }
 
-export function codexConversationLinkFromHref(href: string): CodexConversationLink | null {
+export function conversationLinkFromHref(href: string): ConversationLink | null {
   const normalizedHref = href.trim();
   if (!normalizedHref || /^(?:\\\\|\/\/)/.test(normalizedHref)) return null;
   if (/^[a-z]:[\\/]/i.test(normalizedHref)) {
@@ -26,7 +26,7 @@ export function codexConversationLinkFromHref(href: string): CodexConversationLi
   }
 
   const undecoratedHref = safelyDecodePath(stripLinkDecoration(normalizedHref));
-  const relativeEditorReference = parseCodexEditorFileReference(undecoratedHref);
+  const relativeEditorReference = parseEditorFileReference(undecoratedHref);
   if (relativeEditorReference) {
     return fileReferenceLink(normalizedHref, relativeEditorReference);
   }
@@ -38,7 +38,7 @@ export function codexConversationLinkFromHref(href: string): CodexConversationLi
     }
     if (url.protocol === 'file:') {
       const filePath = safelyDecodePath(url.pathname);
-      const editorReference = parseCodexEditorFileReference(filePath);
+      const editorReference = parseEditorFileReference(filePath);
       return editorReference
         ? fileReferenceLink(normalizedHref, editorReference)
         : { href: normalizedHref, kind: 'file', path: filePath };
@@ -51,8 +51,8 @@ export function codexConversationLinkFromHref(href: string): CodexConversationLi
 
 function fileReferenceLink(
   href: string,
-  reference: CodexEditorFileReference,
-): Extract<CodexConversationLink, { kind: 'file' }> {
+  reference: EditorFileReference,
+): Extract<ConversationLink, { kind: 'file' }> {
   return {
     href,
     kind: 'file',

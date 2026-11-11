@@ -4,22 +4,22 @@ import { mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick, ref } from 'vue';
 import { describe, expect, it } from 'vitest';
 import ChatRichTextEditor from '../../src/vue/chat/ChatRichTextEditor.vue';
-import type { CodexComposerState } from '../../src/vue/composer-state';
-import CodexComposer from '../../src/vue/components/CodexComposer.vue';
+import type { ComposerState } from '../../src/vue/composer-state';
+import Composer from '../../src/vue/components/Composer.vue';
 
 describe('controlled composer caret', () => {
   it('does not rebuild the editor when native caret movement echoes through controlled state', async () => {
-    const composerState = ref<CodexComposerState>({
+    const composerState = ref<ComposerState>({
       text: '\nExisting text',
       selectionStart: 1,
       selectionEnd: 1,
     });
-    const host = defineComponent(() => () => h(CodexComposer, {
+    const host = defineComponent(() => () => h(Composer, {
       composerState: composerState.value,
       disabled: false,
       isSending: false,
       placeholder: 'Ask Codex…',
-      'onUpdate:composerState': (state: CodexComposerState) => {
+      'onUpdate:composerState': (state: ComposerState) => {
         composerState.value = state;
       },
     }));

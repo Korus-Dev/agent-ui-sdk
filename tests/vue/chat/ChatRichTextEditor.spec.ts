@@ -5,7 +5,7 @@ import { h, nextTick } from 'vue';
 import { describe, expect, it, vi } from 'vitest';
 import ChatMentionChip from '../../../src/vue/chat/ChatMentionChip.vue';
 import ChatComposerAtMentionMenu from '../../../src/vue/chat/ChatComposerAtMentionMenu.vue';
-import ChatRichTextEditor, { type CodexRichTextEditorExpose } from '../../../src/vue/chat/ChatRichTextEditor.vue';
+import ChatRichTextEditor, { type RichTextEditorExpose } from '../../../src/vue/chat/ChatRichTextEditor.vue';
 
 const skill = {
   name: 'Commit-Push (cp)',
@@ -23,7 +23,7 @@ describe('ChatRichTextEditor', () => {
     Object.defineProperty(document, 'execCommand', { configurable: true, value: execCommand });
     const wrapper = mount(ChatRichTextEditor, { attachTo: document.body, props: { modelValue: 'before' } });
     try {
-      const editor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+      const editor = wrapper.vm as unknown as RichTextEditorExpose;
       editor.setSelection(start, end);
       editor.insertTextAtSelection(value);
       expect(execCommand).toHaveBeenCalledOnce();
@@ -47,7 +47,7 @@ describe('ChatRichTextEditor', () => {
       mention: ({ group, item }: { group: { id: string }; item: { label: string } }) => h('span', { class: 'saved-chip' }, `${group.id}:${item.label}`),
     } });
     expect(wrapper.get('.saved-chip').text()).toBe(':Saved name');
-    expect((wrapper.vm as unknown as CodexRichTextEditorExpose).readContent()).toStrictEqual([part]);
+    expect((wrapper.vm as unknown as RichTextEditorExpose).readContent()).toStrictEqual([part]);
     wrapper.unmount();
   });
 
@@ -84,7 +84,7 @@ describe('ChatRichTextEditor', () => {
     expect(wrapper.find('.chat-mention-chip').exists()).toBe(false);
     await wrapper.setProps({ skills: [skill] });
     expect(wrapper.find('.chat-mention-chip').exists()).toBe(false);
-    expect((wrapper.vm as unknown as CodexRichTextEditorExpose).readText()).toBe(text);
+    expect((wrapper.vm as unknown as RichTextEditorExpose).readText()).toBe(text);
     wrapper.unmount();
   });
 
@@ -93,7 +93,7 @@ describe('ChatRichTextEditor', () => {
       attachTo: document.body,
       props: { modelValue: 'use CP now', content: [{ type: 'text', text: 'use ' }, { type: 'mention', kind: 'skill', id: skill.path, value: 'cp', label: 'CP' }, { type: 'text', text: ' now' }], skills: [skill] },
     });
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
     richEditor.setCaret('use CP'.length);
     richEditor.insertTextAtSelection(' safely');
     await nextTick();
@@ -113,7 +113,7 @@ describe('ChatRichTextEditor', () => {
     const element = wrapper.get('[role="textbox"]').element as HTMLElement;
     Object.defineProperty(element, 'scrollHeight', { configurable: true, value: 96 });
     element.scrollTop = 0;
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
 
     richEditor.setCaret('one\ntwo\nthree'.length);
     richEditor.insertTextAtSelection('\n');
@@ -127,7 +127,7 @@ describe('ChatRichTextEditor', () => {
       props: { modelValue: 'one\ntwo\nthree\nfour' },
     });
     const element = wrapper.get('[role="textbox"]').element as HTMLElement;
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
     const originalRangeRect = Object.getOwnPropertyDescriptor(Range.prototype, 'getBoundingClientRect');
     const editorRect = vi.spyOn(element, 'getBoundingClientRect').mockReturnValue(domRect(20, 80));
 
@@ -162,7 +162,7 @@ describe('ChatRichTextEditor', () => {
       props: { disabled: true, modelValue: 'initial', placeholder: 'Ask Codex' },
     });
     const element = wrapper.get('[role="textbox"]');
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
     const outside = document.createTextNode('outside');
     document.body.append(outside);
     const range = document.createRange();
@@ -197,7 +197,7 @@ describe('ChatRichTextEditor', () => {
     await element.trigger('input');
 
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toStrictEqual(['']);
-    expect((wrapper.vm as unknown as CodexRichTextEditorExpose).readText()).toBe('');
+    expect((wrapper.vm as unknown as RichTextEditorExpose).readText()).toBe('');
     expect(element.element.childNodes).toHaveLength(0);
   });
 
@@ -213,7 +213,7 @@ describe('ChatRichTextEditor', () => {
     await element.trigger('input');
 
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toStrictEqual(['hello\n']);
-    expect((wrapper.vm as unknown as CodexRichTextEditorExpose).readText()).toBe('hello\n');
+    expect((wrapper.vm as unknown as RichTextEditorExpose).readText()).toBe('hello\n');
     expect(element.findAll('br')).toHaveLength(2);
     expect(element.findAll('br')[1]?.attributes()).toHaveProperty('data-trailing-line-break');
   });
@@ -225,7 +225,7 @@ describe('ChatRichTextEditor', () => {
       attachTo: document.body,
       props: { modelValue: '@gmail tail' },
     });
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
     richEditor.setCaret(8);
     outside.focus();
 
@@ -247,7 +247,7 @@ describe('ChatRichTextEditor', () => {
 
   it('restores a selected chip when authored content arrives with its catalog', async () => {
     const wrapper = mount(ChatRichTextEditor, { props: { modelValue: '' } });
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
 
     await wrapper.setProps({
       modelValue: 'Gmail',
@@ -264,7 +264,7 @@ describe('ChatRichTextEditor', () => {
       attachTo: document.body,
       props: { modelValue: 'selection' },
     });
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
     richEditor.setSelection(2, 6);
     await nextTick();
     const before = wrapper.emitted('caret-change')?.length ?? 0;
@@ -287,7 +287,7 @@ describe('ChatRichTextEditor', () => {
       props: { modelValue: 'abcd' },
     });
     const element = wrapper.get('[role="textbox"]');
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
     richEditor.setSelection(1, 3);
     await element.trigger('input');
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toStrictEqual(['abcd']);
@@ -319,7 +319,7 @@ describe('ChatRichTextEditor', () => {
     });
     const element = wrapper.get('[role="textbox"]').element as HTMLElement;
     Object.defineProperty(element, 'scrollHeight', { configurable: true, value: 120 });
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
 
     richEditor.autoResize();
     expect(element.style.height).toBe('50px');
@@ -333,7 +333,7 @@ describe('ChatRichTextEditor', () => {
       props: { modelValue: 'draft' },
     });
     const element = wrapper.get('[role="textbox"]').element as HTMLElement;
-    const richEditor = wrapper.vm as unknown as CodexRichTextEditorExpose;
+    const richEditor = wrapper.vm as unknown as RichTextEditorExpose;
     richEditor.setSelection(1, 4);
     expect(document.activeElement).toBe(element);
 

@@ -1,6 +1,6 @@
-import type { Message } from './types'
+import type { ChatMessage } from './types'
 
-export type CodexMessageImage = {
+export type MessageImage = {
   alt: string
   kind: 'attachment' | 'media'
   mimeType?: string
@@ -10,15 +10,15 @@ export type CodexMessageImage = {
   title?: string
 }
 
-export type CodexMessageImageOpenHandler = (
-  image: CodexMessageImage,
-  context?: CodexMessageImageContext,
+export type MessageImageOpenHandler = (
+  image: MessageImage,
+  context?: MessageImageContext,
 ) => boolean | void | Promise<boolean | void>
 
-export type CodexMessageImageOpenIntent = 'fullscreen' | 'open'
+export type MessageImageOpenIntent = 'fullscreen' | 'open'
 
-export type CodexMessageImageContext = {
-  intent: CodexMessageImageOpenIntent
+export type MessageImageContext = {
+  intent: MessageImageOpenIntent
   index?: number
-  message?: Message
+  message?: ChatMessage
 }

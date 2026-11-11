@@ -11,7 +11,7 @@
   >
     <div
       v-if="state === 'loading'"
-      class="source-preview-panel__empty codex-text-shimmer"
+      class="source-preview-panel__empty agent-ui-text-shimmer"
     > {{ $t('surface.sourcePreviewPanel.loadingSource') }} </div>
     <div
       v-else-if="state === 'error'"
@@ -21,7 +21,7 @@
     </div>
     <div
       v-else-if="content.trim()"
-      class="source-preview-panel__content codex-markdown"
+      class="source-preview-panel__content agent-ui-markdown"
       :data-code-path="canAnnotate ? path : undefined"
       @mousedown="plusPressed"
       @click="plusClicked"

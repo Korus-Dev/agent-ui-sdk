@@ -21,13 +21,13 @@ import {
   Trash2Icon,
   WorldSearchIcon,
 } from '../shared/icons/app-icons'
-import type { CodexToolPresentation } from './tool-presentation'
+import type { ToolPresentation } from './tool-presentation'
 import { parseToolStatusDescriptor } from './tool-status'
 import { isImageGenerationToolCall, type MessageToolCall } from './types'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
-  presentation?: CodexToolPresentation
+  presentation?: ToolPresentation
   toolCall: MessageToolCall
 }>()
 // Stryker restore all

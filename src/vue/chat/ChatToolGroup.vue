@@ -7,7 +7,7 @@
     @client-response="emit('client-response', $event)"
     @open-link="emit('open-link', $event)"
   />
-  <section v-else class="codex-chat-theme chat-tool-group">
+  <section v-else class="agent-ui-theme chat-tool-group">
     <component
       v-if="props.toolCalls.length === 0 || headerToolCall || completedToolCalls.length > 0"
       :is="canExpand && !headerToolCall ? 'button' : 'div'"
@@ -107,14 +107,14 @@
 import { ChevronDown, ChevronUp } from '../shared/icons/app-icons'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { ClientRequestResponse } from './contracts'
-import type { CodexConversationLink } from './contracts'
+import type { ConversationLink } from './contracts'
 import ChatAnimatedDiffStat from './ChatAnimatedDiffStat.vue'
 import ChatFoldTransition from './ChatFoldTransition.vue'
 import ChatToolCall from './ChatToolCall.vue'
 import { getToolGroupLineDiff, parseToolStatusDescriptor } from './tool-status'
 import type { MessageToolCall } from './types'
 import { getMessageToolCallArgs } from './types'
-import { useCodexToolCallDetails } from './tool-call-details'
+import { useToolCallDetails } from './tool-call-details'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{
@@ -128,7 +128,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   cancel: []
   'client-response': [response: ClientRequestResponse]
-  'open-link': [link: CodexConversationLink]
+  'open-link': [link: ConversationLink]
 }>()
 // Stryker restore all
 
@@ -140,7 +140,7 @@ const recentlyCompletedIds = ref<ReadonlySet<string>>(new Set())
 const recentCompletionTimers = new Map<string, ReturnType<typeof setTimeout>>()
 const recentCompletionRetentionMs = 3_000
 let previousActiveIds = new Set(props.toolCalls.filter(isActiveToolCall).map((toolCall) => toolCall.id))
-const providedToolDetails = useCodexToolCallDetails()
+const providedToolDetails = useToolCallDetails()
 const toolDetailsEnabled = computed(() => props.showToolDetails ?? providedToolDetails.value)
 
 const isSingleTool = computed(() => props.toolCalls.length === 1)

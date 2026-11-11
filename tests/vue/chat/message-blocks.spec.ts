@@ -7,7 +7,7 @@ import {
   groupToolBlocks,
   stripMessageContext,
 } from '../../../src/vue/chat/message-blocks';
-import type { Message, MessageToolCall } from '../../../src/vue/chat/types';
+import type { ChatMessage, MessageToolCall } from '../../../src/vue/chat/types';
 
 const completedTool: MessageToolCall = {
   args: { command: 'npm test' },
@@ -131,7 +131,7 @@ describe('message block computation', () => {
   });
 
   it('groups only explicitly phased assistant work before the final answer', () => {
-    const message: Message = {
+    const message: ChatMessage = {
       role: 'assistant',
       content: 'Checking.\n\nDone.',
       streaming: true,
@@ -158,7 +158,7 @@ describe('message block computation', () => {
       { type: 'text', content: 'Done.', phase: 'final_answer' },
     ]);
 
-    const unphased: Message = {
+    const unphased: ChatMessage = {
       role: 'assistant',
       content: 'Claude text',
       parts: [
@@ -399,7 +399,7 @@ describe('message block computation', () => {
       role: 'assistant',
       content: 'Pick one <follow-up>Continue</',
       streaming: true,
-    } as Message);
+    } as ChatMessage);
 
     expect(blocks).toStrictEqual([
       { type: 'text', content: 'Pick one ' },

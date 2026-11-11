@@ -2,7 +2,7 @@
 
 ## Diff overview
 
-`DiffPreviewPanel` accepts `overview?: boolean` (default `false`). In overview mode, `#overview="{ files, select }"` replaces the diff body. Loading, parse errors, load errors and empty states stay SDK-owned. `DiffOverviewFile` and `DiffOverviewSlot` are exported from the root and `@korus-dev/agent-ui-sdk/documents.js`.
+`DiffPreviewPanel` accepts `overview?: boolean` (default `false`). In overview mode, `#overview="{ files, select }"` replaces the diff body. Loading, parse errors, load errors and empty states stay SDK-owned. `DiffOverviewFile` and `DiffOverviewSlot` are exported from the root and `@korus-dev/agent-ui-sdk/documents`.
 
 `files` contains file metadata (`key`, `directory`, `fullPath`, `name`, `iconKind`, `openable`, `addedLines`, `removedLines`) after the existing lockfile/file-kind filters. The objects may contain additional internal rendering fields. `select(path: string): Promise<void>` focuses that file and emits `select(path)`. The host handles `@select` by setting `overview=false`; the promise settles after Vue renders and attempts to scroll to the selection. Returning to overview clears the focused file subset. Exposed `showFiles(paths: string[], location?: CodeLocation)` remains available with its previous behavior except that mode is host-owned.
 
@@ -18,248 +18,39 @@ Korus must map its existing wire `agentId` fields to `ownerId` at its browser ad
 
 `CodexConversationSidebar`, its root export, and its dedicated test suite are retired together. The retired behavior is branded navigation, active-row selection, new-conversation action and `window.confirm`-gated deletion. Those are host navigation responsibilities. No surviving control assertion or the 85% statement gate was removed. New overview tests cover metadata, host selection, focused diff rendering, return-to-overview reset, loading/error/empty precedence.
 
-The unused `ChartTreemapIcon` and other unused icon exports are removed. `src/vue/icons/app-icons.ts` is consolidated into `src/vue/shared/icons/app-icons.ts`: original export lines were transferred mechanically, deduped by exported name and pruned to imported names; control imports now use the latter. No component file was relocated. Internal component filenames and CSS names stay compatible.
+The unused `ChartTreemapIcon` and other unused icon exports are removed. `src/vue/icons/app-icons.ts` is consolidated into `src/vue/shared/icons/app-icons.ts`: original export lines were transferred mechanically, deduped by exported name and pruned to imported names; control imports now use the latter. No component file was relocated. Canonical component filenames and CSS names are listed below.
 
-## Neutral public names
+## Canonical naming and imports
 
-Neutral exports are direct aliases of existing implementations/types, so legacy control/type names remain valid during integration. Native hooks and catalogs are available only from `@korus-dev/agent-ui-sdk/native.js`; their former root exports are removed. The optional Electron preload entry uses the same alias rule. `nativeRendererGlobal` aliases the existing global key without changing its wire value. All `Codex*` host contract types also have corresponding names with `Codex` removed (`HostCapabilities`, `SpeechSession`, etc.). Browser/Electron/speech stay opt-in through static public .js entry files; Element Plus remains an optional peer. The npm package name is `@korus-dev/agent-ui-sdk`.
+The root Vue API is provider-neutral. Optional entries use an explicit exports map with extensionless imports, such as `@korus-dev/agent-ui-sdk/electron/preload`. Root forwarding files and `.js` subpath aliases are removed. TypeScript consumers use `moduleResolution: Bundler`.
 
-| Entry | Compatibility export | Neutral export |
-| --- | --- | --- |
-| `src/vue/index.ts` | `CodexComposer` | `Composer` |
-| `src/vue/index.ts` | `CodexComposerState` | `ComposerState` |
-| `src/vue/index.ts` | `CodexApprovalPrompt` | `ApprovalPrompt` |
-| `src/vue/index.ts` | `CodexConversationPane` | `ConversationPane` |
-| `src/vue/index.ts` | `createCodexConversationPaneController` | `createConversationPaneController` |
-| `src/vue/index.ts` | `CodexConversationPaneActions` | `ConversationPaneActions` |
-| `src/vue/index.ts` | `CodexConversationPaneCatalogState` | `ConversationPaneCatalogState` |
-| `src/vue/index.ts` | `CodexConversationPaneComposerState` | `ConversationPaneComposerState` |
-| `src/vue/index.ts` | `CodexConversationPaneController` | `ConversationPaneController` |
-| `src/vue/index.ts` | `CodexConversationPaneControllerOptions` | `ConversationPaneControllerOptions` |
-| `src/vue/index.ts` | `CodexConversationPaneControllerSource` | `ConversationPaneControllerSource` |
-| `src/vue/index.ts` | `CodexConversationPaneHistoryState` | `ConversationPaneHistoryState` |
-| `src/vue/index.ts` | `CodexConversationPaneIdentityState` | `ConversationPaneIdentityState` |
-| `src/vue/index.ts` | `CodexConversationPanePolicy` | `ConversationPanePolicy` |
-| `src/vue/index.ts` | `CodexConversationPaneState` | `ConversationPaneState` |
-| `src/vue/index.ts` | `CodexConversationPaneThreadState` | `ConversationPaneThreadState` |
-| `src/vue/index.ts` | `CodexConversationPaneValueSource` | `ConversationPaneValueSource` |
-| `src/vue/index.ts` | `resolveCodexConversationPaneValue` | `resolveConversationPaneValue` |
-| `src/vue/index.ts` | `CodexConversationHistoryLoader` | `ConversationHistoryLoader` |
-| `src/vue/index.ts` | `CodexComposerMenu` | `ComposerMenu` |
-| `src/vue/index.ts` | `CodexComposerMenuList` | `ComposerMenuList` |
-| `src/vue/index.ts` | `CodexComposerSendButton` | `ComposerSendButton` |
-| `src/vue/index.ts` | `CodexMessage` | `Message` |
-| `src/vue/index.ts` | `CodexMessageList` | `MessageList` |
-| `src/vue/index.ts` | `CodexMessageTurn` | `MessageTurn` |
-| `src/vue/index.ts` | `CodexScrollToBottom` | `ScrollToBottom` |
-| `src/vue/index.ts` | `CodexWorkbenchLayout` | `WorkbenchLayout` |
-| `src/vue/index.ts` | `CodexConversationRenderStrategy` | `ConversationRenderStrategy` |
-| `src/vue/index.ts` | `CodexAttachmentBlock` | `AttachmentBlock` |
-| `src/vue/index.ts` | `CodexAnimatedDiffStat` | `AnimatedDiffStat` |
-| `src/vue/index.ts` | `CodexCompactionMessage` | `CompactionMessage` |
-| `src/vue/index.ts` | `CodexComposerActionMenu` | `ComposerActionMenu` |
-| `src/vue/index.ts` | `CodexComposerActiveModes` | `ComposerActiveModes` |
-| `src/vue/index.ts` | `CodexComposerFileMentionMenu` | `ComposerFileMentionMenu` |
-| `src/vue/index.ts` | `CodexComposerDrawer` | `ComposerDrawer` |
-| `src/vue/index.ts` | `CodexComposerDrawerRow` | `ComposerDrawerRow` |
-| `src/vue/index.ts` | `CodexComposerShelf` | `ComposerShelf` |
-| `src/vue/index.ts` | `CodexComposerSkillMenu` | `ComposerSkillMenu` |
-| `src/vue/index.ts` | `CodexComposerPluginMenu` | `ComposerPluginMenu` |
-| `src/vue/index.ts` | `CodexComposerAtMentionMenu` | `ComposerAtMentionMenu` |
-| `src/vue/index.ts` | `CodexMentionChip` | `MentionChip` |
-| `src/vue/index.ts` | `CodexRichTextEditor` | `RichTextEditor` |
-| `src/vue/index.ts` | `CodexRichTextEditorExpose` | `RichTextEditorExpose` |
-| `src/vue/index.ts` | `CodexComposerSlashMenu` | `ComposerSlashMenu` |
-| `src/vue/index.ts` | `CodexComposerVoiceButton` | `ComposerVoiceButton` |
-| `src/vue/index.ts` | `CodexComposerVoiceField` | `ComposerVoiceField` |
-| `src/vue/index.ts` | `useCodexComposerVoice` | `useComposerVoice` |
-| `src/vue/index.ts` | `CodexComposerVoiceController` | `ComposerVoiceController` |
-| `src/vue/index.ts` | `CodexComposerVoiceOptions` | `ComposerVoiceOptions` |
-| `src/vue/index.ts` | `CodexContextUsageIndicator` | `ContextUsageIndicator` |
-| `src/vue/index.ts` | `CodexUltrafastIcon` | `UltrafastIcon` |
-| `src/vue/index.ts` | `CodexFoldTransition` | `FoldTransition` |
-| `src/vue/index.ts` | `CodexFollowUps` | `FollowUps` |
-| `src/vue/index.ts` | `CodexGoal` | `Goal` |
-| `src/vue/index.ts` | `CodexIconButton` | `IconButton` |
-| `src/vue/index.ts` | `CodexImageLightbox` | `ImageLightbox` |
-| `src/vue/index.ts` | `CodexMediaBlock` | `MediaBlock` |
-| `src/vue/index.ts` | `CodexMermaidBlock` | `MermaidBlock` |
-| `src/vue/index.ts` | `CodexMessageActions` | `MessageActions` |
-| `src/vue/index.ts` | `CodexMessageBlock` | `MessageBlock` |
-| `src/vue/index.ts` | `CodexMessageEditor` | `MessageEditor` |
-| `src/vue/index.ts` | `CodexModelReasoningSelector` | `ModelReasoningSelector` |
-| `src/vue/index.ts` | `CodexQueuedPrompt` | `QueuedPrompt` |
-| `src/vue/index.ts` | `CodexQueuedPrompts` | `QueuedPrompts` |
-| `src/vue/index.ts` | `CodexToolCall` | `ToolCall` |
-| `src/vue/index.ts` | `CodexToolCallTitle` | `ToolCallTitle` |
-| `src/vue/index.ts` | `CodexToolConfirmation` | `ToolConfirmation` |
-| `src/vue/index.ts` | `CodexToolGroup` | `ToolGroup` |
-| `src/vue/index.ts` | `CodexToolIcon` | `ToolIcon` |
-| `src/vue/index.ts` | `CodexToolUserInputRequest` | `ToolUserInputRequest` |
-| `src/vue/index.ts` | `CodexQuestionRequest` | `QuestionRequest` |
-| `src/vue/index.ts` | `CodexTurnGitInfo` | `TurnGitInfo` |
-| `src/vue/index.ts` | `CodexUserText` | `UserText` |
-| `src/vue/index.ts` | `CodexVisualizationBlock` | `VisualizationBlock` |
-| `src/vue/index.ts` | `CodexWorkGroup` | `WorkGroup` |
-| `src/vue/native/index.ts` | `codexCapabilities` | `codexCapabilities` |
-| `src/vue/native/index.ts` | `codexCommands` | `codexCommands` |
-| `src/vue/index.ts` | `defaultCodexConversationPresentation` | `defaultConversationPresentation` |
-| `src/vue/index.ts` | `resolveCodexConversationPresentation` | `resolveConversationPresentation` |
-| `src/vue/index.ts` | `defaultCodexChatTranslate` | `defaultChatTranslate` |
-| `src/vue/index.ts` | `provideCodexChatTranslate` | `provideChatTranslate` |
-| `src/vue/index.ts` | `useCodexChatTranslate` | `useChatTranslate` |
-| `src/vue/index.ts` | `provideCodexToolCallDetails` | `provideToolCallDetails` |
-| `src/vue/index.ts` | `useCodexToolCallDetails` | `useToolCallDetails` |
-| `src/vue/index.ts` | `provideCodexToolPresentation` | `provideToolPresentation` |
-| `src/vue/index.ts` | `useCodexToolPresentation` | `useToolPresentation` |
-| `src/vue/index.ts` | `CodexToolPresentation` | `ToolPresentation` |
-| `src/vue/index.ts` | `CodexToolPresentationContext` | `ToolPresentationContext` |
-| `src/vue/index.ts` | `CodexToolPresentationResolver` | `ToolPresentationResolver` |
-| `src/vue/index.ts` | `toCodexChatMessage` | `toChatMessage` |
-| `src/vue/index.ts` | `toCodexChatMessages` | `toChatMessages` |
-| `src/vue/index.ts` | `CodexComposerMentionGroup` | `ComposerMentionGroup` |
-| `src/vue/index.ts` | `CodexComposerMentionItem` | `ComposerMentionItem` |
-| `src/vue/index.ts` | `CodexComposerVisibleMentionGroup` | `ComposerVisibleMentionGroup` |
-| `src/vue/index.ts` | `parseCodexUserText` | `parseUserText` |
-| `src/vue/index.ts` | `CodexUserTextToken` | `UserTextToken` |
-| `src/vue/index.ts` | `CodexMessageImage` | `MessageImage` |
-| `src/vue/index.ts` | `CodexMessageImageContext` | `MessageImageContext` |
-| `src/vue/index.ts` | `CodexMessageImageOpenHandler` | `MessageImageOpenHandler` |
-| `src/vue/index.ts` | `CodexMessageImageOpenIntent` | `MessageImageOpenIntent` |
-| `src/vue/index.ts` | `CodexConversationVisualization` | `ConversationVisualization` |
-| `src/vue/index.ts` | `CodexConversationVisualizationOpenHandler` | `ConversationVisualizationOpenHandler` |
-| `src/vue/index.ts` | `registerCodexToolTitlePresenter` | `registerToolTitlePresenter` |
-| `src/vue/index.ts` | `CodexToolTitlePresenter` | `ToolTitlePresenter` |
-| `src/vue/index.ts` | `CodexToolTitlePresenterContext` | `ToolTitlePresenterContext` |
-| `src/vue/index.ts` | `CodexComposerMenuActionItem` | `ComposerMenuActionItem` |
-| `src/vue/index.ts` | `CodexComposerMenuCheckboxItem` | `ComposerMenuCheckboxItem` |
-| `src/vue/index.ts` | `CodexComposerMenuHeadingItem` | `ComposerMenuHeadingItem` |
-| `src/vue/index.ts` | `CodexComposerMenuItem` | `ComposerMenuItem` |
-| `src/vue/index.ts` | `CodexComposerMenuItemBase` | `ComposerMenuItemBase` |
-| `src/vue/index.ts` | `CodexComposerMenuRadioItem` | `ComposerMenuRadioItem` |
-| `src/vue/index.ts` | `CodexComposerMenuSelectableItem` | `ComposerMenuSelectableItem` |
-| `src/vue/index.ts` | `CodexComposerMenuSeparatorItem` | `ComposerMenuSeparatorItem` |
-| `src/vue/index.ts` | `CodexComposerMenuSubmenuItem` | `ComposerMenuSubmenuItem` |
-| `src/vue/index.ts` | `CodexContextUsage` | `ContextUsage` |
-| `src/vue/index.ts` | `CodexComposerPresentation` | `ComposerPresentation` |
-| `src/vue/index.ts` | `CodexComposerShelfPresentation` | `ComposerShelfPresentation` |
-| `src/vue/index.ts` | `CodexConversationFileAction` | `ConversationFileAction` |
-| `src/vue/index.ts` | `CodexConversationPresentation` | `ConversationPresentation` |
-| `src/vue/index.ts` | `CodexConversationLink` | `ConversationLink` |
-| `src/vue/index.ts` | `CodexFileSearchItem` | `FileSearchItem` |
-| `src/vue/index.ts` | `CodexSpeechTranscriptionResult` | `SpeechTranscriptionResult` |
-| `src/vue/index.ts` | `CodexCapabilities` | `Capabilities` |
-| `src/vue/index.ts` | `CodexCommandSummary` | `CommandSummary` |
-| `src/vue/index.ts` | `CodexModelOption` | `ModelOption` |
-| `src/vue/index.ts` | `CodexMessageActionsPresentation` | `MessageActionsPresentation` |
-| `src/vue/index.ts` | `CodexMessagesPresentation` | `MessagesPresentation` |
-| `src/vue/index.ts` | `CodexReasoningEffortOption` | `ReasoningEffortOption` |
-| `src/vue/index.ts` | `CodexSkillSummary` | `SkillSummary` |
-| `src/vue/index.ts` | `CodexChatTranscription` | `ChatTranscription` |
-| `src/vue/index.ts` | `ResolvedCodexConversationPresentation` | `ResolvedConversationPresentation` |
-| `src/vue/index.ts` | `CodexSurfacePlugin` | `SurfacePlugin` |
-| `src/vue/index.ts` | `CodexSurfaceServiceTier` | `SurfaceServiceTier` |
-| `src/vue/index.ts` | `CodexMessageAttachment` | `MessageAttachment` |
-| `src/vue/index.ts` | `CodexChatMessage` | `ChatMessage` |
-| `src/vue/index.ts` | `CodexMessageMedia` | `MessageMedia` |
-| `src/vue/index.ts` | `CodexChatMessagePart` | `ChatMessagePart` |
-| `src/vue/index.ts` | `CodexMessageSuggestedPrompt` | `MessageSuggestedPrompt` |
-| `src/vue/index.ts` | `CodexMessageToolCall` | `MessageToolCall` |
-| `src/vue/index.ts` | `CodexToolExecutionState` | `ToolExecutionState` |
-| `src/vue/index.ts` | `CodexToolStatusDescriptor` | `ToolStatusDescriptor` |
-| `src/vue/index.ts` | `CodexMessageTextSelection` | `MessageTextSelection` |
-| `src/vue/index.ts` | `CodexMessageTextSelectionAnchor` | `MessageTextSelectionAnchor` |
-| `src/vue/index.ts` | `CodexMessageInput` | `MessageInput` |
-| `src/vue/index.ts` | `CodexToolVisibility` | `ToolVisibility` |
-| `src/vue/index.ts` | `CodexChatTranslate` | `ChatTranslate` |
-| `src/vue/index.ts` | `CodexQueuedPromptData` | `QueuedPromptData` |
-| `src/vue/native/index.ts` | `useCodexSurface` | `useNativeSurface` |
-| `src/vue/native/index.ts` | `CodexSurfaceController` | `NativeSurfaceController` |
-| `src/vue/native/index.ts` | `useCodexLiveChat` | `useNativeLiveChat` |
-| `src/vue/native/index.ts` | `CodexLiveChatOptions` | `NativeLiveChatOptions` |
-| `src/vue/native/index.ts` | `CodexLiveChatStatus` | `NativeLiveChatStatus` |
-| `src/vue/native/index.ts` | `CodexLiveChatTranscript` | `NativeLiveChatTranscript` |
-| `src/vue/index.ts` | `applyCodexTheme` | `applyTheme` |
-| `src/vue/index.ts` | `CodexThemeMode` | `ThemeMode` |
-| `src/vue/index.ts` | `CodexThemeOptions` | `ThemeOptions` |
-| `src/vue/index.ts` | `codexConversationLinkFromHref` | `conversationLinkFromHref` |
-| `src/vue/index.ts` | `parseCodexEditorFileReference` | `parseEditorFileReference` |
-| `src/vue/index.ts` | `CodexEditorFileReference` | `EditorFileReference` |
-| `src/vue/index.ts` | `getCodexGlobalHostCapabilities` | `getGlobalHostCapabilities` |
-| `src/vue/index.ts` | `getCodexNativeRendererApi` | `getNativeRendererApi` |
-| `src/vue/index.ts` | `ingestCodexAttachments` | `ingestAttachments` |
-| `src/vue/index.ts` | `pickCodexAttachments` | `pickAttachments` |
-| `src/vue/index.ts` | `provideCodexHostCapabilities` | `provideHostCapabilities` |
-| `src/vue/index.ts` | `useCodexHostCapabilities` | `useHostCapabilities` |
-| `src/vue/index.ts` | `CodexAttachmentIngester` | `AttachmentIngester` |
-| `src/vue/index.ts` | `CodexAttachmentPicker` | `AttachmentPicker` |
-| `src/vue/index.ts` | `CodexHostCapabilities` | `HostCapabilities` |
-| `src/vue/index.ts` | `CodexHostAttachment` | `HostAttachment` |
-| `src/vue/index.ts` | `CodexHostAttachmentInput` | `HostAttachmentInput` |
-| `src/vue/index.ts` | `CodexNativeAttachment` | `NativeAttachment` |
-| `src/vue/index.ts` | `CodexNativeAttachmentInput` | `NativeAttachmentInput` |
-| `src/vue/index.ts` | `CodexNativeClipboardContent` | `NativeClipboardContent` |
-| `src/vue/index.ts` | `CodexNativeRendererApi` | `NativeRendererApi` |
-| `src/vue/index.ts` | `CodexRendererAttachment` | `RendererAttachment` |
-| `src/vue/index.ts` | `CodexRendererSendMessageOptions` | `RendererSendMessageOptions` |
-| `src/vue/index.ts` | `CodexSurfaceAttachment` | `SurfaceAttachment` |
-| `src/vue/index.ts` | `SendCodexMessageOptions` | `SendMessageOptions` |
-| `src/vue/index.ts` | `codexCustomBlocksKey` | `customBlocksKey` |
-| `src/vue/index.ts` | `CodexCustomBlocks` | `CustomBlocks` |
-| `src/electron/index.ts` | `codexExternalUrl` | `externalUrl` |
-| `src/electron/index.ts` | `installCodexWindowPolicy` | `installWindowPolicy` |
-| `src/electron/index.ts` | `isCodexRendererSender` | `isRendererSender` |
-| `src/electron/index.ts` | `isCodexRendererUrl` | `isRendererUrl` |
-| `src/electron/index.ts` | `CodexWindowPolicyOptions` | `WindowPolicyOptions` |
-| `src/electron/index.ts` | `CodexWindowPolicyTarget` | `WindowPolicyTarget` |
-| `src/electron/index.ts` | `createCodexSurfaceRendererApi` | `createSurfaceRendererApi` |
-| `src/electron/index.ts` | `registerCodexSurfaceIpc` | `registerSurfaceIpc` |
-| `src/electron/index.ts` | `CodexSurfaceRendererApi` | `SurfaceRendererApi` |
-| `src/electron/index.ts` | `createCodexNativeRendererApi` | `createNativeRendererApi` |
-| `src/electron/index.ts` | `exposeCodexNativeRendererApi` | `exposeNativeRendererApi` |
-| `src/electron/index.ts` | `CodexContextBridge` | `ContextBridge` |
-| `src/electron/index.ts` | `registerCodexNativeIpc` | `registerNativeIpc` |
-| `src/electron/index.ts` | `CodexNativeClipboard` | `NativeClipboard` |
-| `src/electron/index.ts` | `CodexNativeDialog` | `NativeDialog` |
-| `src/electron/index.ts` | `CodexNativeMainDependencies` | `NativeMainDependencies` |
-| `src/electron/index.ts` | `CodexNativeMainOptions` | `NativeMainOptions` |
-| `src/electron/index.ts` | `CodexNativeShell` | `NativeShell` |
-| `src/electron/index.ts` | `CodexSpeechOperation` | `SpeechOperation` |
-| `src/electron/index.ts` | `CodexSpeechOperationOutcome` | `SpeechOperationOutcome` |
-| `src/electron/index.ts` | `CodexSpeechOperationObserver` | `SpeechOperationObserver` |
-| `src/electron/index.ts` | `CodexSpeechSessionPreparer` | `SpeechSessionPreparer` |
-| `src/electron/index.ts` | `CodexElectronAttachmentRegistry` | `ElectronAttachmentRegistry` |
-| `src/electron/index.ts` | `CodexElectronAttachmentRegistration` | `ElectronAttachmentRegistration` |
-| `src/electron/index.ts` | `CodexHostAttachment` | `HostAttachment` |
-| `src/electron/index.ts` | `CodexHostAttachmentInput` | `HostAttachmentInput` |
-| `src/electron/index.ts` | `CodexNativeAttachment` | `NativeAttachment` |
-| `src/electron/index.ts` | `CodexNativeAttachmentInput` | `NativeAttachmentInput` |
-| `src/electron/index.ts` | `CodexNativeClipboardContent` | `NativeClipboardContent` |
-| `src/electron/index.ts` | `CodexNativeRendererApi` | `NativeRendererApi` |
-| `src/electron/index.ts` | `CodexSpeechTranscriptionResult` | `SpeechTranscriptionResult` |
-| `src/electron/index.ts` | `CodexSpeechPreparationOptions` | `SpeechPreparationOptions` |
-| `src/electron/index.ts` | `CodexPreparedSpeechSession` | `PreparedSpeechSession` |
-| `src/electron/index.ts` | `CodexSpeechSession` | `SpeechSession` |
-| `src/electron/index.ts` | `exposeCodexElectronPreload` | `exposeElectronPreload` |
-| `src/electron/index.ts` | `CodexElectronRendererApis` | `ElectronRendererApis` |
-| `src/electron/index.ts` | `registerCodexElectronMain` | `registerElectronMain` |
-| `src/electron/index.ts` | `CodexElectronMainOptions` | `ElectronMainOptions` |
-| `src/electron/preload.ts` | `exposeCodexElectronPreload` | `exposeElectronPreload` |
-| `src/electron/preload.ts` | `CodexElectronRendererApis` | `ElectronRendererApis` |
-| `src/electron/preload.ts` | `createCodexNativeRendererApi` | `createNativeRendererApi` |
-| `src/electron/preload.ts` | `exposeCodexNativeRendererApi` | `exposeNativeRendererApi` |
-| `src/electron/preload.ts` | `CodexContextBridge` | `ContextBridge` |
-| `src/electron/preload.ts` | `createCodexSurfaceRendererApi` | `createSurfaceRendererApi` |
-| `src/electron/preload.ts` | `CodexNativeRendererApi` | `NativeRendererApi` |
-| `src/electron/preload.ts` | `CodexSurfaceRendererApi` | `SurfaceRendererApi` |
-| `src/vue/index.ts` | `CodexClientAttachment` | `ClientAttachment` |
-| `src/vue/index.ts` | `CodexClientSendMessageOptions` | `ClientSendMessageOptions` |
+| Previous API | Canonical API |
+| --- | --- |
+| `CodexComposer`, `CodexMessageList`, generic `CodexConversationPane` | `Composer`, `MessageList`, `ConversationPane` |
+| `Codex*` presentation, theme, composer and capability types/helpers | Existing neutral names, now the implementations |
+| `SurfaceMessage*` | Multi's `ConversationMessage*` |
+| `NativeConversationPane` and native `CodexConversationPane` | Root `ConversationPane` with a neutral session/controller binding |
+| `/native` hooks and catalogs | Removed; provider operations belong in Multi Agent SDK/application hosts |
+| Provider-specific Electron integration/preload/host IPC helpers | Removed; use generic capability and typed IPC helpers |
+
+### Korus runtime changes
+
+Use the same root `ConversationPane` for every harness. Supply neutral session state, capabilities and session-bound actions through `createSessionConversationController` or the lower-level grouped controller. Neither requires a provider name.
+
+- The legacy `/native` entry, Codex host hooks/pane, provider command catalogs, Codex Electron host bridge and combined provider preload helpers are removed. There is no replacement backend-specific UI hook.
+- `registerNativeIpc`, `exposeNativeRendererApi`, typed IPC, attachment registries, speech and browser adapters remain generic optional modules.
+- `window.codexAppSdkNative` becomes `window.agentUiHostCapabilities`; `nativeRendererGlobal` carries that key.
+- Every generic `codex-native:*` channel becomes `agent-ui-native:*`; suffixes and argument order stay the same. Provider execution channels/globals are owned by the application and are no longer shipped by this SDK.
+- Theme tokens `--codex-*` become `--agent-ui-*`; `.codex-chat-theme` becomes `.agent-ui-theme`, other generic `.codex-*` classes become `.agent-ui-*`. Theme selection uses `data-theme`; generating/message attributes use `data-agent-ui-*`.
+- Shared custom-block injection uses `Symbol.for('agent-ui.custom-blocks')`; use the exported key.
+
+Korus confirmed it consumes none of the retired provider-specific UI APIs. Its generic controlled pane and native execution through Multi remain the integration path. Samples own their launch-selected backends and authentication in application host code.
 
 ## Audit and validation boundaries
 
 The composed pane keeps optimistic state, submission wiring, goal intents and the existing escape-interrupt composable. These are control behavior and capability-driven; no provider-name branch, host filesystem/storage policy or host workflow was found to extract. Goal, turn git info and visualization blocks render props and emit intent; visualization `path` is an opaque host-owned target and is never loaded by the block.
 
-Build and test configs use package-local `source-aliases.ts`, limited to this package's optional host/speech entries and sibling harness surface/events/consumer-types development entries. They do not import the parent's shared aliases. Typechecking resolves installed npm declarations by default and locally built declarations when `SDK_LOCAL_SOURCE=1`. Final builds, broad coverage and real browser integration are parent-owned serial gates.
+Build and test configs use package-local `source-aliases.ts`, derived from the explicit package exports maps, including Multi's prompt, renderer, native and host-bridge development entries. They do not import the parent's shared aliases. Typechecking resolves installed npm declarations by default and locally built declarations when `SDK_LOCAL_SOURCE=1`. `npm run check` verifies types, coverage, the tarball consumer, docs, lab and samples; browser and native smoke jobs verify their respective runtimes.
 
 ## Neutral session composition
 
@@ -269,7 +60,7 @@ The binding owns an ephemeral follow-up queue with editing, deletion, steering, 
 
 Keep one binding per conversation while its queued work is needed, including across navigation. Dispose it when its owner closes; disposal stops observation and further dispatch, without cancelling an already-admitted native turn. Apps supply the neutral client operations and native host adapter once. The SDK Electron adapter supplies attachment picking, paste/drop ingestion, capability references and previews. `toHarnessPromptOptions` from `/host` converts renderer-safe send options at the trusted boundary; attachments require an explicit resolver such as `ElectronAttachmentRegistry.resolve`. A raw path never replaces the opaque reference in renderer state. The low-level controller remains available for custom behavior and application navigation.
 
-`sessionStateToConversationPaneState(state, capabilities, conversationKey?, controls?)` composes a controlled pane from `SessionState` and `HarnessCapabilities` imported as types from `@korus-dev/multi-agent-sdk`. It passes canonical messages through without cloning: they already satisfy the pane's semantic message contract. The existing neutral `toChatMessage` adapter also accepts canonical `Message` and converts tool, reasoning, attachment and text parts for custom renderers. No provider dispatch or Korus integration is required. Supply the neutral model catalog as `controls: { models, modelCatalogStatus? }` to render the selector inside the composer. Provider-reported `state.selection` selects the restored model, effort and tier. An optional controlled `selection` overrides those values for applications that own preferences. Catalog labels fall back to the model identifier; selection actions use executable model identifiers rather than catalog keys. The controller’s `updateSettings` action reports `modelId`, `reasoningEffort` and `serviceTier`; a custom host updates its controlled selection and uses it for subsequent prompts. The standard session controller performs that binding automatically.
+`sessionStateToConversationPaneState(state, capabilities, conversationKey?, controls?)` composes a controlled pane from `SessionState` and `HostCapabilities` imported as types from `@korus-dev/multi-agent-sdk`. It passes canonical messages through without cloning: they already satisfy the pane's semantic message contract. The existing neutral `toChatMessage` adapter also accepts canonical `Message` and converts tool, reasoning, attachment and text parts for custom renderers. No provider dispatch or Korus integration is required. Supply the neutral model catalog as `controls: { models, modelCatalogStatus? }` to render the selector inside the composer. Provider-reported `state.selection` selects the restored model, effort and tier. An optional controlled `selection` overrides those values for applications that own preferences. Catalog labels fall back to the model identifier; selection actions use executable model identifiers rather than catalog keys. The controller’s `updateSettings` action reports `modelId`, `reasoningEffort` and `serviceTier`; a custom host updates its controlled selection and uses it for subsequent prompts. The standard session controller performs that binding automatically.
 
 The adapter presents busy/error/active-turn state, goals, context usage, turn status and pending approval/question/confirmation requests. Turns pass through by identity, preserving supplied error, retry, timing, detail and usage fields. Unknown values remain unknown. Canonical question and confirmation requests pass through by identity with optional turn/item identity unchanged. `ConversationRequest` is a UI-owned union of canonical requests and existing serialized compatibility envelopes; leaf controls read both shapes without translating native identity. A confirmation renderer may use the request ID as a local tool-row key when no item ID exists; it never writes that key into the request. Plans and titles have no pane field and remain available to host chrome through the original snapshot.
 
@@ -277,7 +68,7 @@ Capabilities drive controls. `native` and `prompted` plan modes enable the plan 
 
 [examples/session-pane.ts](examples/session-pane.ts) is a low-level explicit binding of an opaque `Session` to the controller. It subscribes only to that session's `session.changed` events, exposes disposal, and wires submit/interrupt/request responses using the public `requestResponseFromClientResponse` and `requestResponseFromApproval` helpers. Both return `SessionRequestResponse`, which matches the neutral driver response without native identity. Its required `resolvePromptOptions` callback resolves host-owned attachment references and maps client model/reasoning fields into harness prompt selection; the example never treats a reference as a filesystem path. Hosts add actions/catalogs for any further capabilities they expose. The caller passes the resulting controller to `ConversationPane`.
 
-`ClientAttachment` and `ClientSendMessageOptions` are the preferred UI action types. `RendererAttachment` / `RendererSendMessageOptions` and original Codex spellings remain compatibility aliases. `useNativeSurface` / `useNativeLiveChat` name the native helpers explicitly, retaining `useCodexSurface` / `useCodexLiveChat`. All surface/live-chat hooks are exported only from `@korus-dev/agent-ui-sdk/native.js`. The generic `useSurface` / `useLiveChat` aliases are removed: those implementations only support the native Codex bridge. The harness `/surface` and `/surface-bridge` remain explicit native compatibility entries, not the neutral session API.
+`ClientAttachment` and `ClientSendMessageOptions` are the UI action types shared with Multi Agent SDK. Multi's pure `/prompt` entry supplies prompt helpers; native execution stays outside all UI controls.
 
 Fixture-backed tests in `tests/boundaries/session-composition.spec.ts` verify canonical message rendering and identity, capability mapping, all three pending request kinds, busy/error updates, terminal tool state, controlled submit/interrupt intents, session event isolation, option resolution, approval/question responses and subscription disposal. The fixture is also mounted with a pending approval: clicking its actual Allow button routes through the pane, controller and reusable converter to `driver.respondToRequest`; the approval disappears on the next request-free snapshot. Converter tests cover answers, cancellation, each tool-confirmation decision, approval scopes and rejection of empty responses. `tsconfig.composition.json` typechecks the actual example, fixture and composition test in addition to source. This is separate from Vitest's transpile-only execution.
 
@@ -293,27 +84,11 @@ The Electron attachment registry and conversation-content references are runtime
 
 Controlled submission callbacks may return `{ renderOptimisticMessage: false }` for commands or queued work that must not create an immediate transcript row. The standard binding uses this for goals and queued submissions, while preserving normal optimistic message rendering.
 
-## Controlled root and native convenience
+## One controlled conversation pane
 
-The generic `ConversationPane`/`CodexConversationPane` has no `surface` prop, connection lifecycle, native state fallback or native method calls. All data and intent handlers come from host-controlled controller or prop/event inputs. `readPromptHistory` is an optional host loader on that same controlled interface; `requestSkills` emits a host intent when no controller action handles it. The root starts with unavailable capability flags and an empty command catalog. Host-supplied catalogs, capabilities and existing control behavior remain intact. The generic goal composer mode uses the neutral fallback ID `goal` when supported and not supplied by the host.
+`ConversationPane` receives all state and actions through controlled inputs. It has no provider host prop, connection lifecycle, authentication or provider defaults. `readPromptHistory`, skill discovery and other optional operations are application-owned controller actions. The root starts with unavailable capabilities and an empty command catalog; supplied capabilities/catalogs determine the controls.
 
-For existing native convenience, import `NativeConversationPane`, `useNativeSurface`/`useCodexSurface`, `useNativeLiveChat`/`useCodexLiveChat`, native hook types, `codexCommands` and `codexCapabilities` from `@korus-dev/agent-ui-sdk/native.js`. The wrapper adapts the native snapshot/actions into the generic controlled pane and retains connection, error recovery, prompt recall/discovery, queue, approval/question and settings behavior. It forwards host overrides, slots and `focusComposer`. It owns native catalog defaults; generic controls never import those catalogs. Existing raw prop/event consumers without a native surface stay on the root controls.
-
-Exact consumer changes:
-
-- Root `ConversationPane` with `surface` → `/native` `NativeConversationPane` with the same native surface, or host-controlled root `ConversationPane` composed from neutral session state.
-- Root surface/live-chat hooks and their types → same named exports from `/native`. Native aliases are retained there; general harness session composition uses the root state adapter.
-- Root `codexCapabilities`/`capabilities` → `/native` `codexCapabilities` if native defaults are wanted; otherwise supply host capabilities explicitly.
-- Root `codexCommands`/`commands` → `/native` `codexCommands` if native commands are wanted; otherwise supply host catalogs explicitly.
-- Generic leaf contracts use `@korus-dev/multi-agent-sdk/ui-types.js` or UI-owned request DTOs; prompt values/functions use pure `@korus-dev/multi-agent-sdk/prompt.js`. Native `/surface` and `/surface-bridge` imports are confined to the opt-in native entry and existing Electron adapters.
-
-Korus `client/vue/src/components/ConversationPane.vue` uses a controller and has no native pane `surface` prop; its local `surface` ref and mention-slot `surface` metadata are unrelated to native state. The parent owns Korus import updates and packaging metadata. This change adds only the agreed `typecheck:composition` script and its invocation from normal `typecheck`, plus the native build entry.
-
-[docs/native-boundary-moves.json](docs/native-boundary-moves.json) records exact source/destination maps and SHA-256 baseline hashes from `67a7fd6`, with adaptation lists for the parent transfer manifest. All moved files were compared before adaptation; native hooks remain byte-identical. The complete 181-test pane suite moved to the native wrapper, retaining behavior assertions. Generic controlled/composition tests cover root defaults, known history booleans, canonical request identity and request rendering/responses. Runtime graph guards reject native/provider/surface-bridge imports from root and document panels; static guards also reject native surface type imports and retired app chrome/treemap exports. No coverage gate was lowered and no behavior assertion was dropped.
-
-The native wrapper declares the generic pane's runtime prop schema with defaults left undefined. Vue therefore normalizes kebab-case keys and bare Booleans before the controlled-state adapter reads them, while absent overrides leave native values intact; explicit false and nullable identifiers remain explicit overrides. Real-template and server-rendered regressions cover those boundaries. Host action errors clear only after an actual transition to enabled with an explicit upstream `error: null`; unrelated renders, omitted error evidence, ready-with-error and error-free-while-disabled retain them. Active composer/transcription errors have their own lifecycle and survive transport recovery. Same-key rejected-send and rejected-steer regressions cover this behavior, and normal composition typecheck includes these template fixtures/tests.
-
-Native history actions retain event fallbacks: absent optional turn-history support or a falsy conversation key emits the corresponding host intent instead of calling native history with a manufactured string key. Host menu fixtures explicitly supply their capability and command catalogs; root defaults remain neutral.
+All harnesses use the same neutral session/controller composition. Keep provider lifecycle and protocol handling in Multi Agent SDK or application host adapters. Slots and `focusComposer` remain part of the generic pane.
 
 ## Controlled model picker
 

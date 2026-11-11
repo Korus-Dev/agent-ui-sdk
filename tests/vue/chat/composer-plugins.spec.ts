@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CodexSurfacePlugin } from '@korus-dev/multi-agent-sdk';
+import type { Plugin } from '@korus-dev/multi-agent-sdk';
 import {
   filterComposerPlugins,
   pluginDescription,
@@ -10,7 +10,7 @@ import {
 import { isApprovalPreset } from '../../../src/vue/chat/approval-presets';
 import { filterComposerMentionGroups, findComposerMention } from '../../../src/vue/chat/composer-mentions-custom';
 
-const plugins: CodexSurfacePlugin[] = [
+const plugins: Plugin[] = [
   { id: 'gmail@remote', name: 'gmail', displayName: 'Gmail', shortDescription: 'Read mail', enabled: true },
   { id: 'drive@remote', name: '', displayName: 'Drive', longDescription: 'Search documents', enabled: true },
   { id: 'calendar@remote', name: 'calendar', displayName: '', enabled: true },

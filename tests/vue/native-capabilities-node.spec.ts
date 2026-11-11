@@ -2,13 +2,13 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  getCodexGlobalHostCapabilities,
-  getCodexNativeRendererApi,
+  getGlobalHostCapabilities,
+  getNativeRendererApi,
 } from '../../src/vue/native-capabilities';
 
 describe('native renderer capabilities outside a browser', () => {
   it('reports no global host capabilities during server-side rendering', () => {
-    expect(getCodexGlobalHostCapabilities()).toBeUndefined();
-    expect(getCodexNativeRendererApi()).toBeUndefined();
+    expect(getGlobalHostCapabilities()).toBeUndefined();
+    expect(getNativeRendererApi()).toBeUndefined();
   });
 });

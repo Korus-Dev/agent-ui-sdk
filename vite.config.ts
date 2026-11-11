@@ -10,6 +10,6 @@ export default defineConfig({
   base: './',
   resolve: { alias: sourceAliases },
   plugins: [vue()],
-  build: { lib: { entry: { ...browserEntries, ...documentEntries, ...Object.fromEntries(Object.entries({"vue/index":"src/vue/entry.ts","vue/native/index":"src/vue/native/index.ts","vue/browser/index":"src/vue/browser/index.ts","host/contracts":"src/host/contracts.ts","electron/index":"src/electron/index.ts","electron/preload":"src/electron/preload.ts","speech/index":"src/speech/index.ts"}).map(([name, file]) => [name, path.resolve(import.meta.dirname, file)])) }, formats: ['es'], cssFileName: 'styles' }, sourcemap: true,
+  build: { lib: { entry: { ...browserEntries, ...documentEntries, ...Object.fromEntries(Object.entries({"vue/index":"src/vue/entry.ts","vue/browser/index":"src/vue/browser/index.ts","host/contracts":"src/host/contracts.ts","electron/index":"src/electron/index.ts","electron/preload":"src/electron/preload.ts","speech/index":"src/speech/index.ts"}).map(([name, file]) => [name, path.resolve(import.meta.dirname, file)])) }, formats: ['es'], cssFileName: 'styles' }, sourcemap: true,
     rollupOptions: { external: id => id.startsWith('node:') || ['vue', 'electron', ...Object.keys(metadata.dependencies ?? {}), ...Object.keys(metadata.peerDependencies ?? {})].some(name => id === name || id.startsWith(name + '/')), output: { entryFileNames: '[name].js', chunkFileNames: 'chunks/[name]-[hash].js' } } },
 });

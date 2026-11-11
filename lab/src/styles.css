@@ -3,8 +3,8 @@
   color: #171717;
   background: #ecece9;
   font-synthesis: none;
-  --codex-message-list-content-width: 820px;
-  --codex-composer-content-width: 820px;
+  --agent-ui-message-list-content-width: 820px;
+  --agent-ui-composer-content-width: 820px;
 }
 
 * { box-sizing: border-box; }

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { exposeNativeRendererApi } from '@korus-dev/agent-ui-sdk/electron/preload.js';
+import { exposeNativeRendererApi } from '@korus-dev/agent-ui-sdk/electron/preload';
 exposeNativeRendererApi(contextBridge, ipcRenderer);
 contextBridge.exposeInMainWorld('sample', {
   snapshot: () => ipcRenderer.invoke('sample:snapshot'),

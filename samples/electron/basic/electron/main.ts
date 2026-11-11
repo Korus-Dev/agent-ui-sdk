@@ -1,5 +1,5 @@
 import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron';
-import { ElectronAttachmentRegistry, registerNativeIpc } from '@korus-dev/agent-ui-sdk/electron.js';
+import { ElectronAttachmentRegistry, registerNativeIpc } from '@korus-dev/agent-ui-sdk/electron';
 import fs from 'node:fs';
 import { parseSampleLaunchArgs } from '../../../shared/launch-options';
 import path from 'node:path';

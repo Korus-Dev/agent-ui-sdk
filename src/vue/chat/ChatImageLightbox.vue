@@ -2,8 +2,8 @@
   <Teleport to="body">
     <div
       v-if="open"
-      class="codex-chat-theme chat-image-lightbox chat-media-block__fullscreen"
-      :data-codex-theme="portalTheme.mode"
+      class="agent-ui-theme chat-image-lightbox chat-media-block__fullscreen"
+      :data-theme="portalTheme.mode"
       :style="portalTheme.style"
       role="dialog"
       aria-modal="true"
@@ -43,7 +43,7 @@ import { ChevronLeftIcon, ChevronRightIcon, X } from '../shared/icons/app-icons'
 import { imageGalleryKey, imageGalleryMessageKey, type GalleryImage } from './image-gallery'
 import { useHostImageSource } from './host-image-previews'
 import ChatIconButton from './ChatIconButton.vue'
-import { captureCodexPortalTheme, type CodexPortalTheme } from './portal-theme'
+import { capturePortalTheme, type PortalTheme } from './portal-theme'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{
@@ -66,7 +66,7 @@ const emit = defineEmits<{
 }>()
 // Stryker restore all
 
-const portalTheme = ref<CodexPortalTheme>({ mode: 'light', style: {} })
+const portalTheme = ref<PortalTheme>({ mode: 'light', style: {} })
 const gallery = inject(imageGalleryKey, undefined)
 const message = inject(imageGalleryMessageKey, undefined)
 const images = ref<GalleryImage[]>([])
@@ -87,7 +87,7 @@ watch(() => props.open, (open) => {
     initialPosition.value = position.value
     images.value = position.value < 0 ? [] : [...candidates]
     failed.value = false
-    portalTheme.value = captureCodexPortalTheme(props.themeSource)
+    portalTheme.value = capturePortalTheme(props.themeSource)
     window.addEventListener('keydown', handleKeydown)
   } else {
     images.value = []

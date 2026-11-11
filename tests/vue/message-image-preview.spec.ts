@@ -4,15 +4,15 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, shallowRef, type Component } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  CodexConversationPane,
-  provideCodexHostCapabilities,
-  CodexMessage,
-  createCodexConversationPaneController,
-  type CodexChatMessage,
+  ConversationPane,
+  provideHostCapabilities,
+  Message,
+  createConversationPaneController,
+  type ChatMessage,
 } from '../../src/vue'
 
 const imageUrl = 'data:image/png;base64,cG5n'
-const messages: CodexChatMessage[] = [
+const messages: ChatMessage[] = [
   {
     content: 'Review this image',
     id: 'user-image',
@@ -47,8 +47,8 @@ describe('conversation message image previews', () => {
 
   it('resolves local Markdown and generated-media images through the host capability before display', async () => {
     const readImagePreview = vi.fn(async (_reference: string) => imageUrl)
-    vi.stubGlobal('codexAppSdkNative', { readImagePreview, capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false } })
-    const wrapper = mount(CodexConversationPane, { props: { messages: [{ id: 'local-images', role: 'assistant', content: '', parts: [
+    vi.stubGlobal('agentUiHostCapabilities', { readImagePreview, capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false } })
+    const wrapper = mount(ConversationPane, { props: { messages: [{ id: 'local-images', role: 'assistant', content: '', parts: [
       { type: 'text', content: 'Here is ![Screenshot](/tmp/screenshot.png).' },
       { type: 'media', media: { title: 'Generated', url: 'file:///tmp/generated.png' } },
     ] }] } })
@@ -61,12 +61,12 @@ describe('conversation message image previews', () => {
   it('discards image resolutions after the displayed message changes or unmounts', async () => {
     const pending: ((value: string) => void)[] = []
     const readImagePreview = vi.fn((_reference: string) => new Promise<string>(resolve => pending.push(resolve)))
-    vi.stubGlobal('codexAppSdkNative', { readImagePreview, capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false } })
-    const message = (name: string): CodexChatMessage => ({ id: 'changing', role: 'assistant', content: '', parts: [
+    vi.stubGlobal('agentUiHostCapabilities', { readImagePreview, capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false } })
+    const message = (name: string): ChatMessage => ({ id: 'changing', role: 'assistant', content: '', parts: [
       { type: 'text', content: `See ![Preview](/tmp/${name}.png) here.` },
       { type: 'media', media: { title: 'Media', url: `/tmp/${name}.png` } },
     ] })
-    const wrapper = mount(CodexConversationPane, { props: { messages: [message('old')] } })
+    const wrapper = mount(ConversationPane, { props: { messages: [message('old')] } })
     await flushPromises()
     await wrapper.setProps({ messages: [message('new')] })
     await flushPromises()
@@ -87,8 +87,8 @@ describe('conversation message image previews', () => {
       return outcome === 'missing' ? null : 'file:///private/unsafe.png'
     })
     const openImage = vi.fn(() => true)
-    vi.stubGlobal('codexAppSdkNative', { readImagePreview, capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false } })
-    const wrapper = mount(CodexConversationPane, { props: { openImage, messages: [{ id: 'unavailable', role: 'assistant', content: '', parts: [
+    vi.stubGlobal('agentUiHostCapabilities', { readImagePreview, capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false } })
+    const wrapper = mount(ConversationPane, { props: { openImage, messages: [{ id: 'unavailable', role: 'assistant', content: '', parts: [
       { type: 'text', content: 'See ![Missing](/tmp/missing.png) here.' },
       { type: 'media', media: { title: 'Unavailable', url: '/tmp/missing.png' } },
     ] }] } })
@@ -118,14 +118,14 @@ describe('conversation message image previews', () => {
     let release!: (value: string) => void
     const read = vi.fn(async (_reference: string): Promise<string | null> => imageUrl)
     const openImage = vi.fn(() => true)
-    const items = shallowRef<CodexChatMessage[]>([])
-    const media = (id: string, url = '/tmp/shared.png'): CodexChatMessage => ({ id, role: 'assistant', content: '', parts: [{ type: 'media', media: { title: id, url } }] })
-    const wrapper = mount(defineComponent({ components: { CodexConversationPane: CodexConversationPane as unknown as Component }, setup() {
-      provideCodexHostCapabilities({ readImagePreview: read, capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false },
+    const items = shallowRef<ChatMessage[]>([])
+    const media = (id: string, url = '/tmp/shared.png'): ChatMessage => ({ id, role: 'assistant', content: '', parts: [{ type: 'media', media: { title: id, url } }] })
+    const wrapper = mount(defineComponent({ components: { ConversationPane: ConversationPane as unknown as Component }, setup() {
+      provideHostCapabilities({ readImagePreview: read, capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false },
         copyToClipboard: async () => {}, ingestAttachments: async () => [], pickAttachments: async () => [], openExternal: async () => {}, transcribeAudio: async () => { throw new Error('Unavailable') },
       }, { imagePreviewBudgetBytes: 256 })
       return { items, openImage }
-    }, template: '<CodexConversationPane :messages="items" :open-image="openImage" />' }))
+    }, template: '<ConversationPane :messages="items" :open-image="openImage" />' }))
     try {
       items.value = [media('first'), media('second')]; await flushPromises()
       expect(read).toHaveBeenCalledOnce()
@@ -200,11 +200,11 @@ describe('conversation message image previews', () => {
       set src(value: string) { if (value) queueMicrotask(() => this.onload?.()) }
     })
     const read = vi.fn(async (_reference: string): Promise<string | null> => imageUrl)
-    const items = shallowRef<CodexChatMessage[]>(['first','second','third'].map((id, index) => ({id,role:'assistant',content:'',parts:[{type:'media',media:{title:id,url:`conversation-image:thread:${String(index + 1).repeat(64)}`, ...(id === 'first' ? {width:1024,height:512} : id === 'third' ? {width:Number.NaN,height:-1} : {})}}]})))
+    const items = shallowRef<ChatMessage[]>(['first','second','third'].map((id, index) => ({id,role:'assistant',content:'',parts:[{type:'media',media:{title:id,url:`conversation-image:thread:${String(index + 1).repeat(64)}`, ...(id === 'first' ? {width:1024,height:512} : id === 'third' ? {width:Number.NaN,height:-1} : {})}}]})))
     const wrapper = mount(defineComponent({setup() {
-      provideCodexHostCapabilities({readImagePreview:read} as never, {imagePreviewBudgetBytes:256,viewportImageLoading:true})
+      provideHostCapabilities({readImagePreview:read} as never, {imagePreviewBudgetBytes:256,viewportImageLoading:true})
       return {items}
-    }, components:{CodexMessage:CodexMessage as unknown as Component}, template:'<div style="overflow-y:auto"><CodexMessage v-for="item in items" :key="item.id" :message="item" /></div>'}), {attachTo:document.body})
+    }, components:{Message:Message as unknown as Component}, template:'<div style="overflow-y:auto"><Message v-for="item in items" :key="item.id" :message="item" /></div>'}), {attachTo:document.body})
     const target = (name: string) => wrapper.get(`[aria-label="Open ${name}"]`).element.closest('figure')!
     const deliver = (element: Element, near: boolean, visible: boolean) => {
       for (const observer of observers) if (observer.targets.has(element)) observer.callback([
@@ -315,7 +315,7 @@ describe('conversation message image previews', () => {
   })
 
   it('opens user attachments and assistant media in the SDK lightbox by default', async () => {
-    const wrapper = mount(CodexConversationPane, { props: { messages: [messages[0]!, {
+    const wrapper = mount(ConversationPane, { props: { messages: [messages[0]!, {
       ...messages[1]!, parts: [{ type: 'media', media: { alt: 'Generated result', title: 'screenshot.png', url: imageUrl } }],
     }, {
       id: 'another-result', role: 'assistant', content: '',
@@ -359,9 +359,9 @@ describe('conversation message image previews', () => {
 
   it('loads gallery originals on selection, handles unavailable images, and ignores replies after close', async () => {
     const read = vi.fn(async (_reference: string): Promise<string | null> => imageUrl)
-    vi.stubGlobal('codexAppSdkNative', { readImagePreview: read,
+    vi.stubGlobal('agentUiHostCapabilities', { readImagePreview: read,
       capabilities: { attachments: false, clipboard: false, externalLinks: false, transcription: false } })
-    const wrapper = mount(CodexConversationPane, { props: { messages: [{ id: 'gallery', role: 'assistant', content: '', parts: [
+    const wrapper = mount(ConversationPane, { props: { messages: [{ id: 'gallery', role: 'assistant', content: '', parts: [
       { type: 'media', media: { url: '/first.png', title: 'First' } },
       { type: 'media', media: { url: '/second.png' } },
       { type: 'attachment', attachment: { kind: 'image', name: 'Third', path: '/third.png' } },
@@ -403,7 +403,7 @@ describe('conversation message image previews', () => {
   })
 
   it('lets generated-media downloads bypass conversation link interception', () => {
-    const wrapper = mount(CodexConversationPane, { props: { messages } })
+    const wrapper = mount(ConversationPane, { props: { messages } })
     const download = wrapper.get('.chat-media-block__actions [aria-label="Download media"]')
     const event = new MouseEvent('click', { bubbles: true, cancelable: true })
     const preventTestNavigation = vi.fn((clickEvent: Event) => clickEvent.preventDefault())
@@ -419,8 +419,8 @@ describe('conversation message image previews', () => {
     expect(wrapper.emitted('openLink')).toBeUndefined()
   })
 
-  it('keeps the SDK lightbox active when CodexMessage is mounted without an image handler', async () => {
-    const wrapper = mount(CodexMessage, { props: { message: messages[0]! } })
+  it('keeps the SDK lightbox active when Message is mounted without an image handler', async () => {
+    const wrapper = mount(Message, { props: { message: messages[0]! } })
 
     await wrapper.get('[aria-label="Open screenshot.png"]').trigger('click')
     await flushPromises()
@@ -430,11 +430,11 @@ describe('conversation message image previews', () => {
 
   it('lets a controller action own image opening with message context', async () => {
     const openImage = vi.fn()
-    const controller = createCodexConversationPaneController({
+    const controller = createConversationPaneController({
       actions: { openImage },
       state: { identity: { messages } },
     })
-    const wrapper = mount(CodexConversationPane, { props: { controller } })
+    const wrapper = mount(ConversationPane, { props: { controller } })
 
     await wrapper.get('[aria-label="Open screenshot.png"]').trigger('click')
     await flushPromises()
@@ -479,7 +479,7 @@ describe('conversation message image previews', () => {
 
   it('uses the SDK lightbox when an override explicitly returns false', async () => {
     const openImage = vi.fn(() => false)
-    const wrapper = mount(CodexConversationPane, { props: { messages, openImage } })
+    const wrapper = mount(ConversationPane, { props: { messages, openImage } })
 
     await wrapper.get('.chat-media-block__image-button').trigger('click')
     await flushPromises()
@@ -492,7 +492,7 @@ describe('conversation message image previews', () => {
     const openImage = vi.fn(async () => {
       throw new Error('Image host failed')
     })
-    const wrapper = mount(CodexConversationPane, { props: { messages, openImage } })
+    const wrapper = mount(ConversationPane, { props: { messages, openImage } })
 
     await wrapper.get('.chat-media-block__image-button').trigger('click')
     await flushPromises()
@@ -504,11 +504,11 @@ describe('conversation message image previews', () => {
 
   it('does not invoke the compatibility image handler in controller mode', async () => {
     const legacyOpenImage = vi.fn(() => true)
-    const controller = createCodexConversationPaneController({
+    const controller = createConversationPaneController({
       actions: {},
       state: { identity: { messages } },
     })
-    const wrapper = mount(CodexConversationPane, {
+    const wrapper = mount(ConversationPane, {
       props: { controller, openImage: legacyOpenImage },
     })
 

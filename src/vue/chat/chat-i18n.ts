@@ -1,9 +1,9 @@
 import { inject, provide, type InjectionKey } from 'vue';
 import { defaultToolTranslate } from './tool-status';
 
-export type CodexChatTranslate = (key: string, params?: Record<string, unknown>) => string;
+export type ChatTranslate = (key: string, params?: Record<string, unknown>) => string;
 
-const translateKey: InjectionKey<CodexChatTranslate> = Symbol('codex-app-sdk-chat-translate');
+const translateKey: InjectionKey<ChatTranslate> = Symbol('agent-ui-sdk-chat-translate');
 
 const templates: Record<string, string> = {
   'chat.actions.cancel': 'Cancel',
@@ -61,16 +61,16 @@ const templates: Record<string, string> = {
   'chat.skills.title': 'Skills',
 };
 
-export function provideCodexChatTranslate(translate: CodexChatTranslate): void {
+export function provideChatTranslate(translate: ChatTranslate): void {
   provide(translateKey, translate);
 }
 
 /** Reads the nearest chat translation function for the current Vue tree. */
-export function useCodexChatTranslate(): CodexChatTranslate {
-  return inject(translateKey, defaultCodexChatTranslate);
+export function useChatTranslate(): ChatTranslate {
+  return inject(translateKey, defaultChatTranslate);
 }
 
-export function defaultCodexChatTranslate(
+export function defaultChatTranslate(
   key: string,
   params: Record<string, unknown> = {},
 ): string {

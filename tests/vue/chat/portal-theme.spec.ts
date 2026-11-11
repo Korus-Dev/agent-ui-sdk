@@ -2,18 +2,18 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { captureCodexPortalTheme } from '../../../src/vue/chat/portal-theme';
+import { capturePortalTheme } from '../../../src/vue/chat/portal-theme';
 
-describe('captureCodexPortalTheme', () => {
+describe('capturePortalTheme', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
   it('returns a light empty theme without an element or CSSOM support', () => {
-    expect(captureCodexPortalTheme(null)).toStrictEqual({ mode: 'light', style: {} });
+    expect(capturePortalTheme(null)).toStrictEqual({ mode: 'light', style: {} });
 
     vi.stubGlobal('getComputedStyle', undefined);
-    expect(captureCodexPortalTheme(document.createElement('main'))).toStrictEqual({
+    expect(capturePortalTheme(document.createElement('main'))).toStrictEqual({
       mode: 'light',
       style: {},
     });
@@ -29,7 +29,7 @@ describe('captureCodexPortalTheme', () => {
     const getComputedStyle = vi.fn(() => ({ colorScheme: 'light dark', getPropertyValue }));
     vi.stubGlobal('getComputedStyle', getComputedStyle);
 
-    expect(captureCodexPortalTheme(element)).toStrictEqual({
+    expect(capturePortalTheme(element)).toStrictEqual({
       mode: 'dark',
       style: {
         '--color-background': '#111',
@@ -47,7 +47,7 @@ describe('captureCodexPortalTheme', () => {
       getPropertyValue: () => '',
     }));
 
-    expect(captureCodexPortalTheme(document.createElement('main'))).toStrictEqual({
+    expect(capturePortalTheme(document.createElement('main'))).toStrictEqual({
       mode: 'light',
       style: {},
     });

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { effectScope } from 'vue';
 import { afterEach, expect, it, vi } from 'vitest';
-import type { CodexSpeechSessionEvent, CodexStreamingTranscription } from '../../../src/host/contracts';
+import type { SpeechSessionEvent, StreamingTranscription } from '../../../src/host/contracts';
 import { useChatComposerVoice } from '../../../src/vue/chat/use-chat-composer-voice';
 import type { SpeechRecorder } from '../../../src/vue/audio/browser-speech-recorder';
 
@@ -9,9 +9,9 @@ const scopes: ReturnType<typeof effectScope>[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.stop(); });
 
 function setup() {
-  const listeners = new Set<(event: CodexSpeechSessionEvent) => void>();
+  const listeners = new Set<(event: SpeechSessionEvent) => void>();
   let resolve!: (result: { text: string }) => void;
-  const service: CodexStreamingTranscription = {
+  const service: StreamingTranscription = {
     start: vi.fn(async () => {}), append: vi.fn(async () => {}), cancel: vi.fn(async () => {}),
     stop: vi.fn(() => new Promise<{ text: string }>((done) => { resolve = done; })),
     onEvent: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
@@ -24,7 +24,7 @@ function setup() {
     onTranscript: insert, streamingTranscription: service,
   }, { isRecordingSupported: () => true, createStreamRecorder: () => capture }))!;
   return { voice, service, capture, insert, scope, listeners,
-    emit: (event: CodexSpeechSessionEvent) => listeners.forEach((listener) => listener(event)), finish: (text: string) => resolve({ text }),
+    emit: (event: SpeechSessionEvent) => listeners.forEach((listener) => listener(event)), finish: (text: string) => resolve({ text }),
     id: () => vi.mocked(service.start).mock.calls.at(-1)![0].sessionId };
 }
 

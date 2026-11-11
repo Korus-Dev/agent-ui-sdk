@@ -1,6 +1,6 @@
 import type { HarnessCapabilities, ModelOption, SessionState } from '@korus-dev/multi-agent-sdk';
 import type { ModelSelection } from './model-selection';
-import type { CodexConversationPaneState as ConversationPaneState } from './conversation-pane-controller';
+import type { ConversationPaneState } from './conversation-pane-controller';
 
 /** Controlled catalog and selection; loading and persistence belong to the host. */
 export type SessionConversationControls = {

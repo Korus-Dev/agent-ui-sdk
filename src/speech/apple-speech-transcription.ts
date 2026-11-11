@@ -58,7 +58,7 @@ export async function transcribeWithAppleSpeechAnalyzer(
   const fs = deps.fs ?? nodeFs;
   const spawn = deps.spawn ?? nodeSpawn;
   const tmpdir = deps.tmpdir ?? os.tmpdir;
-  const tempDir = await fs.mkdtemp(path.join(tmpdir(), 'codex-app-sdk-apple-stt-'));
+  const tempDir = await fs.mkdtemp(path.join(tmpdir(), 'agent-ui-sdk-apple-stt-'));
   const inputPath = path.join(tempDir, 'input.wav');
   const outputPath = path.join(tempDir, 'output.txt');
 
@@ -171,7 +171,7 @@ function defaultAssetsPath(dependencies: AppleSpeechAssetDiscoveryDependencies):
     : dependencies.packageResolve ?? undefined;
   if (packageResolver) {
     try {
-      const packageNodeEntry = fileURLToPath(packageResolver('@korus-dev/agent-ui-sdk/speech.js'));
+      const packageNodeEntry = fileURLToPath(packageResolver('@korus-dev/agent-ui-sdk/speech'));
       for (const relative of ['../../assets', '../assets', './assets']) {
         const packageAssetsPath = path.resolve(path.dirname(packageNodeEntry), relative);
         if (existsSync(path.join(packageAssetsPath, 'apple-speechanalyzer-cli'))) {

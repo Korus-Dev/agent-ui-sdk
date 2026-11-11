@@ -39,12 +39,12 @@ const inheritedThemeTokens = [
   '--shadow-lg',
 ] as const;
 
-export type CodexPortalTheme = {
+export type PortalTheme = {
   mode: 'dark' | 'light';
   style: Record<string, string>;
 };
 
-export function captureCodexPortalTheme(element: Element | null): CodexPortalTheme {
+export function capturePortalTheme(element: Element | null): PortalTheme {
   if (!element || typeof getComputedStyle !== 'function') {
     return { mode: 'light', style: {} };
   }

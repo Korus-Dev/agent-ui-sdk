@@ -1,7 +1,7 @@
 <template>
   <span
     v-if="questions.length === 0"
-    class="codex-chat-theme chat-message__thinking codex-text-shimmer"
+    class="agent-ui-theme chat-message__thinking agent-ui-text-shimmer"
     data-label="Thinking"
   >
     <SquareDashed :size="15" />
@@ -11,7 +11,7 @@
   <section
     v-else
     ref="root"
-    class="codex-chat-theme codex-request-card chat-tool-user-input"
+    class="agent-ui-theme agent-ui-request-card chat-tool-user-input"
     :class="{ 'chat-tool-user-input--resolved': cancelled || answered || historical }"
     :tabindex="interactive ? -1 : undefined"
     @keydown="onCardKeydown"
@@ -39,8 +39,8 @@
     </template>
 
     <template v-else-if="currentQuestion">
-      <header class="codex-request-header chat-tool-user-input__header">
-        <span class="codex-request-eyebrow chat-tool-user-input__eyebrow">
+      <header class="agent-ui-request-header chat-tool-user-input__header">
+        <span class="agent-ui-request-eyebrow chat-tool-user-input__eyebrow">
           <MessageQuestionIcon :size="16" aria-hidden="true" />
           <span class="chat-tool-user-input__eyebrow-text">{{ eyebrow }}</span>
         </span>
@@ -64,8 +64,8 @@
         </div>
       </header>
 
-      <p class="codex-request-title chat-tool-user-input__question">{{ currentQuestion.question }}</p>
-      <p v-if="currentQuestion.multiSelect && options.length > 0" class="codex-request-description chat-tool-user-input__hint">
+      <p class="agent-ui-request-title chat-tool-user-input__question">{{ currentQuestion.question }}</p>
+      <p v-if="currentQuestion.multiSelect && options.length > 0" class="agent-ui-request-description chat-tool-user-input__hint">
         Select all that apply
       </p>
 
@@ -124,10 +124,10 @@
         </div>
         <p v-if="voiceError" class="chat-tool-user-input__error" role="alert">{{ voiceError }}</p>
 
-        <div class="codex-request-footer chat-tool-user-input__actions">
+        <div class="agent-ui-request-footer chat-tool-user-input__actions">
           <button
             v-if="currentIndex > 0"
-            class="codex-request-button chat-tool-user-input__button"
+            class="agent-ui-request-button chat-tool-user-input__button"
             type="button"
             @click="back"
           >
@@ -142,7 +142,7 @@
             <template #recording><ChatAudioLevelIndicator :audio-level="audioLevel" /></template>
           </ChatComposerVoiceButton>
           <button
-            class="codex-request-button codex-request-button--primary chat-tool-user-input__button chat-tool-user-input__button--primary"
+            class="agent-ui-request-button agent-ui-request-button--primary chat-tool-user-input__button chat-tool-user-input__button--primary"
             :disabled="!canProceed"
             type="button"
             @click="proceed"

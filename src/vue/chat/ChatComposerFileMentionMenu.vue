@@ -1,7 +1,7 @@
 <template>
   <div
     ref="menuEl"
-    class="codex-chat-theme chat-composer-file-menu"
+    class="agent-ui-theme chat-composer-file-menu"
     role="listbox"
     aria-label="Files"
   >
@@ -41,23 +41,23 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
-import { useCodexChatTranslate } from './chat-i18n';
-import type { CodexFileSearchItem } from './contracts';
+import { useChatTranslate } from './chat-i18n';
+import type { FileSearchItem } from './contracts';
 import { FileTextIcon } from '../shared/icons/app-icons';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   activeIndex: number;
   showHint?: boolean;
-  visibleFiles: CodexFileSearchItem[];
+  visibleFiles: FileSearchItem[];
 }>();
 
 defineEmits<{
-  select: [file: CodexFileSearchItem];
+  select: [file: FileSearchItem];
 }>();
 // Stryker restore all
 
-const t = useCodexChatTranslate();
+const t = useChatTranslate();
 const menuEl = ref<HTMLElement | null>(null);
 
 watch(
@@ -95,7 +95,7 @@ watch(
 .chat-composer-file-menu__section {
   padding: var(--space-2) var(--space-4);
   color: var(--color-text-muted);
-  font-size: var(--codex-composer-menu-heading-font-size, var(--chat-menu-font-size));
+  font-size: var(--agent-ui-composer-menu-heading-font-size, var(--chat-menu-font-size));
   font-weight: var(--font-weight-regular);
   line-height: 18px;
 }

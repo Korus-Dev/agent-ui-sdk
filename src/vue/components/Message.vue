@@ -1,0 +1,670 @@
+<template>
+  <ChatCompactionMessage
+    v-if="chatMessage.type === 'compaction'"
+    class="agent-ui-theme"
+    :completed-title="t('chat.compaction.completed')"
+    :running-title="t('chat.compaction.running')"
+    :status="chatMessage.compactionStatus"
+  />
+  <!-- <div v-else-if="message.type === 'steer'" class="chat-message chat-message--steer">
+    <div class="chat-message__steer-line" />
+    <div class="chat-message__steer-body">
+      <span class="chat-message__steer-title">Steered conversation</span>
+      <span class="chat-message__steer-text">{{ message.content }}</span>
+    </div>
+  </div> -->
+  <div
+    v-else-if="!hideCollapsedTurnDetail"
+    class="agent-ui-theme chat-message"
+    :class="[`chat-message--${chatMessage.role}`, {
+      'chat-message--actions-visible': showActionIcons && !reserveActionSlot,
+      'chat-message--editing': isEditing,
+    }]"
+    @pointerenter="actionsHovered = $event.pointerType !== 'touch'"
+    @pointerleave="actionsHovered = false"
+    @pointerdown="touchActions"
+    @focusin="actionsFocused = true"
+    @focusout="blurActions"
+  >
+    <div class="chat-message__body">
+      <div v-if="$slots.header" class="chat-message--steer chat-message--steer-above">
+        <slot name="header" :index="index" :message="chatMessage" />
+      </div>
+      <div
+        v-if="userAttachmentBlocks.length > 0"
+        class="chat-message__attachments"
+        aria-label="ChatMessage attachments"
+      >
+        <template
+          v-for="({ block, blockIndex }) in userAttachmentBlocks"
+          :key="`attachment-${blockIndex}`"
+        >
+          <slot name="block" :block="block" :block-index="blockIndex" :index="index" :message="chatMessage">
+            <ChatMessageBlock :block="block" :open-image="openImage">
+              <template v-if="$slots.attachment" #attachment="scope">
+                <slot name="attachment" v-bind="scope" :index="index" :message="chatMessage" />
+              </template>
+            </ChatMessageBlock>
+          </slot>
+        </template>
+      </div>
+      <div v-if="isEditing || stackBlocks.length > 0 || showEmptyResponse || showThinkingIndicator || showStreamingDot" class="chat-message__stack">
+        <ChatMessageEditor
+          v-if="isEditing"
+          :cancel-label="t('chat.actions.cancel')"
+          :content="visibleUserContent"
+          :prompt-content="chatMessage.promptContent"
+          :input-label="t('chat.actions.editPrompt')"
+          :save-label="t('chat.actions.resubmit')"
+          @cancel="cancelEdit"
+          @save="saveEdit"
+        />
+        <template v-else>
+          <template v-for="({ block, blockIndex }) in stackBlocks" :key="block.type === 'tool' ? block.toolCall.id : `${block.type}-${blockIndex}`">
+            <ChatMessageBlock
+              v-if="block.type === 'work-group'"
+              :answered-client-request-ids="answeredClientRequestIds"
+              :block="block"
+              :follow-ups-disabled="followUpsDisabled"
+              :mention-groups="mentionGroups"
+              :plugins="plugins"
+              :open-image="openImage"
+              :show-tool-details="showToolDetails"
+              :skills="skills"
+              @cancel="emit('cancel')"
+              @client-response="emit('client-response', $event)"
+              @open-link="emit('open-link', $event)"
+              @open-visualization="emit('open-visualization', $event)"
+              @send-follow-up="emit('send-follow-up', $event)"
+            >
+              <template v-if="$slots.block" #block="scope">
+                <slot name="block" v-bind="scope" :index="index" :message="chatMessage" />
+              </template>
+              <template v-if="$slots.text" #text="scope">
+                <slot name="text" v-bind="scope" :index="index" :message="chatMessage" />
+              </template>
+              <template v-if="$slots.tool" #tool="scope">
+                <slot name="tool" v-bind="scope" :index="index" :message="chatMessage" />
+              </template>
+            </ChatMessageBlock>
+            <slot v-else name="block" :block="block" :block-index="blockIndex" :index="index" :message="chatMessage">
+              <ChatMessageBlock
+                :answered-client-request-ids="answeredClientRequestIds"
+                :block="block"
+                :follow-ups-disabled="followUpsDisabled"
+                :mention-groups="mentionGroups"
+                :plugins="plugins"
+                :open-image="openImage"
+                :show-tool-details="showToolDetails"
+                :skills="skills"
+                @cancel="emit('cancel')"
+                @client-response="emit('client-response', $event)"
+                @open-link="emit('open-link', $event)"
+                @open-visualization="emit('open-visualization', $event)"
+                @send-follow-up="emit('send-follow-up', $event)"
+              >
+                <template v-if="$slots.attachment" #attachment="scope">
+                  <slot name="attachment" v-bind="scope" :index="index" :message="chatMessage" />
+                </template>
+                <template v-if="$slots.text" #text="scope">
+                  <slot name="text" v-bind="scope" :index="index" :message="chatMessage" />
+                </template>
+                <template v-if="$slots.mention" #mention="scope">
+                  <slot name="mention" v-bind="scope" :index="index" :message="chatMessage" />
+                </template>
+                <template v-if="$slots.tool" #tool="scope">
+                  <slot name="tool" v-bind="scope" :index="index" :message="chatMessage" />
+                </template>
+              </ChatMessageBlock>
+            </slot>
+          </template>
+          <span v-if="showEmptyResponse" class="chat-message__empty-response">
+            {{ t('chat.message.emptyResponse') }}
+          </span>
+          <slot v-if="showThinkingIndicator" name="thinking" :index="index" :message="chatMessage">
+            <span
+              class="chat-message__thinking agent-ui-text-shimmer"
+              :data-label="activityLabel"
+            >
+              {{ activityLabel }}
+            </span>
+          </slot>
+          <slot v-else-if="showStreamingDot" name="status" :index="index" :message="chatMessage" status="streaming">
+            <span
+              class="chat-message__stream-dot"
+              aria-label="Streaming"
+            />
+          </slot>
+        </template>
+      </div>
+      <slot
+        v-if="renderActionSlot"
+        name="actions"
+        :disabled="reserveActionSlot"
+        :index="index"
+        :message="chatMessage"
+      >
+        <ChatMessageActions
+          class="chat-message__actions"
+          :class="{ 'chat-message__actions--reserved': reserveActionSlot }"
+          :aria-hidden="reserveActionSlot ? 'true' : undefined"
+          :inert="reserveActionSlot ? '' : undefined"
+          :can-delete="canDelete"
+          :can-edit="canEdit"
+          :can-fork="canFork"
+          :can-retry="canRetry"
+          :copy-action="copyMessage"
+          :deleting="deletingTurn"
+          :message="chatMessage"
+          :icons-visible="showActionIcons"
+          :mutation-disabled="threadActionsDisabled"
+          :presentation="effectivePresentation.messages.actions"
+          @copy="emit('copy-message', index)"
+          @delete="deleteTurn"
+          @edit="startEdit"
+          @fork="forkTurn"
+          @quote="emit('quote-message', index)"
+          @retry="retryTurn"
+        />
+      </slot>
+      <div v-if="chatMessage.type === 'steer'" class="chat-message--steer chat-message--steer-below">
+        Steered conversation
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, inject, provide, ref, shallowReactive, shallowRef } from 'vue'
+import { touchedMessageActionsKey } from '../chat/message-action-state'
+import { questionResponsesKey } from '../chat/message-work-state'
+import { useChatTranslate } from '../chat/chat-i18n'
+import type { ClientRequestResponse, ConversationLink, ConversationPresentation } from '../chat/contracts'
+import { resolveConversationPresentation } from '../chat/contracts'
+import type { ChatMessage } from '../chat/types'
+import type { Plugin, Skill, ConversationMessage } from '@korus-dev/multi-agent-sdk';
+import type { MessageBlock, RenderedMessageBlock } from '../chat/message-blocks'
+import type {
+  MessageImage,
+  MessageImageContext,
+  MessageImageOpenHandler,
+} from '../chat/message-image'
+import type { ConversationVisualization } from '../chat/visualization'
+import { useCustomBlocks } from '../chat/custom-blocks'
+import ChatMessageBlock from '../chat/ChatMessageBlock.vue'
+import { imageGalleryMessageKey } from '../chat/image-gallery'
+import ChatMessageActions from '../chat/ChatMessageActions.vue'
+import ChatCompactionMessage from '../chat/ChatCompactionMessage.vue'
+import ChatMessageEditor from '../chat/ChatMessageEditor.vue'
+import { computeMessageBlocks, reuseMessageBlocks, groupAssistantWorkBlocks, stripMessageContext } from '../chat/message-blocks'
+import { copyMessageToClipboard } from '../chat/message-actions'
+import { renderedChatMessage } from '../chat/renderer-message-adapter'
+import { assistantWorkMessageIndexKey, assistantWorkTurnKey } from '../chat/message-work-state'
+import { useHostCapabilities } from '../native-capabilities'
+import type { ComposerMentionGroup, ComposerMentionItem } from '../chat/composer-mentions-custom'
+
+// Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
+const props = withDefaults(defineProps<{
+  activityState?: 'working'
+  actionsDisabled?: boolean
+  actionsAlwaysVisible?: boolean
+  answeredClientRequestIds?: ReadonlySet<string>
+  canDeleteTurn?: boolean
+  canEditTurn?: boolean
+  canForkTurn?: boolean
+  canRetryTurn?: boolean
+  deletingTurn?: boolean
+  followUpsDisabled?: boolean
+  hiddenClientRequestIds?: ReadonlySet<string>
+  index?: number
+  message: ChatMessage | ConversationMessage
+  mentionGroups?: readonly ComposerMentionGroup[]
+  openImage?: MessageImageOpenHandler
+  plugins?: readonly Plugin[]
+  presentation?: ConversationPresentation
+  showToolDetails?: boolean
+  skills?: readonly Skill[]
+  threadActionsDisabled?: boolean
+}>(), {
+  canDeleteTurn: true,
+  canEditTurn: true,
+  canForkTurn: false,
+  canRetryTurn: true,
+  index: 0,
+  showToolDetails: undefined,
+})
+
+defineSlots<{
+  actions(props: { disabled: boolean; index: number; message: ChatMessage }): unknown
+  header(props: { index: number; message: ChatMessage }): unknown
+  mention(props: { group: ComposerMentionGroup; index: number; item: ComposerMentionItem; message: ChatMessage; surface: 'message' }): unknown
+  attachment(props: {
+    attachment: Extract<MessageBlock, { type: 'attachment' }>['attachment']
+    block: Extract<MessageBlock, { type: 'attachment' }>
+    index: number
+    message: ChatMessage
+  }): unknown
+  block(props: { block: MessageBlock; blockIndex: number; index: number; message: ChatMessage }): unknown
+  status(props: { index: number; message: ChatMessage; status: 'streaming' }): unknown
+  text(props: { block: Extract<MessageBlock, { type: 'text' | 'user-text' }>; content: string; index: number; message: ChatMessage; user: boolean }): unknown
+  thinking(props: { index: number; message: ChatMessage }): unknown
+  tool(props: {
+    block: Extract<MessageBlock, { type: 'tool' | 'tool-group' }>
+    index: number
+    message: ChatMessage
+    toolCall?: Extract<MessageBlock, { type: 'tool' }>['toolCall']
+    toolCalls?: Extract<MessageBlock, { type: 'tool-group' }>['toolCalls']
+  }): unknown
+}>()
+const emit = defineEmits<{
+  cancel: []
+  'client-response': [response: ClientRequestResponse]
+  'open-link': [link: ConversationLink]
+  'open-visualization': [visualization: ConversationVisualization]
+  'copy-message': [index: number]
+  'delete-turn': [turnId: string]
+  'edit-turn': [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }]
+  'fork-turn': [turnId: string]
+  'quote-message': [index: number]
+  'retry-turn': [turnId: string]
+  'send-follow-up': [prompt: string]
+}>()
+// Stryker restore all
+
+const hostCapabilities = useHostCapabilities()
+
+const t = useChatTranslate()
+const activityLabel = computed(() => props.activityState === 'working'
+  || (assistantWorkTurn?.phased.value && assistantWorkTurn.active.value)
+  ? t('chat.work.working') : 'Thinking')
+const chatMessage = computed(() => renderedChatMessage(props.message))
+provide(imageGalleryMessageKey, chatMessage)
+const assistantWorkTurn = inject(assistantWorkTurnKey, undefined)
+provide(assistantWorkMessageIndexKey, computed(() => props.index))
+const messageTurnState = computed(() => (
+  chatMessage.value.turnId === assistantWorkTurn?.turnId.value
+    ? assistantWorkTurn
+    : undefined
+))
+const workTurnState = computed(() => (
+  messageTurnState.value?.enabled.value
+    ? messageTurnState.value
+    : undefined
+))
+const workActive = computed(() => {
+  return workTurnState.value?.active.value
+})
+const effectivePresentation = computed(() => resolveConversationPresentation(props.presentation))
+provide(questionResponsesKey, inject(questionResponsesKey, undefined) ?? shallowReactive(new Map()))
+const customBlocks = useCustomBlocks()
+const allBlocks = computed<MessageBlock[]>((previous) => reuseMessageBlocks(computeMessageBlocks(chatMessage.value, Object.keys(customBlocks)), previous))
+const visibleBlocks = computed(() => allBlocks.value.filter((block) => (
+  (block.type !== 'question' || !props.hiddenClientRequestIds?.has(block.request.id))
+  && (effectivePresentation.value.messages.toolBlocks || (block.type !== 'tool' && block.type !== 'tool-group'))
+)))
+const groupWork = computed(() => {
+  const state = workTurnState.value
+  if (!state) return undefined
+  const onlyStructuredWork = allBlocks.value.length > 0 && allBlocks.value.every((block) => (
+    block.type === 'tool' || block.type === 'tool-group'
+  ))
+  return state.phased.value || state.itemsView?.value !== undefined || (state.active.value && onlyStructuredWork)
+})
+const blocks = computed(() => {
+  const grouped = groupAssistantWorkBlocks(chatMessage.value, visibleBlocks.value, workActive.value, groupWork.value, props.answeredClientRequestIds)
+  const state = workTurnState.value
+  return state?.itemsView?.value !== undefined && state.headerMessageIndex.value === props.index && !grouped.some(block => block.type === 'work-group')
+    ? [{ type: 'work-group' as const, active: false, finalStarted: state.finalStarted.value, blocks: [] }, ...grouped]
+    : grouped
+})
+
+const assistantWithoutMessageActions = computed(() => (
+  chatMessage.value.role === 'assistant'
+  && blocks.value.length > 0
+  && blocks.value.every((block) => block.type === 'work-group' || block.type === 'media')
+  && (
+    chatMessage.value.streaming === true
+    || workActive.value === true
+    || messageTurnState.value?.finalStarted.value === true
+    || !blocks.value.some((block) => block.type === 'work-group')
+  )
+))
+const hideCollapsedTurnDetail = computed(() => {
+  if (
+    chatMessage.value.role === 'assistant'
+    && chatMessage.value.streaming !== true
+    && allBlocks.value.length > 0
+    && visibleBlocks.value.length === 0
+  ) return true
+  const state = messageTurnState.value
+  if (!state?.enabled.value || state.active.value) return false
+  if (chatMessage.value.type === 'steer' && state.itemsView?.value === 'summary') return true
+  if (state.completedWithoutFinal.value) return chatMessage.value.type === 'steer'
+  if (state.expanded.value) return false
+  if (chatMessage.value.type === 'steer') return true
+  return chatMessage.value.role === 'assistant'
+    && state.headerMessageIndex.value !== props.index
+    && blocks.value.every((block) => block.type === 'work-group')
+})
+const indexedBlocks = computed(() => blocks.value.map((block, blockIndex) => ({ block, blockIndex })))
+const indexedAllBlocks = computed(() => allBlocks.value.map((block, blockIndex) => ({ block, blockIndex })))
+const userAttachmentBlocks = computed(() => (
+  chatMessage.value.role === 'user'
+    ? indexedAllBlocks.value.filter(({ block }) => block.type === 'attachment')
+    : []
+))
+const stackBlocks = computed(() => (
+  chatMessage.value.role === 'user'
+    ? indexedAllBlocks.value.filter(({ block }) => block.type !== 'attachment')
+    : indexedBlocks.value
+))
+const visibleUserContent = computed(() => stripMessageContext(chatMessage.value.content))
+const isEditing = ref(false)
+
+const showActions = computed(() => (
+  chatMessage.value.type !== 'compaction' &&
+  chatMessage.value.type !== 'steer' &&
+  !assistantWithoutMessageActions.value &&
+  !isEditing.value
+))
+const reserveActionSlot = computed(() => (
+  props.actionsDisabled ||
+  (chatMessage.value.role === 'assistant' && chatMessage.value.streaming === true)
+))
+const actionsHovered = ref(false)
+const actionsFocused = ref(false)
+const touchedActions = inject(touchedMessageActionsKey, undefined) ?? shallowRef<string | number>()
+const actionKey = computed(() => chatMessage.value.id ?? props.index)
+const showActionIcons = computed(() => props.deletingTurn || !reserveActionSlot.value && Boolean(
+  props.actionsAlwaysVisible || actionsHovered.value || actionsFocused.value || touchedActions.value === actionKey.value,
+))
+function touchActions(event: PointerEvent) {
+  if (event.pointerType === 'touch') touchedActions.value = actionKey.value
+}
+function blurActions(event: FocusEvent) {
+  actionsFocused.value = event.relatedTarget instanceof Node && (event.currentTarget as HTMLElement).contains(event.relatedTarget)
+}
+const renderActionSlot = computed(() => showActions.value)
+const canDelete = computed(() => Boolean(chatMessage.value.turnId) && props.canDeleteTurn && effectivePresentation.value.messages.actions.delete)
+const canEdit = computed(() => Boolean(chatMessage.value.turnId) && props.canEditTurn && effectivePresentation.value.messages.actions.edit)
+const canFork = computed(() => Boolean(chatMessage.value.turnId) && props.canForkTurn && effectivePresentation.value.messages.actions.fork)
+const canRetry = computed(() => Boolean(chatMessage.value.turnId) && props.canRetryTurn && effectivePresentation.value.messages.actions.retry)
+const hasVisibleAssistantActivity = computed(() => blocks.value.some(isVisibleAssistantBlock))
+const isLatestStreamingAssistantSegment = computed(() => (
+  messageTurnState.value?.latestStreamingAssistantIndex.value === undefined
+    || messageTurnState.value.latestStreamingAssistantIndex.value === props.index
+))
+const showEmptyResponse = computed(() => (
+  chatMessage.value.role === 'assistant' &&
+  chatMessage.value.streaming !== true &&
+  messageTurnState.value?.itemsView?.value !== 'summary' &&
+  allBlocks.value.length === 0
+))
+const showThinkingIndicator = computed(() => (
+  chatMessage.value.role === 'assistant' &&
+  chatMessage.value.streaming === true &&
+  isLatestStreamingAssistantSegment.value &&
+  !hasVisibleAssistantActivity.value
+))
+const showStreamingDot = computed(() => (
+  chatMessage.value.role === 'assistant' &&
+  chatMessage.value.streaming === true &&
+  isLatestStreamingAssistantSegment.value &&
+  hasVisibleAssistantActivity.value
+))
+function startEdit() {
+  if (chatMessage.value.role !== 'user' || !canEdit.value) {
+    return
+  }
+
+  isEditing.value = true
+}
+
+function cancelEdit() {
+  isEditing.value = false
+}
+
+function saveEdit(content: string, options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions) {
+  const turnId = chatMessage.value.turnId
+  if (!turnId) return
+  emit('edit-turn', { content, turnId, ...(options ? { options } : {}) })
+  cancelEdit()
+}
+
+function deleteTurn() {
+  if (!canDelete.value || props.threadActionsDisabled) {
+    return
+  }
+
+  const turnId = chatMessage.value.turnId
+  if (turnId) emit('delete-turn', turnId)
+}
+
+function forkTurn() {
+  if (!canFork.value || props.threadActionsDisabled) return
+  const turnId = chatMessage.value.turnId
+  if (turnId) emit('fork-turn', turnId)
+}
+
+function retryTurn() {
+  if (!canRetry.value || props.threadActionsDisabled) {
+    return
+  }
+
+  const turnId = chatMessage.value.turnId
+  if (turnId) emit('retry-turn', turnId)
+}
+
+function openImage(image: MessageImage, context?: MessageImageContext) {
+  return props.openImage?.(image, {
+    index: props.index,
+    intent: context?.intent ?? 'open',
+    message: chatMessage.value,
+  })
+}
+
+async function copyMessage() {
+  await copyMessageToClipboard(chatMessage.value.content, hostCapabilities)
+}
+
+function isVisibleAssistantBlock(block: RenderedMessageBlock) {
+  if (block.type === 'text') {
+    return block.content.trim().length > 0
+  }
+
+  return block.type === 'attachment'
+    || block.type === 'media'
+    || block.type === 'mermaid'
+    || block.type === 'custom'
+    || block.type === 'html'
+    || block.type === 'reasoning'
+    || block.type === 'tool'
+    || block.type === 'tool-group'
+    || block.type === 'visualization'
+    || block.type === 'work-group'
+}
+
+</script>
+
+<style scoped>
+.chat-message {
+  display: flex;
+}
+
+.chat-message--user {
+  justify-content: flex-end;
+}
+
+.chat-message--assistant {
+  justify-content: flex-start;
+}
+
+.chat-message--steer {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+}
+
+.chat-message--steer-above {
+  margin-bottom: var(--space-1);
+}
+
+.chat-message--steer-below {
+  margin-top: var(--space-1);
+}
+
+.chat-message__steer-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px solid var(--color-border);
+}
+
+.chat-message__steer-body {
+  z-index: 1;
+  display: inline-flex;
+  max-width: min(100%, 640px);
+  align-items: baseline;
+  gap: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-6);
+  background: var(--color-surface-lowest);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  line-height: var(--line-height-18);
+}
+
+.chat-message__steer-title {
+  flex: 0 0 auto;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.chat-message__steer-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-message__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+
+.chat-message--user .chat-message__body {
+  align-items: flex-end;
+  max-width: 70%;
+}
+
+.chat-message--assistant .chat-message__body {
+  align-items: flex-start;
+}
+
+.chat-message--editing .chat-message__body {
+  max-width: unset;
+}
+
+.chat-message__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 100%;
+}
+
+.chat-message__empty-response {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.chat-message__attachments {
+  display: flex;
+  max-width: 100%;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.chat-message--assistant .chat-message__stack {
+  width: 100%;
+}
+
+.chat-message--user .chat-message__stack {
+  background: var(--color-shell-sidebar);
+  border-radius: var(--radius-xl);
+}
+
+.chat-message--editing .chat-message__stack {
+  width: 100%;
+  background: transparent;
+  border-radius: 0;
+}
+
+.chat-message__actions {
+  visibility: hidden;
+}
+
+.chat-message--actions-visible .chat-message__actions {
+  visibility: visible;
+}
+
+.chat-message__actions--reserved {
+  pointer-events: none;
+}
+
+.chat-message:hover .chat-message__actions,
+.chat-message:focus-within .chat-message__actions {
+  visibility: visible;
+}
+
+.chat-message:hover .chat-message__actions--reserved,
+.chat-message:focus-within .chat-message__actions--reserved {
+  visibility: hidden;
+}
+
+.chat-message__thinking {
+  align-self: flex-start;
+  overflow: hidden;
+  padding: var(--space-3) 0;
+  font-size: var(--chat-message-font-size, var(--font-size-15));
+  font-weight: var(--font-weight-light);
+  line-height: var(--chat-message-line-height, var(--line-height-20));
+}
+
+.chat-message__stream-dot {
+  display: block;
+  width: var(--space-4);
+  height: var(--space-4);
+  align-self: flex-start;
+  margin-top: var(--space-1);
+  border-radius: 999px;
+  background: var(--color-text-muted);
+  transform-origin: 50% 50%;
+  animation: chat-message-stream-dot 1.15s ease-in-out infinite;
+}
+
+@keyframes chat-message-stream-dot {
+  0%,
+  100% {
+    border-radius: 999px;
+    opacity: 0.48;
+    transform: rotate(0deg) scale(0.72);
+  }
+
+  50% {
+    border-radius: var(--radius-xs);
+    opacity: 1;
+    transform: rotate(180deg) scale(1);
+  }
+
+  75% {
+    border-radius: var(--radius-sm);
+    transform: rotate(270deg) scale(0.86);
+  }
+}
+</style>

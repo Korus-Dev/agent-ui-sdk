@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-chat-theme chat-composer__audio-field">
+  <div class="agent-ui-theme chat-composer__audio-field">
     <div class="chat-composer__audio-text">
       {{ before }}<span>{{ transcript?.finalText }}</span><span class="chat-composer__audio-partial">{{ transcript?.partialText }}</span>{{ after }}<span
         v-if="recording"
@@ -20,14 +20,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CodexSpeechTranscript } from '@korus-dev/agent-ui-sdk/host.js'
+import type { SpeechTranscript } from '@korus-dev/agent-ui-sdk/host'
 import ChatAudioLevelIndicator from './ChatAudioLevelIndicator.vue'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   recording: boolean
   starting?: boolean
-  transcript?: CodexSpeechTranscript
+  transcript?: SpeechTranscript
   audioLevel?: number
   before?: string
   after?: string

@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ChatComposerSkillMenu from '../../../src/vue/chat/ChatComposerSkillMenu.vue';
-import type { CodexSkillSummary } from '../../../src/vue/chat/contracts';
+import type { SkillSummary } from '../../../src/vue/chat/contracts';
 
 const originalScrollIntoView = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
 
@@ -73,7 +73,7 @@ describe('ChatComposerSkillMenu', () => {
   });
 });
 
-function createSkills(count: number): CodexSkillSummary[] {
+function createSkills(count: number): SkillSummary[] {
   return Array.from({ length: count }, (_, index) => ({
     name: `skill-${index + 1}`,
     displayName: `Skill ${index + 1}`,

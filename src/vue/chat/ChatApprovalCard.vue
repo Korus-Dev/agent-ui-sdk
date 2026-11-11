@@ -1,25 +1,25 @@
 <template>
-  <section class="codex-chat-theme codex-request-card chat-tool-confirmation">
-    <header class="codex-request-header chat-tool-confirmation__header">
-      <span class="codex-request-eyebrow chat-tool-confirmation__tag">
+  <section class="agent-ui-theme agent-ui-request-card chat-tool-confirmation">
+    <header class="agent-ui-request-header chat-tool-confirmation__header">
+      <span class="agent-ui-request-eyebrow chat-tool-confirmation__tag">
         <ShieldCheckIcon :size="16" aria-hidden="true" />
         Approve tool call
       </span>
     </header>
-    <span class="codex-request-title chat-tool-confirmation__question">{{ summary }}</span>
-    <p v-if="description" class="codex-request-description chat-tool-confirmation__description">{{ description }}</p>
+    <span class="agent-ui-request-title chat-tool-confirmation__question">{{ summary }}</span>
+    <p v-if="description" class="agent-ui-request-description chat-tool-confirmation__description">{{ description }}</p>
     <details v-if="details || $slots.details" class="chat-tool-confirmation__details">
       <summary class="chat-tool-confirmation__details-summary">Details</summary>
       <div class="chat-tool-confirmation__details-body">
         <slot name="details"><pre>{{ details }}</pre></slot>
       </div>
     </details>
-    <footer class="codex-request-footer chat-tool-confirmation__actions">
+    <footer class="agent-ui-request-footer chat-tool-confirmation__actions">
       <button
         v-for="action in actions"
         :key="action.id"
-        class="codex-request-button chat-tool-confirmation__button"
-        :class="{ 'codex-request-button--primary': action.primary, 'chat-tool-confirmation__button--primary': action.primary }"
+        class="agent-ui-request-button chat-tool-confirmation__button"
+        :class="{ 'agent-ui-request-button--primary': action.primary, 'chat-tool-confirmation__button--primary': action.primary }"
         type="button"
         :disabled="disabled"
         @click="$emit('decide', action.id)"

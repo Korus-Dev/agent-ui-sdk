@@ -12,7 +12,7 @@ import ChatToolConfirmation from '../../../src/vue/chat/ChatToolConfirmation.vue
 import ChatToolUserInputRequest from '../../../src/vue/chat/ChatToolUserInputRequest.vue';
 import ChatToolCall from '../../../src/vue/chat/ChatToolCall.vue';
 import ChatToolGroup from '../../../src/vue/chat/ChatToolGroup.vue';
-import { provideCodexToolCallDetails } from '../../../src/vue/chat/tool-call-details';
+import { provideToolCallDetails } from '../../../src/vue/chat/tool-call-details';
 import type { MessageToolCall } from '../../../src/vue/chat/types';
 
 const completedTool: MessageToolCall = {
@@ -476,7 +476,7 @@ describe('ported id8 chat components', () => {
   it('enables raw tool details once for a provided component subtree', async () => {
     const host = defineComponent({
       setup() {
-        provideCodexToolCallDetails(true);
+        provideToolCallDetails(true);
         return () => h(ChatToolCall, { toolCall: completedTool });
       },
     });
@@ -489,7 +489,7 @@ describe('ported id8 chat components', () => {
 
     const overriddenHost = defineComponent({
       setup() {
-        provideCodexToolCallDetails(true);
+        provideToolCallDetails(true);
         return () => h(ChatToolCall, { showToolDetails: false, toolCall: completedTool });
       },
     });

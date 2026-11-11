@@ -16,7 +16,7 @@ describe('generic controlled pane', () => {
 
   it('starts with neutral host-controlled catalogs and no native surface prop', () => {
     const pane = mount(ConversationPane);
-    const composer = pane.findComponent({ name: 'CodexComposer' });
+    const composer = pane.findComponent({ name: 'Composer' });
     expect(composer.props('capabilities')).toMatchObject({ models: false, skills: false, goals: false, approvals: false });
     expect(composer.props('commands')).toEqual([]);
     expect(pane.text()).toContain('Start a conversation');

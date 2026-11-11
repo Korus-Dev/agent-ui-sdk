@@ -1,7 +1,7 @@
 import { createApp, h, nextTick, shallowRef } from 'vue';
 import StreamingPane from './StreamingPane.vue';
-import CodexMessageList from '../../../src/vue/components/CodexMessageList.vue';
-import type { SurfaceMessage } from '@korus-dev/multi-agent-sdk';
+import MessageList from '../../../src/vue/components/MessageList.vue';
+import type { ConversationMessage } from '@korus-dev/multi-agent-sdk';
 
 let warmApp: ReturnType<typeof createApp> | undefined;
 export function clearWarmStream() { warmApp?.unmount(); warmApp = undefined; }
@@ -14,23 +14,23 @@ export async function mountStream(historySize: number, lazy: boolean, warmOnly =
   const prefix = Array.from({ length: 100 }, (_, index) => `## Section ${index}\n\n${paragraph}\n\n`).join('');
   const code = '```ts\nconst stable = true;\n```\n\n';
   let content = code + prefix + 'Current tail';
-  const history: SurfaceMessage[] = Array.from({ length: historySize }, (_, index) => ({
+  const history: ConversationMessage[] = Array.from({ length: historySize }, (_, index) => ({
     id: `history-${index}`, turnId: sameTurn ? 'stream' : `turn-${index}`, role: 'assistant', status: 'complete',
     parts: [{ type: 'text', text: paragraph.repeat(3) }],
   }));
-  const current = (): SurfaceMessage => ({
+  const current = (): ConversationMessage => ({
     id: 'stream', turnId: 'stream', role: 'assistant', status: 'streaming',
     parts: [{ type: 'text', text: content }],
   });
   const messages = shallowRef([...history, current()]);
   const app = createApp({ render: () => pane
     ? h(StreamingPane, { messages: messages.value, lazy })
-    : h(CodexMessageList, { messages: messages.value, busy: true, renderStrategy: lazy ? 'lazy' : 'eager' }) });
+    : h(MessageList, { messages: messages.value, busy: true, renderStrategy: lazy ? 'lazy' : 'eager' }) });
   let actionUpdates = 0;
   let messageUpdates = 0;
   app.mixin({ updated() {
     if (this.$options.__name === 'ChatMessageActions') actionUpdates++;
-    if (this.$options.__name === 'CodexMessage') messageUpdates++;
+    if (this.$options.__name === 'Message') messageUpdates++;
   } });
   const mountStarted = performance.now();
   app.mount(host);

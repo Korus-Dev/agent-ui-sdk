@@ -1,5 +1,5 @@
-import type { CodexConversationFileAction, CodexConversationLink } from './contracts';
-import { codexConversationLinkFromHref } from './conversation-links';
+import type { ConversationFileAction, ConversationLink } from './contracts';
+import { conversationLinkFromHref } from './conversation-links';
 import { getMessageToolCallName, isImageGenerationToolCall, type MessageToolCall, type ToolStatusDescriptor } from './types';
 
 type Translate = (key: string, params?: Record<string, unknown>) => string;
@@ -9,26 +9,26 @@ export type ToolLineDiff = {
   removedLines: number;
 };
 
-export type CodexToolTitlePresenterContext = {
+export type ToolTitlePresenterContext = {
   descriptor: ToolStatusDescriptor | undefined;
   toolCall: MessageToolCall;
   translate: Translate;
 };
 
-export type CodexToolTitlePresenter = (
-  context: CodexToolTitlePresenterContext,
+export type ToolTitlePresenter = (
+  context: ToolTitlePresenterContext,
 ) => string | undefined;
 
-export type CodexToolDisplayTargetPart = {
+export type ToolDisplayTargetPart = {
   label: string;
-  link?: CodexConversationLink;
+  link?: ConversationLink;
   separator?: string;
   suffix?: string;
 };
 
-const toolTitlePresenters = new Set<CodexToolTitlePresenter>();
+const toolTitlePresenters = new Set<ToolTitlePresenter>();
 
-export function registerCodexToolTitlePresenter(presenter: CodexToolTitlePresenter): () => void {
+export function registerToolTitlePresenter(presenter: ToolTitlePresenter): () => void {
   toolTitlePresenters.add(presenter);
   return () => toolTitlePresenters.delete(presenter);
 }
@@ -126,7 +126,7 @@ export function getToolDisplayTargetLink(
   toolCall: MessageToolCall,
   descriptor: ToolStatusDescriptor | undefined,
   target?: string,
-): CodexConversationLink | undefined {
+): ConversationLink | undefined {
   return getToolDisplayTargetParts(toolCall, descriptor, target)?.find((part) => part.link)?.link;
 }
 
@@ -135,7 +135,7 @@ export function getToolDisplayTargetParts(
   descriptor: ToolStatusDescriptor | undefined,
   _target?: string,
   limit = 3,
-): CodexToolDisplayTargetPart[] | undefined {
+): ToolDisplayTargetPart[] | undefined {
   if (
     !descriptor
     || (!['create', 'edit', 'read'].includes(descriptor.action)
@@ -149,10 +149,10 @@ export function getToolDisplayTargetParts(
   const filePaths = toolFilePaths(toolCall);
   if (!targetTokens.length || !filePaths.length) return undefined;
 
-  const action = (descriptor.action === 'delete' ? 'edit' : descriptor.action) as CodexConversationFileAction;
+  const action = (descriptor.action === 'delete' ? 'edit' : descriptor.action) as ConversationFileAction;
   const parts = targetTokens.map((token, index) => {
     const filePath = filePaths.find((candidate) => displayFileName(candidate, descriptor.action) === token);
-    const link = filePath ? codexConversationLinkFromHref(filePath) : undefined;
+    const link = filePath ? conversationLinkFromHref(filePath) : undefined;
     const isSkillRead = descriptor.action === 'read' && filePath?.split(/[\\/]/u).at(-1) === 'SKILL.md' && token.endsWith(' Skill');
     return {
       label: isSkillRead ? token.slice(0, -' Skill'.length) : token,
@@ -169,7 +169,7 @@ export function getToolDisplayTargetParts(
       } : {}),
       separator: index === 0 ? '' : ', ',
       ...(isSkillRead ? { suffix: ' Skill' } : {}),
-    } satisfies CodexToolDisplayTargetPart;
+    } satisfies ToolDisplayTargetPart;
   });
 
   const truncatedCount = targetValues.length - targetTokens.length;
@@ -179,7 +179,7 @@ export function getToolDisplayTargetParts(
   return parts;
 }
 
-function deferredDiffForPath(toolCall: MessageToolCall, path: string): Pick<Extract<CodexConversationLink, { kind: 'file' }>, 'diffContent'> {
+function deferredDiffForPath(toolCall: MessageToolCall, path: string): Pick<Extract<ConversationLink, { kind: 'file' }>, 'diffContent'> {
   const args = isRecord(toolCall.args) ? toolCall.args : {};
   const changes = Array.isArray(toolCall.metadata?.changes) ? toolCall.metadata.changes : args.changes;
   if (!Array.isArray(changes)) return {};
@@ -188,7 +188,7 @@ function deferredDiffForPath(toolCall: MessageToolCall, path: string): Pick<Extr
   const ref = isRecord(change) ? change.diffContent : undefined;
   return isRecord(ref) && typeof ref.sessionId === 'string' && typeof ref.contentId === 'string'
     && typeof ref.byteLength === 'number' && ['add', 'update', 'delete'].includes(String(ref.changeKind))
-    ? { diffContent: ref as NonNullable<Extract<CodexConversationLink, { kind: 'file' }>['diffContent']> } : {};
+    ? { diffContent: ref as NonNullable<Extract<ConversationLink, { kind: 'file' }>['diffContent']> } : {};
 }
 
 export function getToolFallbackTitle(toolCall: MessageToolCall, t: Translate = defaultToolTranslate) {

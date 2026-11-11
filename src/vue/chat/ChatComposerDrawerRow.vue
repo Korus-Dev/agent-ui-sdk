@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-chat-theme chat-composer-drawer-row">
+  <div class="agent-ui-theme chat-composer-drawer-row">
     <div v-if="$slots.leading" class="chat-composer-drawer-row__leading"><slot name="leading" /></div>
     <div class="chat-composer-drawer-row__text"><slot /></div>
     <div v-if="$slots.actions" class="chat-composer-drawer-row__actions"><slot name="actions" /></div>

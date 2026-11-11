@@ -22,7 +22,7 @@ const server = await createServer({
   configFile: new URL('../vite.config.ts', import.meta.url).pathname,
   root: new URL('..', import.meta.url).pathname,
   plugins: baselineRoot ? [{ name: 'streaming-baseline', enforce: 'pre', resolveId(id) {
-    for (const component of ['CodexMessageList.vue', 'CodexConversationPane.vue']) {
+    for (const component of ['MessageList.vue', 'ConversationPane.vue']) {
       if (id.endsWith(`src/vue/components/${component}`)) return join(baselineRoot, 'src/vue/components', component);
     }
   } }] : [],

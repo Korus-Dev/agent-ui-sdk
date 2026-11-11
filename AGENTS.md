@@ -1,5 +1,9 @@
 # Agent UI SDK contributor instructions
 
+## Role
+
+This package provides foundational Vue components for apps built on multi-agent-sdk: the conversation pane, composer, approvals, requests and similar controls, plus rich components such as the in-app browser. How components are assembled into screens is the consumer's responsibility, so there is no app chrome, sidebar, settings or analytics here. The UI never knows which provider it is talking to: it works from capabilities and session state, and apps supply wording such as permission labels. A diff view is application-specific and does not belong here.
+
 Keep this package focused on reusable Vue conversation controls, renderer-safe
 host contracts, and optional Electron, browser and speech adapters. Provider
 execution belongs in multi-agent-sdk; raw Codex protocol belongs in codex-sdk.
@@ -33,3 +37,9 @@ Follow the release cascade: codex-sdk → multi-agent-sdk → agent-ui-sdk → K
 Wait for the upstream version to be published, then update the exact dependency
 pin and regenerate the lockfile with npm together. Verify a clean
 `npm ci --ignore-scripts`, `npm run check` and the production audit before release.
+
+Release only after Nicolas explicitly confirms Korus runs with the SDK working
+trees in local-source mode (`SDK_LOCAL_SOURCE=1`, optionally `SDK_SOURCE_ROOT`).
+Green CI alone is insufficient. Tarballs are for isolated consumer checks, not
+Korus qualification. Wait for his explicit go before version bumps, commits,
+pushes or publication.

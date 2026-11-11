@@ -1,8 +1,8 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
-import type { TurnStatus as CodexSurfaceTurnStatus } from '@korus-dev/multi-agent-sdk';
+import type { TurnStatus } from '@korus-dev/multi-agent-sdk';
 import type { ClientRequestResponse } from './contracts'
 
-export const questionResponsesKey: InjectionKey<Map<string, ClientRequestResponse['payload']>> = Symbol('codex-app-sdk-question-responses')
+export const questionResponsesKey: InjectionKey<Map<string, ClientRequestResponse['payload']>> = Symbol('agent-ui-sdk-question-responses')
 
 export type AssistantWorkTurnContext = {
   active: ComputedRef<boolean>
@@ -20,10 +20,10 @@ export type AssistantWorkTurnContext = {
   detailsError?: ComputedRef<string | null | undefined>
   reloadDetails?: () => void
   durationMs?: ComputedRef<number | null | undefined>
-  status: ComputedRef<CodexSurfaceTurnStatus | undefined>
+  status: ComputedRef<TurnStatus | undefined>
   turnId: ComputedRef<string | undefined>
   toggle: () => void
 }
 
-export const assistantWorkTurnKey: InjectionKey<AssistantWorkTurnContext> = Symbol('codex-app-sdk-assistant-work-turn')
-export const assistantWorkMessageIndexKey: InjectionKey<ComputedRef<number>> = Symbol('codex-app-sdk-assistant-work-message-index')
+export const assistantWorkTurnKey: InjectionKey<AssistantWorkTurnContext> = Symbol('agent-ui-sdk-assistant-work-turn')
+export const assistantWorkMessageIndexKey: InjectionKey<ComputedRef<number>> = Symbol('agent-ui-sdk-assistant-work-message-index')

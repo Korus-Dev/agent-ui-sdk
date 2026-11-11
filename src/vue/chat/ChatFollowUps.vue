@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-chat-theme chat-follow-ups">
+  <div class="agent-ui-theme chat-follow-ups">
     <button
       v-for="prompt in prompts"
       :key="prompt"

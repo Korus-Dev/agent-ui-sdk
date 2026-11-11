@@ -1,9 +1,9 @@
 import WebSocket from 'ws';
-import type { CodexSpeechSessionEvent, CodexSpeechSessionOptions, CodexSpeechTranscriptionResult, CodexSpeechPreparationOptions, CodexPreparedSpeechSession } from '@korus-dev/agent-ui-sdk/host.js';
+import type { SpeechSessionEvent, SpeechSessionOptions, SpeechTranscriptionResult, SpeechPreparationOptions, PreparedSpeechSession } from '@korus-dev/agent-ui-sdk/host';
 
 export type OpenAISpeechSession = {
   append(audio: ArrayBuffer): Promise<void>;
-  stop(): Promise<CodexSpeechTranscriptionResult>;
+  stop(): Promise<SpeechTranscriptionResult>;
   cancel(): Promise<void>;
 };
 export type OpenAISpeechData = Uint8Array | ArrayBuffer | Uint8Array[];
@@ -29,8 +29,8 @@ export type OpenAISpeechSessionConfiguration = {
 
 /** Main/server-process dictation. Consumes the same mono Float32 PCM as Apple speech. */
 export async function startOpenAISpeechSession(
-  input: CodexSpeechSessionOptions,
-  onEvent: (event: CodexSpeechSessionEvent) => void,
+  input: SpeechSessionOptions,
+  onEvent: (event: SpeechSessionEvent) => void,
   configuration: OpenAISpeechSessionConfiguration,
 ): Promise<OpenAISpeechSession> {
   validateSampleRate(input.sampleRate);
@@ -40,10 +40,10 @@ export async function startOpenAISpeechSession(
 
 /** Connect without assuming the microphone's eventual sample rate. No audio is accepted yet. */
 export async function prepareOpenAISpeechSession(
-  input: CodexSpeechPreparationOptions,
-  onEvent: (event: CodexSpeechSessionEvent) => void,
+  input: SpeechPreparationOptions,
+  onEvent: (event: SpeechSessionEvent) => void,
   configuration: OpenAISpeechSessionConfiguration,
-): Promise<CodexPreparedSpeechSession> {
+): Promise<PreparedSpeechSession> {
   configuration.signal?.throwIfAborted();
   if (!configuration.apiKey?.trim()) throw new Error('An OpenAI API key is required for dictation.');
   const model = configuration.model ?? 'gpt-live-transcribe';
@@ -63,15 +63,15 @@ export async function prepareOpenAISpeechSession(
   let resolveReady!: () => void;
   let rejectReady!: (error: Error) => void;
   const ready = new Promise<void>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
-  let resolveDone!: (value: CodexSpeechTranscriptionResult) => void;
-  const done = new Promise<CodexSpeechTranscriptionResult>(resolve => { resolveDone = resolve; });
+  let resolveDone!: (value: SpeechTranscriptionResult) => void;
+  const done = new Promise<SpeechTranscriptionResult>(resolve => { resolveDone = resolve; });
   let resample: ReturnType<typeof pcmEncoder>;
   let timer = setTimeout(() => fail('OpenAI dictation took too long to connect.'), 15_000);
   timer.unref?.();
-  function publish(event: CodexSpeechSessionEvent): void {
+  function publish(event: SpeechSessionEvent): void {
     try { onEvent(event); } catch { /* Consumer failure must not prevent cleanup. */ }
   }
-  function finish(value: CodexSpeechTranscriptionResult): void {
+  function finish(value: SpeechTranscriptionResult): void {
     if (closed) return;
     closed = true;
     clearTimeout(timer);

@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-chat-theme chat-model-selector" :class="{ 'chat-model-selector--accelerated': activeSpeedTier }">
+  <div class="agent-ui-theme chat-model-selector" :class="{ 'chat-model-selector--accelerated': activeSpeedTier }">
     <button
       v-if="models.length === 0"
       class="chat-model-selector__button"
@@ -12,7 +12,7 @@
       <span class="chat-model-selector__label">{{ selectorLabel }}</span>
       <ChevronDown class="chat-model-selector__chevron" aria-hidden="true" />
     </button>
-    <CodexComposerMenu
+    <ComposerMenu
       v-else
       aria-label="Model and reasoning"
       button-label="Model and reasoning"
@@ -44,30 +44,30 @@
           <ChevronDown class="chat-model-selector__chevron" aria-hidden="true" />
         </button>
       </template>
-    </CodexComposerMenu>
+    </ComposerMenu>
   </div>
 </template>
 
 <script setup lang="ts" generic="Payload = unknown">
 import { computed } from 'vue';
-import type { CodexModelOption, ReasoningEffort } from './contracts';
+import type { ModelOption, ReasoningEffort } from './contracts';
 import { BoltIcon, BrainIcon, ChevronDown, Info } from '../shared/icons/app-icons';
-import type { CodexComposerMenuItem, CodexComposerMenuSelectableItem } from '../composer-menu';
-import CodexComposerMenu from '../components/CodexComposerMenu.vue';
-import CodexUltrafastIcon from './CodexUltrafastIcon.vue';
+import type { ComposerMenuItem, ComposerMenuSelectableItem } from '../composer-menu';
+import ComposerMenu from '../components/ComposerMenu.vue';
+import UltrafastIcon from './UltrafastIcon.vue';
 
 type SelectorCommand<Payload> =
   | { source: 'selector'; kind: 'model'; value: string; reasoningEffort?: ReasoningEffort }
   | { source: 'selector'; kind: 'serviceTier'; value: string | null }
-  | { source: 'host'; item: CodexComposerMenuSelectableItem<Payload> };
+  | { source: 'host'; item: ComposerMenuSelectableItem<Payload> };
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{
   disabled?: boolean;
   modelCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   modelId?: string | null;
-  menuItems?: readonly CodexComposerMenuItem<Payload>[];
-  models?: readonly CodexModelOption[];
+  menuItems?: readonly ComposerMenuItem<Payload>[];
+  models?: readonly ModelOption[];
   reasoningEffort?: ReasoningEffort | null;
   serviceTier?: string | null;
   showServiceTier?: boolean;
@@ -86,7 +86,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:modelId': [modelId: string];
-  menuSelect: [item: CodexComposerMenuSelectableItem<Payload>];
+  menuSelect: [item: ComposerMenuSelectableItem<Payload>];
   'update:reasoningEffort': [reasoningEffort: ReasoningEffort];
   'update:serviceTier': [serviceTier: string | null];
 }>();
@@ -122,13 +122,13 @@ const speedTiers = computed(() => [fastServiceTier.value, ultrafastServiceTier.v
 const activeSpeedTier = computed(() => speedTiers.value.find(tier => tier.id === props.serviceTier));
 const speedLabel = (id?: string | null) => !id ? 'Normal speed'
   : id === ultrafastServiceTier.value?.id ? 'Ultrafast' : 'Fast mode';
-const speedIcon = computed(() => activeSpeedTier.value && activeSpeedTier.value === ultrafastServiceTier.value ? CodexUltrafastIcon : BoltIcon);
+const speedIcon = computed(() => activeSpeedTier.value && activeSpeedTier.value === ultrafastServiceTier.value ? UltrafastIcon : BoltIcon);
 const speedDescription = computed(() => activeSpeedTier.value?.description ?? 'Default processing for this model.');
 
 const controlDisabled = computed(() => props.disabled);
 
-const selectorItems = computed<CodexComposerMenuItem<SelectorCommand<Payload>>[]>(() => {
-  const items: CodexComposerMenuItem<SelectorCommand<Payload>>[] = [];
+const selectorItems = computed<ComposerMenuItem<SelectorCommand<Payload>>[]>(() => {
+  const items: ComposerMenuItem<SelectorCommand<Payload>>[] = [];
   if (props.menuItems.length > 0) {
     items.push(...wrapHostMenuItems(props.menuItems));
     items.push({ id: 'host-model-menu-separator', type: 'separator' });
@@ -183,7 +183,7 @@ const selectorItems = computed<CodexComposerMenuItem<SelectorCommand<Payload>>[]
         items: [null, ...speedTiers.value].map(tier => ({
           id: `service-tier:${tier?.id ?? 'default'}`, type: 'radio' as const,
           label: speedLabel(tier?.id), checked: tier ? tier.id === props.serviceTier : !activeSpeedTier.value,
-          icon: tier === ultrafastServiceTier.value ? CodexUltrafastIcon : tier ? BoltIcon : undefined,
+          icon: tier === ultrafastServiceTier.value ? UltrafastIcon : tier ? BoltIcon : undefined,
           payload: { source: 'selector' as const, kind: 'serviceTier' as const, value: tier?.id ?? null },
         })),
       });
@@ -253,7 +253,7 @@ function compactModelLabel(modelLabel: string): string {
   return modelLabel.replace(/^gpt[-\s]*/i, '').trim() || modelLabel;
 }
 
-function onSelect(item: CodexComposerMenuSelectableItem<SelectorCommand<Payload>>): void {
+function onSelect(item: ComposerMenuSelectableItem<SelectorCommand<Payload>>): void {
   const command = item.payload;
   if (!command) {
     return;
@@ -271,9 +271,9 @@ function onSelect(item: CodexComposerMenuSelectableItem<SelectorCommand<Payload>
 }
 
 function wrapHostMenuItems(
-  items: readonly CodexComposerMenuItem<Payload>[],
+  items: readonly ComposerMenuItem<Payload>[],
   parentPath: readonly number[] = [],
-): CodexComposerMenuItem<SelectorCommand<Payload>>[] {
+): ComposerMenuItem<SelectorCommand<Payload>>[] {
   return items.map((item, index) => {
     const path = [...parentPath, index];
     const id = `host:${path.join('.')}:${item.id}`;
@@ -378,17 +378,17 @@ function wrapHostMenuItems(
   color: var(--color-text);
 }
 
-:deep(.chat-model-selector__menu:not(.codex-composer-menu-list--pinned)) {
+:deep(.chat-model-selector__menu:not(.agent-ui-composer-menu-list--pinned)) {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 .chat-model-selector__leading-icon {
-  color: var(--codex-primary-color, var(--color-primary, #1b4fb2));
+  color: var(--agent-ui-primary-color, var(--color-primary, #1b4fb2));
   fill: currentColor;
 }
 
-:deep([data-submenu-id="model-speed"] > .codex-composer-menu-list__submenu-list) {
+:deep([data-submenu-id="model-speed"] > .agent-ui-composer-menu-list__submenu-list) {
   top: auto;
   right: 0;
   bottom: 100%;
@@ -396,24 +396,24 @@ function wrapHostMenuItems(
   width: 180px;
 }
 
-:deep([data-submenu-id="model-speed"] > button .codex-composer-menu-list__icon) {
+:deep([data-submenu-id="model-speed"] > button .agent-ui-composer-menu-list__icon) {
   opacity: 1;
   fill: currentColor;
 }
 
-.chat-model-selector--accelerated :deep([data-submenu-id="model-speed"] > button .codex-composer-menu-list__icon) {
-  color: var(--codex-primary-color, var(--color-primary, #1b4fb2));
+.chat-model-selector--accelerated :deep([data-submenu-id="model-speed"] > button .agent-ui-composer-menu-list__icon) {
+  color: var(--agent-ui-primary-color, var(--color-primary, #1b4fb2));
 }
 
-:deep(.chat-model-selector__menu .codex-composer-menu-list__icon-toggle > svg) {
+:deep(.chat-model-selector__menu .agent-ui-composer-menu-list__icon-toggle > svg) {
   fill: currentColor;
 }
 
-:deep(.chat-model-selector__menu .codex-composer-menu-list__icon--empty) {
+:deep(.chat-model-selector__menu .agent-ui-composer-menu-list__icon--empty) {
   display: none;
 }
 
-:deep(.chat-model-selector__menu [data-submenu-id^="model:"] > .codex-composer-menu-list__submenu-list) {
+:deep(.chat-model-selector__menu [data-submenu-id^="model:"] > .agent-ui-composer-menu-list__submenu-list) {
   width: 160px;
 }
 
@@ -425,16 +425,16 @@ function wrapHostMenuItems(
   background: var(--color-surface-low);
 }
 
-:deep(.chat-model-selector__menu [role="menuitemradio"] .codex-composer-menu-list__radio-check),
-:deep(.chat-model-selector__menu [role="menuitemradio"] .codex-composer-menu-list__selection) {
+:deep(.chat-model-selector__menu [role="menuitemradio"] .agent-ui-composer-menu-list__radio-check),
+:deep(.chat-model-selector__menu [role="menuitemradio"] .agent-ui-composer-menu-list__selection) {
   display: none;
 }
 
-:deep(.chat-model-selector__menu .codex-composer-menu-list__submenu-list .codex-composer-menu-list__item) {
-  font-size: var(--codex-composer-model-submenu-font-size, var(--codex-composer-menu-item-font-size, var(--chat-menu-font-size, 13.5px)));
+:deep(.chat-model-selector__menu .agent-ui-composer-menu-list__submenu-list .agent-ui-composer-menu-list__item) {
+  font-size: var(--agent-ui-composer-model-submenu-font-size, var(--agent-ui-composer-menu-item-font-size, var(--chat-menu-font-size, 13.5px)));
 }
 
-:deep(.chat-model-selector__menu .codex-composer-menu-list__heading) {
+:deep(.chat-model-selector__menu .agent-ui-composer-menu-list__heading) {
   padding-left: var(--space-4);
 }
 

@@ -3,14 +3,14 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import {
-  CodexConversationPane,
-  CodexMessage,
-  createCodexConversationPaneController,
-  type CodexConversationPaneState,
-  type SurfaceMessage,
+  ConversationPane,
+  Message,
+  createConversationPaneController,
+  type ConversationPaneState,
+  type ConversationMessage,
 } from '../../src/vue';
 
-const assistantMessage: SurfaceMessage = {
+const assistantMessage: ConversationMessage = {
   id: 'assistant-fork',
   turnId: 'turn-fork',
   role: 'assistant',
@@ -20,7 +20,7 @@ const assistantMessage: SurfaceMessage = {
 
 describe('message fork action', () => {
   it('stays opt-in and renders immediately before delete', async () => {
-    const wrapper = mount(CodexMessage, {
+    const wrapper = mount(Message, {
       props: { canForkTurn: true, index: 3, message: assistantMessage },
     });
 
@@ -41,7 +41,7 @@ describe('message fork action', () => {
   });
 
   it('forwards the granular pane event with the stable turn id', async () => {
-    const wrapper = mount(CodexConversationPane, {
+    const wrapper = mount(ConversationPane, {
       props: { canForkTurn: true, messages: [assistantMessage], modelValue: '' },
     });
 
@@ -52,15 +52,15 @@ describe('message fork action', () => {
 
   it('dispatches through an authoritative controlled pane action', async () => {
     const forkTurn = vi.fn();
-    const state: CodexConversationPaneState = {
+    const state: ConversationPaneState = {
       identity: { conversationKey: 'thread-fork', messages: [assistantMessage] },
       policy: { canForkTurn: true },
     };
-    const controller = createCodexConversationPaneController({
+    const controller = createConversationPaneController({
       state,
       actions: { forkTurn },
     });
-    const wrapper = mount(CodexConversationPane, { props: { controller } });
+    const wrapper = mount(ConversationPane, { props: { controller } });
 
     await wrapper.get('[aria-label="Fork"]').trigger('click');
 

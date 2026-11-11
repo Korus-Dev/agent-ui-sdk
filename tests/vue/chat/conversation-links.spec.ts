@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  codexConversationLinkFromHref,
-  parseCodexEditorFileReference,
+  conversationLinkFromHref,
+  parseEditorFileReference,
 } from '../../../src/vue/chat/conversation-links';
 
 describe('conversation links', () => {
   it('parses trimmed editor references with an optional multi-digit column', () => {
-    expect(parseCodexEditorFileReference('  src/chat/message.ts:12:34  ')).toStrictEqual({
+    expect(parseEditorFileReference('  src/chat/message.ts:12:34  ')).toStrictEqual({
       path: 'src/chat/message.ts',
       line: 12,
       column: 34,
     });
-    expect(parseCodexEditorFileReference('src/chat/message.ts:12')).toStrictEqual({
+    expect(parseEditorFileReference('src/chat/message.ts:12')).toStrictEqual({
       path: 'src/chat/message.ts',
       line: 12,
     });
@@ -27,7 +27,7 @@ describe('conversation links', () => {
     'src/chat/message.ts:12:0',
     'src/chat/message.ts:12:9007199254740992',
   ])('rejects invalid editor reference %s', (value) => {
-    expect(parseCodexEditorFileReference(value)).toBeNull();
+    expect(parseEditorFileReference(value)).toBeNull();
   });
 
   it.each([
@@ -36,20 +36,20 @@ describe('conversation links', () => {
     'mailto:hello@example.com',
     'tel:+15551234567',
   ])('classifies supported absolute link %s as external', (href) => {
-    expect(codexConversationLinkFromHref(href)).toStrictEqual({ href, kind: 'external' });
+    expect(conversationLinkFromHref(href)).toStrictEqual({ href, kind: 'external' });
   });
 
   it('normalizes authored whitespace while preserving malformed path escapes', () => {
-    expect(codexConversationLinkFromHref('  http://example.com/docs  ')).toStrictEqual({
+    expect(conversationLinkFromHref('  http://example.com/docs  ')).toStrictEqual({
       href: 'http://example.com/docs',
       kind: 'external',
     });
-    expect(codexConversationLinkFromHref('docs/design.md   ?raw=1#overview')).toStrictEqual({
+    expect(conversationLinkFromHref('docs/design.md   ?raw=1#overview')).toStrictEqual({
       href: 'docs/design.md   ?raw=1#overview',
       kind: 'file',
       path: 'docs/design.md',
     });
-    expect(codexConversationLinkFromHref('docs/bad%escape.md')).toStrictEqual({
+    expect(conversationLinkFromHref('docs/bad%escape.md')).toStrictEqual({
       href: 'docs/bad%escape.md',
       kind: 'file',
       path: 'docs/bad%escape.md',

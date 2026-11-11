@@ -2,9 +2,9 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
-import { CodexConversationPane, CodexMessage, type SurfaceMessage } from '../../src/vue';
+import { ConversationPane, Message, type ConversationMessage } from '../../src/vue';
 
-const messages: SurfaceMessage[] = [
+const messages: ConversationMessage[] = [
   {
     id: 'user-complete',
     role: 'user',
@@ -30,10 +30,10 @@ const messages: SurfaceMessage[] = [
 
 describe('message action availability while busy', () => {
   it('keeps completed actions visible but disables thread mutations', async () => {
-    const wrapper = mount(CodexConversationPane, {
+    const wrapper = mount(ConversationPane, {
       props: { busy: true, canForkTurn: true, messages, modelValue: '' },
     });
-    const renderedMessages = wrapper.findAllComponents(CodexMessage);
+    const renderedMessages = wrapper.findAllComponents(Message);
     const user = renderedMessages[0]!;
     const assistant = renderedMessages[1]!;
     const streaming = renderedMessages[2]!;

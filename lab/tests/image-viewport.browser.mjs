@@ -26,7 +26,7 @@ const fixture = {
     if (id !== '\0image-viewport') return;
     return `
       import { createApp, h, ref } from 'vue';
-      import { CodexMessage, CodexMessageList, provideCodexHostCapabilities } from '/@fs/${fileURLToPath(new URL('../../src/vue/index.ts', import.meta.url))}';
+      import { Message, MessageList, provideHostCapabilities } from '/@fs/${fileURLToPath(new URL('../../src/vue/index.ts', import.meta.url))}';
       import '/@fs/${fileURLToPath(new URL('../../src/vue/styles.css', import.meta.url))}';
       window.reads = []; window.urls = new Set(); window.cachedBytes = new Map(); window.originals = new Map(); window.active = 0; window.peak = 0;
       const create = URL.createObjectURL.bind(URL), revoke = URL.revokeObjectURL.bind(URL);
@@ -38,7 +38,7 @@ const fixture = {
       const crowdedReady = new Promise(resolve => { window.releaseCrowdedImages = resolve; });
       const smallReady = new Promise(resolve => { window.releaseSmallImages = resolve; });
       const app = createApp({setup() {
-        provideCodexHostCapabilities({readImagePreview: async reference => {
+        provideHostCapabilities({readImagePreview: async reference => {
           window.reads.push(reference); window.peak = Math.max(window.peak, ++window.active);
           if (reference.includes('crowded')) await crowdedReady;
           if (reference.includes('small')) await smallReady;
@@ -55,7 +55,7 @@ const fixture = {
           const original=canvas.toDataURL('image/png'); window.originals.set(reference,original); return original;
         }}, {imagePreviewBudgetBytes: window.previewBudgetBytes ?? 5 * 1024 * 1024, viewportImageLoading: true});
         return () => h('section', {id:'scroll',style:'height:600px;overflow-y:auto;width:min(700px,100%);margin:80px auto'},
-          gallery.value ? h(CodexMessageList,{messages:items.value,style:'height:100%',openImage:()=>false}) : items.value.map(message => h('article',{key:message.id,style:message.id === 'crowded' ? '' : 'padding-bottom:900px'},h(CodexMessage,{message,openImage: image => { window.openedImage = image; return true; }}))));
+          gallery.value ? h(MessageList,{messages:items.value,style:'height:100%',openImage:()=>false}) : items.value.map(message => h('article',{key:message.id,style:message.id === 'crowded' ? '' : 'padding-bottom:900px'},h(Message,{message,openImage: image => { window.openedImage = image; return true; }}))));
       }});
       app.mount('#app'); window.closeImages = () => app.unmount();
     `;
@@ -65,7 +65,7 @@ const server = await createServer({ configFile: new URL('../vite.config.ts', imp
   root: new URL('..', import.meta.url).pathname, plugins:[fixture], server:{port:0} });
 let browser;
 const evidence = [];
-const artifacts = process.env.IMAGE_VIEWPORT_ARTIFACTS || join(tmpdir(), 'codex-app-sdk-image-viewport');
+const artifacts = process.env.IMAGE_VIEWPORT_ARTIFACTS || join(tmpdir(), 'agent-ui-sdk-image-viewport');
 await mkdir(artifacts,{recursive:true});
 try {
   await server.listen();

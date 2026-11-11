@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-chat-theme chat-composer-drawer"><slot /></div>
+  <div class="agent-ui-theme chat-composer-drawer"><slot /></div>
 </template>
 <style scoped>
 .chat-composer-drawer {

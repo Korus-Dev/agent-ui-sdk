@@ -27,10 +27,10 @@ const server = await createServer({
       if (id !== fixtureId) return;
       return `
         import { createApp, h, ref } from 'vue';
-        import Composer from ${source('components/CodexComposer.vue')};
-        import Message from ${source('components/CodexMessage.vue')};
+        import Composer from ${source('components/Composer.vue')};
+        import Message from ${source('components/Message.vue')};
         import MessageEditor from ${source('chat/ChatMessageEditor.vue')};
-        import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt.js';
+        import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt';
         import ${source('styles.css')};
         const state = ref({text:'',selectionStart:0,selectionEnd:0});
         const submitted = ref(null);
