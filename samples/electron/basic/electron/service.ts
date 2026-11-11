@@ -1,8 +1,11 @@
+import type { Harness } from '@korus-dev/multi-agent-sdk';
+import type { HarnessOptions } from '@korus-dev/multi-agent-sdk';
+import type { PromptReferenceAttachment } from '@korus-dev/multi-agent-sdk';
 import { randomUUID } from 'node:crypto';
 import { createHarness } from '@korus-dev/multi-agent-sdk';
 import { toHarnessPromptOptions } from '@korus-dev/agent-ui-sdk/host';
 import type { ConversationRef, ConversationRefData, HarnessEvent, Message, PromptOptions, Session, HarnessProvider } from '@korus-dev/multi-agent-sdk';
-import type { ClientAttachment } from '@korus-dev/multi-agent-sdk';
+
 import { chatOperations, type ChatOperation, type ChatStateEvent, type ChatSummary, type ChatView, type SampleApi } from '../shared/api';
 
 /** Consumer-owned persistence of the chats this app created. */
@@ -21,10 +24,10 @@ type Chat = {
 export function createChatService(
   folder: string,
   store: ChatStore,
-  resolveAttachment: (attachment: ClientAttachment) => NonNullable<PromptOptions['attachments']>[number],
+  resolveAttachment: (attachment: PromptReferenceAttachment) => NonNullable<PromptOptions['attachments']>[number],
   emit: (event: ChatStateEvent) => void,
   backend: HarnessProvider = 'codex',
-  factory = createHarness,
+  factory: (provider: HarnessProvider, options: HarnessOptions) => Harness = createHarness,
 ) {
   // The selected runtime resolves its standard home, auth and config.
   const harness = factory(backend, {

@@ -1,7 +1,7 @@
 import { shallowRef, watch } from 'vue';
 import { readEmbeddedConversationImage } from '../host/conversation-images';
 import type { HarnessCapabilities, Harness, SessionState } from '@korus-dev/multi-agent-sdk';
-import type { ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
+import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import { createConversationPaneController, resolveConversationPaneValue as read, type ConversationPaneActions as Actions, type ConversationPaneValueSource as Source } from './conversation-pane-controller';
 import { sessionStateToConversationPaneState, type SessionConversationControls } from './session-conversation-pane';
 import { requestResponseFromApproval, requestResponseFromClientResponse, type SessionRequestResponse } from './session-request-response';
@@ -11,8 +11,8 @@ import { ShieldCheckIcon } from './shared/icons/app-icons';
 
 /** Renderer-safe, session-bound operations. A host may implement these over IPC. */
 export type SessionConversationClient = {
-  sendPrompt(prompt: string, options?: ClientSendMessageOptions): Promise<unknown>;
-  steerPrompt?(prompt: string, options?: ClientSendMessageOptions): Promise<unknown>;
+  sendPrompt(prompt: string, options?: ReferenceSendPromptOptions): Promise<unknown>;
+  steerPrompt?(prompt: string, options?: ReferenceSendPromptOptions): Promise<unknown>;
   interrupt?(): Promise<unknown>;
   respondToRequest?(response: SessionRequestResponse): Promise<unknown>;
   setPermission?(id: string): Promise<unknown>;
@@ -22,7 +22,7 @@ export type SessionConversationClient = {
   loadTurnHistory?(id: string): Promise<unknown>;
   loadOlderHistory?(): Promise<unknown>;
   deleteTurn?(id: string): Promise<unknown>;
-  editTurn?(id: string, content: string, options?: Pick<ClientSendMessageOptions, 'content'>): Promise<unknown>;
+  editTurn?(id: string, content: string, options?: Pick<ReferenceSendPromptOptions, 'content'>): Promise<unknown>;
   retryTurn?(id: string): Promise<unknown>;
 };
 export type SessionConversationControllerOptions = {
@@ -36,7 +36,7 @@ export type SessionConversationControllerOptions = {
   /** Optional controlled preferences. Without this hook settings are ephemeral. */
   onControlsChange?(controls: SessionConversationControls): void | Promise<void>;
 };
-type QueuedPrompt = { id: string; text: string; options: ClientSendMessageOptions };
+type QueuedPrompt = { id: string; text: string; options: ReferenceSendPromptOptions };
 
 /** One binding per conversation; the host owns its lifetime and persistence. */
 export function createSessionConversationController(options: SessionConversationControllerOptions) {
@@ -71,7 +71,7 @@ export function createSessionConversationController(options: SessionConversation
       local.value = next;
     }
   };
-  const promptOptions = (input?: ClientSendMessageOptions): ClientSendMessageOptions => {
+  const promptOptions = (input?: ReferenceSendPromptOptions): ReferenceSendPromptOptions => {
     const current = controls();
     const selected = { ...state().selection, ...current.selection };
     return { ...input,
@@ -81,7 +81,7 @@ export function createSessionConversationController(options: SessionConversation
       planMode: current.planMode ?? false,
     };
   };
-  async function deliver(prompt: string, settings: ClientSendMessageOptions) {
+  async function deliver(prompt: string, settings: ReferenceSendPromptOptions) {
     requireOpen();
     sending = true;
     try {
@@ -110,7 +110,7 @@ export function createSessionConversationController(options: SessionConversation
   function flushPending() {
     if (pendingDrain) { pendingDrain = false; void drain(); }
   }
-  const submit = async (prompt: string, input?: ClientSendMessageOptions) => {
+  const submit = async (prompt: string, input?: ReferenceSendPromptOptions) => {
     requireOpen(); error.value = null;
     const settings = promptOptions(input);
     if (state().busy || sending || queue.value.length) {

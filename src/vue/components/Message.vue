@@ -182,7 +182,7 @@ import { useChatTranslate } from '../chat/chat-i18n'
 import type { ClientRequestResponse, ConversationLink, ConversationPresentation } from '../chat/contracts'
 import { resolveConversationPresentation } from '../chat/contracts'
 import type { ChatMessage } from '../chat/types'
-import type { Plugin, Skill, ConversationMessage } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary, SkillSummary } from '@korus-dev/multi-agent-sdk';
 import type { MessageBlock, RenderedMessageBlock } from '../chat/message-blocks'
 import type {
   MessageImage,
@@ -198,7 +198,7 @@ import ChatCompactionMessage from '../chat/ChatCompactionMessage.vue'
 import ChatMessageEditor from '../chat/ChatMessageEditor.vue'
 import { computeMessageBlocks, reuseMessageBlocks, groupAssistantWorkBlocks, stripMessageContext } from '../chat/message-blocks'
 import { copyMessageToClipboard } from '../chat/message-actions'
-import { renderedChatMessage } from '../chat/renderer-message-adapter'
+import { renderedChatMessage, type ConversationMessageInput } from '../chat/renderer-message-adapter'
 import { assistantWorkMessageIndexKey, assistantWorkTurnKey } from '../chat/message-work-state'
 import { useHostCapabilities } from '../native-capabilities'
 import type { ComposerMentionGroup, ComposerMentionItem } from '../chat/composer-mentions-custom'
@@ -217,13 +217,13 @@ const props = withDefaults(defineProps<{
   followUpsDisabled?: boolean
   hiddenClientRequestIds?: ReadonlySet<string>
   index?: number
-  message: ChatMessage | ConversationMessage
+  message: ChatMessage | ConversationMessageInput
   mentionGroups?: readonly ComposerMentionGroup[]
   openImage?: MessageImageOpenHandler
-  plugins?: readonly Plugin[]
+  plugins?: readonly PluginSummary[]
   presentation?: ConversationPresentation
   showToolDetails?: boolean
-  skills?: readonly Skill[]
+  skills?: readonly SkillSummary[]
   threadActionsDisabled?: boolean
 }>(), {
   canDeleteTurn: true,

@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
+import type { ConversationMessageInput } from '../../src/vue';
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent, h, nextTick, reactive, ref, toRaw } from 'vue';
 import MessageList from '../../src/vue/components/MessageList.vue';
 import Message from '../../src/vue/components/Message.vue';
 import type { ChatMessage } from '../../src/vue/chat/types';
-import type { Turn, ConversationMessage } from '@korus-dev/multi-agent-sdk';
+import type { Turn } from '@korus-dev/multi-agent-sdk';
 
 const messages: ChatMessage[] = [
   {
@@ -48,7 +49,7 @@ it('folds resolved async questions with turn details while leaving pending quest
       { id: 'work', role: 'assistant', status: 'complete', turnId: 'turn', parts: [{ type: 'text', text: 'Checking', phase: 'commentary' }] },
       { id: 'question', role: 'assistant', status: 'complete', turnId: 'turn', parts: [{ type: 'question', request }] },
       { id: 'final', role: 'assistant', status: 'complete', turnId: 'turn', parts: [{ type: 'text', text: 'Finished', phase: 'final_answer' }] },
-    ] as ConversationMessage[],
+    ] as ConversationMessageInput[],
     answeredClientRequestIds: new Set<string>(),
   } });
   expect(wrapper.find('textarea').exists()).toBe(true);
@@ -67,7 +68,7 @@ it('folds resolved async questions with turn details while leaving pending quest
     id: 'reply', role: 'user', status: 'complete', turnId: 'next-turn',
     parts: [{ type: 'text', text: 'Keep the original answer.' }],
     metadata: { asyncQuestionAnswers: { q: { answers: ['Keep the original answer.'] } } },
-  }] as ConversationMessage[];
+  }] as ConversationMessageInput[];
   wrapper.unmount();
   const restored = mount(MessageList, { props: {
     messages: restoredMessages, answeredClientRequestIds: new Set([request.id]),
@@ -99,7 +100,7 @@ function turnLifecycle(id: string, status: Turn['status']): Turn {
 }
 
 it('acknowledges a silent turn only after confirmed completion and keeps that acknowledgment during the next turn', async () => {
-  const report: ConversationMessage = { id: 'report', role: 'user', turnId: 'report-turn', status: 'complete', parts: [{ type: 'text', text: 'Review completed.' }] };
+  const report: ConversationMessageInput = { id: 'report', role: 'user', turnId: 'report-turn', status: 'complete', parts: [{ type: 'text', text: 'Review completed.' }] };
   const wrapper = mount(MessageList, { props: {
     messages: [report], busy: true, activeTurnId: 'report-turn', turns: [turnLifecycle('report-turn', 'inProgress')],
   } });
@@ -306,7 +307,7 @@ describe('MessageList', () => {
   });
 
   it('passes surface messages to keyed rows and observes reactive in-place text changes', async () => {
-    const surfaceMessage = reactive<ConversationMessage>({
+    const surfaceMessage = reactive<ConversationMessageInput>({
       id: 'surface-user',
       role: 'user',
       status: 'complete',
@@ -316,7 +317,7 @@ describe('MessageList', () => {
 
     expect(toRaw(wrapper.getComponent(Message).props('message'))).toBe(toRaw(surfaceMessage));
     expect(wrapper.text()).toContain('Keep this object stable.');
-    (surfaceMessage.parts[0] as Extract<ConversationMessage['parts'][number], { type: 'text' }>).text = 'Reactive correction';
+    (surfaceMessage.parts[0] as Extract<ConversationMessageInput['parts'][number], { type: 'text' }>).text = 'Reactive correction';
     await nextTick();
     expect(wrapper.text()).toContain('Reactive correction');
     expect(wrapper.text()).not.toContain('Keep this object stable.');
@@ -358,33 +359,33 @@ describe('MessageList', () => {
   });
 
   it('renders one work disclosure across assistant segments in the same steered turn', async () => {
-    const initialUserMessage: ConversationMessage = {
+    const initialUserMessage: ConversationMessageInput = {
       id: 'user-turn-1',
       role: 'user',
       status: 'complete',
       turnId: 'turn-1',
       parts: [{ type: 'text', text: 'Run the full test.' }],
     };
-    const firstToolSegment: ConversationMessage = {
+    const firstToolSegment: ConversationMessageInput = {
       id: 'assistant-turn-1',
       role: 'assistant',
       status: 'streaming',
       turnId: 'turn-1',
       parts: [{
-        type: 'tool',
+        type: 'tool', kind: 'generic',
         id: 'tool-1',
         title: 'shell',
         status: 'running',
         input: { command: 'npm test' },
       }],
     };
-    const turnMessages: ConversationMessage[] = [
+    const turnMessages: ConversationMessageInput[] = [
       initialUserMessage,
       {
         ...firstToolSegment,
         status: 'complete',
         parts: [{
-          type: 'tool',
+          type: 'tool', kind: 'generic',
           id: 'tool-1',
           title: 'shell',
           status: 'completed',
@@ -512,7 +513,7 @@ describe('MessageList', () => {
   });
 
   it('uses the explicit active turn instead of inferring lifecycle from global busy state', () => {
-    const workMessage: ConversationMessage = {
+    const workMessage: ConversationMessageInput = {
       id: 'explicit-turn-work',
       role: 'assistant',
       status: 'complete',
@@ -542,7 +543,7 @@ describe('MessageList', () => {
       messages: [{ id: 'timed-assistant', role: 'assistant', status: 'complete', turnId: 'timed-turn', parts: [
         { type: 'text', text: 'Checking the repository.', phase: 'commentary' },
         { type: 'text', text: 'Finished checking.', phase: 'final_answer' },
-      ] }] as ConversationMessage[],
+      ] }] as ConversationMessageInput[],
       turns: [timing],
     } });
     try {
@@ -566,7 +567,7 @@ describe('MessageList', () => {
   });
 
   it('does not show stale progress on a completed earlier turn during or after a later turn', async () => {
-    const previousAssistant: ConversationMessage = {
+    const previousAssistant: ConversationMessageInput = {
       id: 'previous-assistant', role: 'assistant', status: 'streaming', turnId: 'turn-previous',
       parts: [
         { type: 'text', text: 'Checking the earlier request.', phase: 'commentary' },
@@ -615,9 +616,9 @@ describe('MessageList', () => {
     for (const activity of [
       { type: 'text', text: '', phase: 'commentary' },
       { type: 'reasoning', summary: '', itemId: 'resumed-reasoning', summaryIndex: 0 },
-      { type: 'tool', id: 'resumed-tool', title: 'Inspect files', status: 'running' },
+      { type: 'tool', kind: 'generic', id: 'resumed-tool', title: 'Inspect files', status: 'running' },
     ] as const) {
-      const initial: ConversationMessage = {
+      const initial: ConversationMessageInput = {
         id: 'assistant-resumed', role: 'assistant', status: 'streaming', turnId: 'turn-resumed',
         parts: [
           ...(activity.type === 'reasoning' ? [] : [{ type: 'text' as const, text: 'Checking the project.', phase: 'commentary' as const }]),
@@ -630,12 +631,12 @@ describe('MessageList', () => {
       } });
       if (activity.type !== 'reasoning') expect(wrapper.get('.chat-work-group__title').text()).toContain('Done');
       expect(wrapper.text()).toContain('Obsolete summary.');
-      const resumed: ConversationMessage = { ...initial, parts: [...initial.parts, activity] };
+      const resumed: ConversationMessageInput = { ...initial, parts: [...initial.parts, activity] };
       await wrapper.setProps({ messages: [resumed] });
       expect(wrapper.get(activity.type === 'reasoning' ? '.chat-message__thinking' : '.chat-work-group__title').text()).toContain('Working');
       expect(wrapper.text()).not.toContain('Obsolete summary.');
       if (activity.type !== 'reasoning') expect(wrapper.text()).toContain('Checking the project.');
-      const finished: ConversationMessage = { ...resumed, status: 'complete', parts: [
+      const finished: ConversationMessageInput = { ...resumed, status: 'complete', parts: [
         ...resumed.parts, { type: 'text', text: 'Replacement summary.', phase: 'final_answer' },
       ] };
       await wrapper.setProps({ busy: false, activeTurnId: null, messages: [finished],
@@ -655,7 +656,7 @@ describe('MessageList', () => {
   });
 
   it('reopens a completed turn when an async answer resumes assistant streaming', async () => {
-    const completedMessages: ConversationMessage[] = [{
+    const completedMessages: ConversationMessageInput[] = [{
       id: 'assistant-before-async-answer',
       role: 'assistant',
       status: 'complete',
@@ -677,7 +678,7 @@ describe('MessageList', () => {
     expect(wrapper.get('.chat-work-group__title').text()).toBe('Done · 1s · View details');
     expect(wrapper.get('.chat-work-group__header').attributes('aria-expanded')).toBe('false');
 
-    const resumedMessages: ConversationMessage[] = [
+    const resumedMessages: ConversationMessageInput[] = [
       ...completedMessages,
       {
         id: 'async-answer',
@@ -708,7 +709,7 @@ describe('MessageList', () => {
     expect(wrapper.text()).toContain('Preparing the local workflow.');
     expect(wrapper.text()).not.toContain('Choose where to run it.');
 
-    const finishedMessages: ConversationMessage[] = resumedMessages.map((message) => (
+    const finishedMessages: ConversationMessageInput[] = resumedMessages.map((message) => (
       message.id === 'assistant-after-async-answer'
         ? {
             ...message,
@@ -738,7 +739,7 @@ describe('MessageList', () => {
           turnId: 'turn-unphased',
           parts: [
             { type: 'text', text: 'Claude is checking the file.' },
-            { type: 'tool', id: 'tool-read', title: 'read', status: 'running' },
+            { type: 'tool', kind: 'generic', id: 'tool-read', title: 'read', status: 'running' },
           ],
         }],
       },
@@ -758,7 +759,7 @@ describe('MessageList', () => {
             role: 'assistant',
             status: 'complete',
             turnId: 'turn-hidden-tool',
-            parts: [{ type: 'tool', id: 'hidden-tool', title: 'npm test', status: 'completed' }],
+            parts: [{ type: 'tool', kind: 'generic', id: 'hidden-tool', title: 'npm test', status: 'completed' }],
           },
           {
             id: 'assistant-visible-commentary',
@@ -790,7 +791,7 @@ describe('MessageList', () => {
   });
 
   it('keeps generated media in order and visible outside completed work folds', async () => {
-    const activeMessage: ConversationMessage = {
+    const activeMessage: ConversationMessageInput = {
       id: 'assistant-image-turn',
       role: 'assistant',
       status: 'streaming',
@@ -798,7 +799,7 @@ describe('MessageList', () => {
       parts: [
         { type: 'text', text: 'Generating the image.', phase: 'commentary' },
         {
-          type: 'tool', id: 'image-1', title: 'image_generation', status: 'completed',
+          type: 'tool', kind: 'generic', id: 'image-1', title: 'image_generation', status: 'completed',
         },
         {
           type: 'media', itemId: 'image-1',
@@ -858,7 +859,7 @@ describe('MessageList', () => {
             role: 'assistant',
             status: 'complete',
             turnId: 'turn-hidden-active-tool',
-            parts: [{ type: 'tool', id: 'hidden-active-tool', title: 'npm test', status: 'completed' }],
+            parts: [{ type: 'tool', kind: 'generic', id: 'hidden-active-tool', title: 'npm test', status: 'completed' }],
           },
           {
             id: 'assistant-visible-active-commentary',
@@ -878,13 +879,13 @@ describe('MessageList', () => {
   });
 
   it('switches from thinking to working when a hidden-only tool starts', async () => {
-    const user: ConversationMessage = {
+    const user: ConversationMessageInput = {
       id: 'user-before-hidden-tool', role: 'user', status: 'complete', turnId: 'turn-hidden-tool',
       parts: [{ type: 'text', text: 'Please check this.' }],
     };
-    const hiddenTool: ConversationMessage = {
+    const hiddenTool: ConversationMessageInput = {
       id: 'hidden-tool-segment', role: 'assistant', status: 'streaming', turnId: 'turn-hidden-tool',
-      parts: [{ type: 'tool', id: 'hidden-tool', title: 'host.internal', status: 'running' }],
+      parts: [{ type: 'tool', kind: 'generic', id: 'hidden-tool', title: 'host.internal', status: 'running' }],
     };
     const wrapper = mount(MessageList, { props: {
       activeTurnId: 'turn-hidden-tool', busy: true, messages: [user],
@@ -918,17 +919,17 @@ describe('MessageList', () => {
   });
 
   it('filters host-hidden tools before streaming and restored work is grouped', async () => {
-    const hiddenOnly: ConversationMessage = {
+    const hiddenOnly: ConversationMessageInput = {
       id: 'internal-only', role: 'assistant', status: 'streaming', turnId: 'turn-tools',
-      parts: [{ type: 'tool', id: 'internal-1', title: 'host.internal', status: 'completed' }],
+      parts: [{ type: 'tool', kind: 'generic', id: 'internal-1', title: 'host.internal', status: 'completed' }],
     };
-    const mixed: ConversationMessage = {
+    const mixed: ConversationMessageInput = {
       id: 'mixed', role: 'assistant', status: 'streaming', turnId: 'turn-tools',
       parts: [
         { type: 'text', text: 'Checking the result.', phase: 'commentary' },
-        { type: 'tool', id: 'internal-2', title: 'host.internal', status: 'completed' },
-        { type: 'tool', id: 'visible-1', title: 'shell', status: 'completed' },
-        { type: 'tool', id: 'visible-2', title: 'read_file', status: 'completed' },
+        { type: 'tool', kind: 'generic', id: 'internal-2', title: 'host.internal', status: 'completed' },
+        { type: 'tool', kind: 'generic', id: 'visible-1', title: 'shell', status: 'completed' },
+        { type: 'tool', kind: 'generic', id: 'visible-2', title: 'read_file', status: 'completed' },
       ],
     };
     const wrapper = mount(MessageList, { props: {
@@ -974,7 +975,7 @@ describe('MessageList', () => {
             status: 'complete',
             turnId: 'turn-no-summary',
             parts: [
-              { type: 'tool', id: 'tool-no-summary', title: 'npm test', status: 'completed' },
+              { type: 'tool', kind: 'generic', id: 'tool-no-summary', title: 'npm test', status: 'completed' },
               { type: 'text', text: 'Finished the verification.', phase: 'commentary' },
             ],
           },
@@ -1006,11 +1007,11 @@ describe('MessageList', () => {
   });
 
   it('makes tool-only reply actions available on completion without requiring answer text', async () => {
-    const message: ConversationMessage = {
+    const message: ConversationMessageInput = {
       id: 'tool-only', role: 'assistant', status: 'streaming', turnId: 'tool-turn',
       parts: [
         { type: 'reasoning', summary: 'Checking deployment', itemId: 'reasoning', summaryIndex: 0 },
-        { type: 'tool', id: 'deploy', title: 'Deploy companion', status: 'completed' },
+        { type: 'tool', kind: 'generic', id: 'deploy', title: 'Deploy companion', status: 'completed' },
       ],
     };
     const wrapper = mount(MessageList, { props: {
@@ -1161,7 +1162,7 @@ describe('MessageList', () => {
           status: 'complete',
           turnId: 'turn-toggle-details',
           parts: [
-            { type: 'tool', id: 'tool-toggle-details', title: 'npm test', status: 'completed' },
+            { type: 'tool', kind: 'generic', id: 'tool-toggle-details', title: 'npm test', status: 'completed' },
             { type: 'text', text: 'Finished the verification.', phase: 'commentary' },
             { type: 'text', text: 'Everything passed.', phase: 'final_answer' },
           ],
@@ -1338,7 +1339,7 @@ describe('MessageList', () => {
   });
 
   it('offers turn mutations on every terminal turn but not the active turn', async () => {
-    const turnMessages: ConversationMessage[] = [
+    const turnMessages: ConversationMessageInput[] = [
       { id: 'old-user', role: 'user', status: 'complete', turnId: 'turn-old', parts: [{ type: 'text', text: 'Old' }] },
       { id: 'old-answer', role: 'assistant', status: 'complete', turnId: 'turn-old', parts: [{ type: 'text', text: 'Old answer' }] },
       { id: 'latest-user', role: 'user', status: 'complete', turnId: 'turn-latest', parts: [{ type: 'text', text: 'Latest' }] },
@@ -1510,7 +1511,7 @@ describe('MessageList', () => {
   });
 
   it('aligns lazy rendering batches to complete turn boundaries', async () => {
-    const turnMessages: ConversationMessage[] = [
+    const turnMessages: ConversationMessageInput[] = [
       {
         id: 'earlier-turn-answer',
         role: 'assistant',
@@ -1523,7 +1524,7 @@ describe('MessageList', () => {
         role: 'assistant',
         status: 'complete',
         turnId: 'lazy-turn',
-        parts: [{ type: 'tool', id: 'lazy-tool', title: 'read', status: 'completed' }],
+        parts: [{ type: 'tool', kind: 'generic', id: 'lazy-tool', title: 'read', status: 'completed' }],
       },
       {
         id: 'lazy-turn-steer',
@@ -2038,7 +2039,7 @@ describe('MessageList', () => {
 
   it('transforms only the mounted lazy batch and preserves absolute indexes', () => {
     const allMessages = makeMessages(75);
-    const transformMessage = vi.fn((message: ChatMessage | ConversationMessage, index: number) => ({
+    const transformMessage = vi.fn((message: ChatMessage | ConversationMessageInput, index: number) => ({
       ...message,
       content: `Transformed ${index}`,
     }));
@@ -2058,7 +2059,7 @@ describe('MessageList', () => {
 
   it('transforms a prepended lazy batch when it becomes visible', async () => {
     const allMessages = makeMessages(25);
-    const transformMessage = vi.fn((message: ChatMessage | ConversationMessage, index: number) => ({
+    const transformMessage = vi.fn((message: ChatMessage | ConversationMessageInput, index: number) => ({
       ...message,
       content: `Transformed ${index}`,
     }));
@@ -2096,7 +2097,7 @@ describe('MessageList', () => {
     const firstOlderMessages = makeMessages(10, -10);
     const secondOlderMessages = makeMessages(10, -20);
     const olderMessages = [...secondOlderMessages, ...firstOlderMessages];
-    const transformMessage = vi.fn((message: ChatMessage | ConversationMessage) => message);
+    const transformMessage = vi.fn((message: ChatMessage | ConversationMessageInput) => message);
     const wrapper = mount(MessageList, {
       props: { lazyMessages: true, messageBatchSize: 10, messages: currentMessages, transformMessage },
       attachTo: document.body,

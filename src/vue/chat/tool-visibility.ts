@@ -1,15 +1,15 @@
-import type { ConversationMessage } from '@korus-dev/multi-agent-sdk';
+
 import { computeMessageBlocks } from './message-blocks'
-import { chatMessageFromInput } from './renderer-message-adapter'
+import { chatMessageFromInput, type ConversationMessageInput } from './renderer-message-adapter'
 import type { ChatMessage, MessageToolCall } from './types'
 
 /** Return false to hide a tool call from the rendered transcript only. */
 export type ToolVisibility = (toolCall: MessageToolCall) => boolean
 
 export function filterVisibleMessageTools(
-  message: ChatMessage | ConversationMessage,
+  message: ChatMessage | ConversationMessageInput,
   visibility: ToolVisibility | undefined,
-): ChatMessage | ConversationMessage | null {
+): ChatMessage | ConversationMessageInput | null {
   if (!visibility) return message
 
   const adapted = chatMessageFromInput(message)

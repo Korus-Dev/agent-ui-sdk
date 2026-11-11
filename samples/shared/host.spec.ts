@@ -51,8 +51,8 @@ describe('neutral sample host', () => {
       expect(view).not.toHaveProperty('session');
       view.state.messages.length = 0;
       expect(f.host.snapshot().conversations[0]!.state.messages.length).toBeGreaterThan(0);
-      await f.host.call('send', id, 'Hello', { model: 'provider-model', reasoningEffort: 'low', serviceTier: null });
-      expect(f.driver.sendPrompt).toHaveBeenCalledWith(f.driver.open.mock.results[0]!.value, 'Hello', { selection: { model: 'provider-model', reasoningEffort: 'low', serviceTier: null } });
+      await f.host.call('send', id, 'Hello', { selection: { model: 'provider-model', reasoningEffort: 'low', serviceTier: null } });
+      expect(f.driver.sendPrompt).toHaveBeenCalledWith(f.driver.open.mock.results[0]!.value, 'Hello', { selection: { selection: { model: 'provider-model', reasoningEffort: 'low', serviceTier: null } } });
       const session = f.driver.open.mock.results[0]!.value as Session;
       for (const listener of f.listeners) listener({ type: 'session.changed', session, state: { ...sessionFixture, title: 'Updated by provider' } });
       expect(f.host.snapshot().conversations[0]!.state.title).toBe('Updated by provider');

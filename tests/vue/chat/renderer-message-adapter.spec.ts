@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import type { ConversationMessageInput } from '../../../src/vue';
 import { describe, expect, it } from 'vitest';
 import type { ChatMessage, MessageToolCall } from '../../../src/vue/chat/types';
 import {
@@ -7,7 +8,7 @@ import {
   chatMessagesFromInputs,
   conversationMessageToChatMessage,
 } from '../../../src/vue/chat/renderer-message-adapter';
-import type { ConversationMessage } from '@korus-dev/multi-agent-sdk';
+
 
 describe('renderer message adapter', () => {
   it('adapts mixed input collections while preserving unchanged compatibility messages', () => {
@@ -15,7 +16,7 @@ describe('renderer message adapter', () => {
       role: 'user',
       content: 'legacy input',
     };
-    const surfaceMessage: ConversationMessage = {
+    const surfaceMessage: ConversationMessageInput = {
       id: 'surface-input',
       parts: [{ type: 'text', text: 'surface input' }],
       role: 'assistant',
@@ -62,7 +63,7 @@ describe('renderer message adapter', () => {
   });
 
   it('maps surface parts into rich chat messages without losing tool display data', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-1',
       parts: [
@@ -126,7 +127,7 @@ describe('renderer message adapter', () => {
   });
 
   it('converts system messages to assistant display messages for the renderer stack', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'system-1',
       parts: [{ type: 'status', text: 'Codex app-server error' }],
@@ -139,9 +140,8 @@ describe('renderer message adapter', () => {
   });
 
   it('propagates message, turn, and item context to adapted tool calls', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       id: 'assistant-turn-context',
-      metadata: { conversationId: 'thread-1' },
       parts: [{
         type: 'tool',
         id: 'item-read',
@@ -162,7 +162,7 @@ describe('renderer message adapter', () => {
   });
 
   it('marks steered user messages for timeline rendering', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-06-05T00:00:03.000Z',
       id: 'steer-turn-1',
       kind: 'steer',
@@ -184,7 +184,7 @@ describe('renderer message adapter', () => {
   });
 
   it('marks compaction messages for timeline rendering', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-06-05T00:00:03.000Z',
       id: 'compaction-turn-1',
       kind: 'compaction',
@@ -224,7 +224,7 @@ describe('renderer message adapter', () => {
 
 
   it('maps failed and bodyless tools into displayable tool calls', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-2',
       parts: [
@@ -251,7 +251,7 @@ describe('renderer message adapter', () => {
   });
 
   it('settles stale running tools when their surface message is terminal', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       id: 'assistant-interrupted',
       parts: [{
         type: 'tool',
@@ -388,7 +388,7 @@ describe('renderer message adapter', () => {
   );
 
   it('prefers structuredContent over the MCP model-facing placeholder result', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-structured',
       parts: [
@@ -443,7 +443,7 @@ describe('renderer message adapter', () => {
     const message = conversationMessageToChatMessage({
       id: 'assistant-null-output',
       parts: [{
-        type: 'tool',
+        type: 'tool', kind: 'generic',
         id: 'null-output',
         title: 'read',
         status: 'completed',
@@ -456,12 +456,12 @@ describe('renderer message adapter', () => {
     expect(message.toolCalls?.[0]?.result).toBeNull();
   });
 
-  it('derives body arguments, fallback item identity, and turn context from metadata', () => {
+  it('derives body arguments, fallback item identity, and turn context from the message', () => {
     const message = conversationMessageToChatMessage({
       id: 'assistant-fallback-tool',
-      metadata: { turnId: 'turn-from-metadata' },
+      turnId: 'turn-from-metadata',
       parts: [{
-        type: 'tool',
+        type: 'tool', kind: 'generic',
         id: '',
         title: 'shell',
         status: 'running',
@@ -477,6 +477,7 @@ describe('renderer message adapter', () => {
       function: 'shell',
       id: 'assistant-fallback-tool-tool-0',
       itemId: 'assistant-fallback-tool-tool-0',
+      kind: 'generic',
       messageId: 'assistant-fallback-tool',
       result: 'command output',
       state: 'running',
@@ -486,20 +487,8 @@ describe('renderer message adapter', () => {
     expect(message.turnId).toBe('turn-from-metadata');
   });
 
-  it.each([undefined, '', false, 42])('rejects non-usable metadata turn ids: %j', (turnId) => {
-    const toolCall = conversationMessageToChatMessage({
-      id: 'assistant-invalid-turn',
-      metadata: turnId === undefined ? undefined : { turnId },
-      parts: [{ type: 'tool', id: 'read', title: 'read', status: 'completed' }],
-      role: 'assistant',
-      status: 'complete',
-    }).toolCalls?.[0];
-
-    expect(toolCall).not.toHaveProperty('turnId');
-  });
-
   it('preserves ordered renderer parts so tools can render between text chunks', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-ordered',
       parts: [
@@ -541,7 +530,7 @@ describe('renderer message adapter', () => {
   });
 
   it('preserves generated media as an ordered renderer part', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       id: 'assistant-generated',
       parts: [{
         type: 'media',
@@ -572,7 +561,7 @@ describe('renderer message adapter', () => {
   });
 
   it('preserves ordered user attachments without flattening filenames into editable text', () => {
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-07-18T00:00:00.000Z',
       id: 'user-turn-attachments',
       parts: [
@@ -639,7 +628,7 @@ describe('renderer message adapter', () => {
         requestId: 'approval-1',
       },
     });
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       createdAt: '2026-06-05T00:00:00.000Z',
       id: 'assistant-turn-confirm',
       parts: [
@@ -661,7 +650,7 @@ describe('renderer message adapter', () => {
 
   it('preserves app-owned MCP identity for Vue presentation resolvers', () => {
     const metadata = { server: 'codex_claw', tool: 'browser_open', durationMs: 12 };
-    const rendererMessage: ConversationMessage = {
+    const rendererMessage: ConversationMessageInput = {
       id: 'assistant-mcp-presentation',
       parts: [{
         type: 'tool',

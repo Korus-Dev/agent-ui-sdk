@@ -193,7 +193,7 @@ export type {
   MessageTextSelection,
   MessageTextSelectionAnchor,
 } from './chat/message-text-selection';
-export type { ChatMessageInput as MessageInput } from './chat/renderer-message-adapter';
+export type { ChatMessageInput as MessageInput, ConversationMessageInput } from './chat/renderer-message-adapter';
 export type { ToolVisibility } from './chat/tool-visibility';
 export type { ChatTranslate } from './chat/chat-i18n';
 export type { QueuedChatPrompt as QueuedPromptData } from './chat/queued-prompts';
@@ -233,7 +233,6 @@ export type {
   NativeClipboardContent,
   NativeRendererApi,
 } from '@korus-dev/agent-ui-sdk/host';
-export type { ClientAttachment, ClientSendMessageOptions, Attachment, SendMessageOptions } from '@korus-dev/multi-agent-sdk';
 
 export { customBlocksKey, type CustomBlocks } from './chat/custom-blocks';
 
@@ -247,8 +246,6 @@ export { default as CodeSelectionAnnotation } from './documents/CodeSelectionAnn
 export { useCodeSelection, type CodeSelection, type CodeSelectionAnchor } from './documents/use-code-selection';
 export { describeCodeRange, type CodeRange, type CodeAnnotationInput, type CodeLocation } from './documents/annotation-types';
 export { fileKindColor } from './documents/file-kind-presentation';
-/** @deprecated Prefer ClientAttachment and ClientSendMessageOptions for UI actions. */
-export type { ClientAttachment as RendererAttachment, ClientSendMessageOptions as RendererSendMessageOptions } from '@korus-dev/multi-agent-sdk';
 
 export type { DiffOverviewFile, DiffOverviewSlot } from '../documents/diff-overview';
 

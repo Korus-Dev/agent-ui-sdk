@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { HostAttachment } from '@korus-dev/agent-ui-sdk/host';
 import type { PromptOptions } from '@korus-dev/multi-agent-sdk';
-import type { ClientAttachment } from '@korus-dev/multi-agent-sdk';
+import type { PromptReferenceAttachment } from '@korus-dev/multi-agent-sdk';
 
 export type ElectronAttachmentRegistration = {
   type: HostAttachment['type'];
@@ -38,7 +38,7 @@ export class ElectronAttachmentRegistry {
     };
   }
 
-  resolve(attachment: ClientAttachment): NonNullable<PromptOptions['attachments']>[number] {
+  resolve(attachment: PromptReferenceAttachment): NonNullable<PromptOptions['attachments']>[number] {
     const registered = this.#registered(attachment.reference);
     if (registered.type !== attachment.type) {
       throw new TypeError('Attachment reference type does not match');

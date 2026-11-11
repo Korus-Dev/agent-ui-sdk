@@ -2,9 +2,9 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
-import { ConversationPane, Message, type ConversationMessage } from '../../src/vue';
+import { ConversationPane, Message, type ConversationMessageInput } from '../../src/vue';
 
-const messages: ConversationMessage[] = [
+const messages: ConversationMessageInput[] = [
   {
     id: 'user-complete',
     role: 'user',

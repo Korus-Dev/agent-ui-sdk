@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { trimPromptContent } from '@korus-dev/multi-agent-sdk/prompt';
-import type { PromptPart, ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
+import type { PromptPart, ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import ChatRichTextEditor, { type RichTextEditorExpose } from './ChatRichTextEditor.vue'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
@@ -54,7 +54,7 @@ const props = defineProps<{
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const emit = defineEmits<{
   cancel: []
-  save: [content: string, options?: Pick<ClientSendMessageOptions, 'content'>]
+  save: [content: string, options?: Pick<ReferenceSendPromptOptions, 'content'>]
 }>()
 // Stryker restore all
 

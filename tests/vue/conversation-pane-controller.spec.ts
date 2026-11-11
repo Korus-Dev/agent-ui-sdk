@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import type { ConversationMessageInput } from '../../src/vue';
 import { nextTick, shallowRef } from 'vue';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
@@ -7,11 +8,11 @@ import {
   resolveConversationPaneValue,
   type ConversationPaneActions,
   type ConversationPaneState,
-  type ClientSendMessageOptions,
 } from '../../src/vue';
-import type { ConversationMessage } from '@korus-dev/multi-agent-sdk';
+import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 
-function message(id: string): ConversationMessage {
+
+function message(id: string): ConversationMessageInput {
   return {
     id,
     role: 'assistant',
@@ -20,7 +21,7 @@ function message(id: string): ConversationMessage {
   };
 }
 
-function state(messages: readonly ConversationMessage[]): ConversationPaneState {
+function state(messages: readonly ConversationMessageInput[]): ConversationPaneState {
   return {
     identity: { conversationKey: 'thread-1', messages },
     composer: { state: { text: '', selectionStart: 0, selectionEnd: 0 } },
@@ -32,8 +33,8 @@ describe('createConversationPaneController', () => {
     type SubmitOptions = Parameters<NonNullable<ConversationPaneActions['submit']>>[1];
     type SteerOptions = Parameters<NonNullable<ConversationPaneActions['steer']>>[1];
 
-    expectTypeOf<SubmitOptions>().toEqualTypeOf<ClientSendMessageOptions | undefined>();
-    expectTypeOf<SteerOptions>().toEqualTypeOf<ClientSendMessageOptions | undefined>();
+    expectTypeOf<SubmitOptions>().toEqualTypeOf<ReferenceSendPromptOptions | undefined>();
+    expectTypeOf<SteerOptions>().toEqualTypeOf<ReferenceSendPromptOptions | undefined>();
   });
 
   it('accepts ref-like sources from another Vue package resolution', () => {

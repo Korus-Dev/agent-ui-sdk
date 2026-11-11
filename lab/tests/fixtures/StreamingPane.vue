@@ -5,7 +5,8 @@
   </ConversationPane>
 </template>
 <script setup lang="ts">
-import type { ConversationMessage } from '@korus-dev/multi-agent-sdk'
+
+import type { ConversationMessageInput } from '@korus-dev/agent-ui-sdk';
 import ConversationPane from '../../../src/vue/components/ConversationPane.vue'
-defineProps<{ messages: ConversationMessage[]; lazy: boolean }>()
+defineProps<{ messages: ConversationMessageInput[]; lazy: boolean }>()
 </script>

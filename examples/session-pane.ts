@@ -1,12 +1,7 @@
+import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import { shallowRef } from 'vue';
 import type { Harness, Session, PromptOptions } from '@korus-dev/multi-agent-sdk';
-import {
-  createConversationPaneController,
-  sessionStateToConversationPaneState,
-  requestResponseFromClientResponse,
-  requestResponseFromApproval,
-  type ClientSendMessageOptions,
-} from '@korus-dev/agent-ui-sdk';
+import { createConversationPaneController, sessionStateToConversationPaneState, requestResponseFromClientResponse, requestResponseFromApproval } from '@korus-dev/agent-ui-sdk';
 
 /**
  * Minimal controlled conversation. The host owns subscription lifetime and any
@@ -16,7 +11,7 @@ import {
 export function sessionPaneExample(
   driver: Pick<Harness, 'readSession' | 'getCapabilities' | 'onEvent' | 'sendPrompt' | 'interrupt' | 'respondToRequest'>,
   session: Session,
-  resolvePromptOptions: (options?: ClientSendMessageOptions) => PromptOptions | undefined,
+  resolvePromptOptions: (options?: ReferenceSendPromptOptions) => PromptOptions | undefined,
 ) {
   const state = shallowRef(driver.readSession(session));
   const unsubscribe = driver.onEvent(event => {

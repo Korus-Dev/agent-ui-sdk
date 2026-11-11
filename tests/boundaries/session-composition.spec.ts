@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { flushPromises, mount } from '@vue/test-utils';
 import { shallowRef } from 'vue';
-import { describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { HarnessEvent, Session, SessionState } from '@korus-dev/multi-agent-sdk';
-import { ConversationPane, MessageList, createConversationPaneController, sessionStateToConversationPaneState, requestResponseFromClientResponse, requestResponseFromApproval, toChatMessage, type ClientAttachment, type ClientSendMessageOptions, type RendererAttachment, type RendererSendMessageOptions } from '../../src/vue';
+import { ConversationPane, MessageList, createConversationPaneController, sessionStateToConversationPaneState, requestResponseFromClientResponse, requestResponseFromApproval, toChatMessage } from '../../src/vue';
 import { sessionPaneExample } from '../../examples/session-pane';
 import { sessionFixture, capabilitiesFixture, failedTurnFixture, timedFailedSessionFixture } from '../fixtures/consumer-session';
 
@@ -39,10 +39,6 @@ describe('neutral session composition', () => {
     pane.unmount();
   });
 
-  it('keeps renderer spellings as client-type compatibility aliases', () => {
-    expectTypeOf<ClientAttachment>().toEqualTypeOf<RendererAttachment>();
-    expectTypeOf<ClientSendMessageOptions>().toEqualTypeOf<RendererSendMessageOptions>();
-  });
   it('binds an opaque harness session, resolves client options and releases its subscription', async () => {
     // Opaque test handle; no native identity is constructed or inspected.
     const session = Object.freeze({}) as Session;

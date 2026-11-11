@@ -1,4 +1,4 @@
-import type { Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary } from '@korus-dev/multi-agent-sdk';
 import type { SkillSummary, PromptSkillInput } from './contracts';
 import { filterComposerSearchItems } from './composer-search';
 
@@ -43,7 +43,7 @@ export function filterComposerSkills(
   skills: SkillSummary[],
   query: string,
   maxResults = -1,
-  plugins: readonly Plugin[] = [],
+  plugins: readonly PluginSummary[] = [],
 ): SkillSummary[] {
   return filterComposerSearchItems(skills, query, [
     { values: (skill) => [skill.id, skillInsertText(skill), skill.name, skill.displayName, skillDisplayName(skill, plugins)] },
@@ -53,7 +53,7 @@ export function filterComposerSkills(
 
 export function skillDisplayName(
   skill: SkillSummary,
-  plugins: readonly Plugin[] = [],
+  plugins: readonly PluginSummary[] = [],
 ): string {
   if (skill.displayName) return skill.displayName;
   const separator = skill.name.indexOf(':');
@@ -65,7 +65,7 @@ export function skillDisplayName(
     || candidate.id.startsWith(`${pluginId}@`)
   ));
   if (!plugin) return skill.name;
-  const namespace = plugin.displayName
+  const namespace = (plugin.displayName ?? plugin.name)
     .toLowerCase()
     .replace(/[^a-z\d]+/g, '-')
     .replace(/^-|-$/g, '') || plugin.name;

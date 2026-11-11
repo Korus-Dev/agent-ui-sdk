@@ -226,7 +226,7 @@ describe('standard session conversation', () => {
   });
 
   it('resolves attachment capabilities only at the trusted prompt boundary and preserves settings', () => {
-    const options = { model: 'm', reasoningEffort: 'low', serviceTier: null, planMode: true,
+    const options = { selection: { model: 'm', reasoningEffort: 'low', serviceTier: null }, planMode: true,
       attachments: [{ type: 'file' as const, reference: 'opaque' }], inputMethod: 'dictated' as const };
     expect(() => toHarnessPromptOptions(options)).toThrow('resolver');
     const resolve = vi.fn(() => ({ type: 'file' as const, path: '/trusted/file' }));

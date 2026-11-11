@@ -1,7 +1,7 @@
 import { Lexer } from 'marked';
 import { conversationLinkFromHref } from './conversation-links';
 import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
-import type { PromptMention, PromptPart, Plugin, Skill } from '@korus-dev/multi-agent-sdk';
+import type { PromptMention, PromptPart, PluginSummary, SkillSummary } from '@korus-dev/multi-agent-sdk';
 import { skillDisplayName, skillMatchesMention } from './composer-skills';
 import { pluginMatchesMention } from './composer-plugins';
 import {
@@ -28,21 +28,21 @@ export type UserTextToken =
     displayName: string;
     href: string;
     label: string;
-    plugin?: Plugin;
+    plugin?: PluginSummary;
   }
   | {
     type: 'skill-mention';
     displayName: string;
     href: string;
     label: string;
-    skill?: Skill;
+    skill?: SkillSummary;
   };
 
 export function parseAuthoredUserText(
   text: string,
   content?: readonly PromptPart[],
-  plugins: readonly Plugin[] = [],
-  skills: readonly Skill[] = [],
+  plugins: readonly PluginSummary[] = [],
+  skills: readonly SkillSummary[] = [],
   groups: readonly ComposerMentionGroup[] = [],
 ): UserTextToken[] {
   if (content === undefined) return parseUserText(text, plugins, skills, groups, false);
@@ -77,8 +77,8 @@ function customMentionToken(part: PromptMention, groups: readonly ComposerMentio
 
 export function parseUserText(
   content: string,
-  plugins: readonly Plugin[] = [],
-  skills: readonly Skill[] = [],
+  plugins: readonly PluginSummary[] = [],
+  skills: readonly SkillSummary[] = [],
   mentionGroups: readonly ComposerMentionGroup[] = [],
   allowBareMentions = true,
 ): UserTextToken[] {
@@ -88,8 +88,8 @@ export function parseUserText(
 /** Rehydrate serialized selected references without interpreting bare typed triggers. */
 export function recalledPromptContent(
   text: string,
-  plugins: readonly Plugin[] = [],
-  skills: readonly Skill[] = [],
+  plugins: readonly PluginSummary[] = [],
+  skills: readonly SkillSummary[] = [],
   groups: readonly ComposerMentionGroup[] = [],
 ): PromptPart[] {
   return normalizePromptContent(parseUserText(text, plugins, skills, groups, false).map((token): PromptPart => {
@@ -127,8 +127,8 @@ function withWebLinks(content: string, literal: (text: string) => UserTextToken[
 
 function parseUserTextTokens(
   content: string,
-  plugins: readonly Plugin[],
-  skills: readonly Skill[],
+  plugins: readonly PluginSummary[],
+  skills: readonly SkillSummary[],
   mentionGroups: readonly ComposerMentionGroup[],
   allowBareMentions: boolean,
 ): UserTextToken[] {
@@ -164,8 +164,8 @@ function parseUserTextTokens(
 function bareMentionToken(
   trigger: string,
   name: string,
-  plugins: readonly Plugin[],
-  skills: readonly Skill[],
+  plugins: readonly PluginSummary[],
+  skills: readonly SkillSummary[],
   mentionGroups: readonly ComposerMentionGroup[],
 ): Extract<UserTextToken, { type: 'custom-mention' | 'plugin-mention' | 'skill-mention' }> | null {
   if (trigger === '$') {
@@ -219,8 +219,8 @@ function bareMentionToken(
 function mentionToken(
   rawLabel: string,
   rawHref: string,
-  plugins: readonly Plugin[],
-  skills: readonly Skill[],
+  plugins: readonly PluginSummary[],
+  skills: readonly SkillSummary[],
   groups: readonly ComposerMentionGroup[],
 ): Extract<UserTextToken, { type: 'custom-mention' | 'plugin-mention' | 'skill-mention' }> | null {
   const label = rawLabel.trim().replace(/\\([\\[\]])/g, '$1');

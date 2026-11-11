@@ -4,7 +4,7 @@ import type {
   CommandSummary,
   SkillSummary,
 } from './contracts'
-import type { PromptMention, Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PromptMention, PluginSummary } from '@korus-dev/multi-agent-sdk';
 import { findActiveFileMention, findActivePluginMention } from './composer-mentions'
 import { filterFileSearchItems } from './file-search'
 import { filterComposerCommands, findActiveCommandSlash } from './composer-commands'
@@ -21,7 +21,7 @@ type ChatComposerSuggestionOptions<Payload = unknown> = {
   commands: () => readonly CommandSummary[]
   disabled: () => boolean
   files: () => readonly FileSearchItem[]
-  plugins?: () => readonly Plugin[]
+  plugins?: () => readonly PluginSummary[]
   mentionGroups?: () => readonly ComposerMentionGroup<Payload>[]
   onMentionSelected?: (
     item: ComposerMentionItem<Payload>,
@@ -233,7 +233,7 @@ export function useChatComposerSuggestions<Payload = unknown>(options: ChatCompo
     }
   }
 
-  function selectPlugin(plugin: Plugin): void {
+  function selectPlugin(plugin: PluginSummary): void {
     const mention = activePluginMention.value
     if (mention) {
       insertMention({ type: 'mention', kind: 'plugin', id: plugin.id, value: plugin.name || plugin.id, label: plugin.displayName || plugin.name }, mention.start, mention.end)

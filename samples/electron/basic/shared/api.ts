@@ -1,5 +1,6 @@
+import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import type { HarnessCapabilities, Harness, ModelOption, SessionState, HarnessProvider } from '@korus-dev/multi-agent-sdk';
-import type { ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
+
 
 export type ChatSummary = { id: string; title: string; updatedAt: string; };
 export type ChatView = {
@@ -27,7 +28,7 @@ export type SampleApi = {
   chats(): Promise<ChatSummary[]>;
   newChat(): Promise<ChatView>;
   chat(id: string): Promise<ChatView>;
-  prompt(id: string, prompt: string, options?: ClientSendMessageOptions): Promise<void>;
+  prompt(id: string, prompt: string, options?: ReferenceSendPromptOptions): Promise<void>;
   call<M extends ChatOperation>(id: string, method: M, ...args: AfterSession<Harness[M]>): Promise<ChatOperationResult<M>>;
   onChatState(listener: (event: ChatStateEvent) => void): () => void;
 };

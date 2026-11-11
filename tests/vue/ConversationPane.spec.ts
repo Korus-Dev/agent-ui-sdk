@@ -16,21 +16,21 @@ import {
   type NativeAttachment,
   type ConversationPaneState,
   type MessageTextSelection,
-  type ConversationMessage,
+  type ConversationMessageInput,
 } from '../../src/vue';
 import type { ClientRequest, Turn } from '@korus-dev/multi-agent-sdk';
 import type { ChatMessage } from '../../src/vue/chat/types';
 import ChatComposerShelf from '../../src/vue/chat/ChatComposerShelf.vue';
 import Composer from '../../src/vue/components/Composer.vue';
 
-const messages: ConversationMessage[] = [{
+const messages: ConversationMessageInput[] = [{
   id: 'assistant-1',
   role: 'assistant',
   status: 'complete',
   parts: [{ type: 'text', text: 'Ready to build' }],
 }];
 
-const asyncQuestionMessage: ConversationMessage = {
+const asyncQuestionMessage: ConversationMessageInput = {
   id: 'assistant-question', role: 'assistant', status: 'complete', turnId: 'turn-question',
   parts: [{ type: 'question', request: {
     id: 'request-framework', kind: 'ask_user', conversationId: 'thread-question',
@@ -61,7 +61,7 @@ const blockingQuestion: Extract<ClientRequest, { kind: 'ask_user' }> = {
   } },
 };
 
-const blockingQuestionMessage: ConversationMessage = {
+const blockingQuestionMessage: ConversationMessageInput = {
   id: 'assistant-blocking', role: 'assistant', status: 'streaming', turnId: 'turn-question',
   parts: [{ type: 'tool', id: 'item-blocking', kind: 'generic', title: 'ask_user_question',
     status: 'running', statusText: JSON.stringify({ source: 'codex', action: 'ask_user_question',
@@ -290,7 +290,7 @@ describe('ConversationPane with provider fixtures', () => {
         allowConversation: true, allowAlways: true,
       } },
     };
-    const toolPart: ConversationMessage['parts'][number] = {
+    const toolPart: ConversationMessageInput['parts'][number] = {
       type: 'tool', id: 'tool-1', kind: 'mcp', title: 'shell.run', status: 'running',
       statusText: JSON.stringify({ source: 'mcp', action: 'confirm_tool', phase: 'running',
         params: { requestId: request.id, confirmationSummary: request.payload.confirmation.summary } }),
@@ -344,7 +344,7 @@ describe('ConversationPane with provider fixtures', () => {
       messages: [{ ...blockingQuestionMessage,
       status: 'complete', parts: [{ ...blockingQuestionMessage.parts[0], status: 'completed',
         output: { answers: { framework: { answers: ['Vue'] } } } }],
-    }] as ConversationMessage[] });
+    }] as ConversationMessageInput[] });
     expect(wrapper.findComponent(Composer).exists()).toBe(true);
     expect(wrapper.get('.agent-ui-conversation-pane__messages').text()).toContain('User answered question');
     expect(wrapper.get('.agent-ui-conversation-pane__messages').text()).toContain('Vue');
@@ -455,7 +455,7 @@ describe('ConversationPane with provider fixtures', () => {
     expect(promptWrapper.get('.agent-ui-conversation-pane__messages').text()).toContain('Which framework should I use?');
     expect(promptWrapper.get('.agent-ui-conversation-pane__messages').text()).not.toContain('Previous user question');
 
-    const subsequentMessages: ConversationMessage[] = [asyncQuestionMessage,
+    const subsequentMessages: ConversationMessageInput[] = [asyncQuestionMessage,
       { id: 'next-user', role: 'user', status: 'complete', turnId: 'next-turn',
         parts: [{ type: 'text', text: 'Proceed without my answer' }] },
       { id: 'next-assistant', role: 'assistant', status: 'streaming', turnId: 'next-turn',
@@ -820,14 +820,14 @@ describe('ConversationPane with provider fixtures', () => {
   it('keeps the lazy window bounded across progressive prepends from a host', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     onTestFinished(() => { vi.useRealTimers(); });
-    const makeMessages = (start: number, count: number): ConversationMessage[] => Array.from({ length: count }, (_, offset) => ({
+    const makeMessages = (start: number, count: number): ConversationMessageInput[] => Array.from({ length: count }, (_, offset) => ({
       id: `host-${start + offset}`,
       role: 'assistant',
       status: 'complete',
       parts: [{ type: 'text', text: `ChatMessage ${start + offset}` }],
     }));
     let currentMessages = makeMessages(95, 5);
-    const transformMessage = vi.fn((message: ConversationMessage | ChatMessage) => message);
+    const transformMessage = vi.fn((message: ConversationMessageInput | ChatMessage) => message);
     const wrapper = mountConversation( {
       props: { messages: currentMessages, transformMessage },
       attachTo: document.body,
@@ -874,7 +874,7 @@ describe('ConversationPane with provider fixtures', () => {
   });
 
   it('forwards the opt-in lazy message window settings', () => {
-    const transformMessage = vi.fn((message: ConversationMessage | ChatMessage) => message);
+    const transformMessage = vi.fn((message: ConversationMessageInput | ChatMessage) => message);
     const wrapper = mountConversation( {
       props: {
         renderStrategy: 'eager',
@@ -1007,7 +1007,7 @@ describe('ConversationPane with provider fixtures', () => {
   });
 
   it('routes quoting exclusively through controller ownership while still updating the draft', async () => {
-    const userMessage: ConversationMessage = {
+    const userMessage: ConversationMessageInput = {
       id: 'controlled-user', role: 'user', status: 'complete',
       parts: [{ type: 'text', text: 'Quote through controller' }],
     };
@@ -1248,7 +1248,7 @@ describe('ConversationPane with provider fixtures', () => {
   it('shows a follow-up immediately and reconciles a new user message without matching identical history', async () => {
     let finish!: () => void;
     const submit = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
-    const previous: ConversationMessage = { id: 'previous-user', role: 'user', status: 'complete', parts: [{ type: 'text', text: 'Repeat this task' }] };
+    const previous: ConversationMessageInput = { id: 'previous-user', role: 'user', status: 'complete', parts: [{ type: 'text', text: 'Repeat this task' }] };
     const state: ConversationPaneState = reactive({ identity: { conversationKey: 'existing-thread', messages: [previous] } });
     const wrapper = mountConversation( { props: { controller: createConversationPaneController({ state, actions: { submit } }) } });
     await setComposerText(wrapper, 'Repeat this task');
@@ -2558,7 +2558,7 @@ describe('ConversationPane with provider fixtures', () => {
   });
 
   it('uses the pane controller as the single state and action source', async () => {
-    const controlledMessage: ConversationMessage = {
+    const controlledMessage: ConversationMessageInput = {
       id: 'controller-message',
       role: 'assistant',
       status: 'complete',
@@ -3283,7 +3283,7 @@ describe('ConversationPane with provider fixtures', () => {
           status: 'complete',
           parts: [{ type: 'text', text: 'Ask codex-claw' }],
           metadata: { promptContent: [{ type: 'text', text: 'Ask ' }, { type: 'mention', kind: 'custom', id: 'thread-1', value: 'thread:019abc', groupId: 'threads', label: 'codex-claw' }] },
-        } satisfies ConversationMessage],
+        } satisfies ConversationMessageInput],
       },
       slots: {
         mention: ({ item, surface }: { item: { label: string }; surface: string }) => (
@@ -3500,7 +3500,7 @@ describe('ConversationPane with provider fixtures', () => {
     const expected = { href: 'https://example.com/controller', kind: 'external' as const };
     const openLink = vi.fn();
     const compatibility = vi.fn();
-    const userUrl: ConversationMessage = { id: 'user-url', role: 'user', status: 'complete', parts: [{ type: 'text', text: expected.href }] };
+    const userUrl: ConversationMessageInput = { id: 'user-url', role: 'user', status: 'complete', parts: [{ type: 'text', text: expected.href }] };
     const state: ConversationPaneState = reactive({ identity: { conversationKey: 'controlled-link', messages: [userUrl] } });
     const controller = createConversationPaneController({
       state,
@@ -3851,7 +3851,7 @@ describe('ConversationPane with provider fixtures', () => {
     const wrapper = mountConversation( { props: {
       messages: [
         { id: 'internal-only', role: 'assistant', status: 'complete', parts: [
-          { type: 'tool', id: 'internal-1', title: 'host.internal', status: 'completed' },
+          { type: 'tool', kind: 'generic', id: 'internal-1', title: 'host.internal', status: 'completed' },
         ] },
         { id: 'mixed', role: 'assistant', content: 'Visible answer.<tool id="internal-2"></tool>',
           toolCalls: [{ id: 'internal-2', function: 'host.internal', args: {}, result: null,

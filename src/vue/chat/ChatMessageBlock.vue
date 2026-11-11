@@ -134,7 +134,7 @@ import { copyTextToClipboard } from './message-actions'
 import { useChatTranslate } from './chat-i18n'
 import type { MessageBlock, RenderedMessageBlock } from './message-blocks'
 import type { ClientRequestResponse, ConversationLink } from './contracts'
-import type { Plugin, Skill } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary, SkillSummary } from '@korus-dev/multi-agent-sdk';
 import type { MessageImageOpenHandler } from './message-image'
 import type { ConversationVisualization } from './visualization'
 import type { ComposerMentionGroup, ComposerMentionItem } from './composer-mentions-custom'
@@ -165,9 +165,9 @@ const props = withDefaults(defineProps<{
   followUpsDisabled?: boolean
   mentionGroups?: readonly ComposerMentionGroup[]
   openImage?: MessageImageOpenHandler
-  plugins?: readonly Plugin[]
+  plugins?: readonly PluginSummary[]
   showToolDetails?: boolean
-  skills?: readonly Skill[]
+  skills?: readonly SkillSummary[]
 }>(), {
   showToolDetails: undefined,
 })

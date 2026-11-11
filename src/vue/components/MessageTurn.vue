@@ -6,13 +6,13 @@
 
 <script setup lang="ts">
 import { computed, inject, provide, ref, shallowReactive, watch } from 'vue'
-import type { TurnStatus, ConversationMessage } from '@korus-dev/multi-agent-sdk';
+import type { TurnStatus } from '@korus-dev/multi-agent-sdk';
 import {
   computeMessageBlocks,
   hasExplicitAssistantWorkPhases,
   isAssistantWorkBlock,
 } from '../chat/message-blocks'
-import { renderedChatMessage } from '../chat/renderer-message-adapter'
+import { renderedChatMessage, type ConversationMessageInput } from '../chat/renderer-message-adapter'
 import type { ChatMessage } from '../chat/types'
 import { assistantWorkTurnKey, questionResponsesKey } from '../chat/message-work-state'
 
@@ -20,7 +20,7 @@ provide(questionResponsesKey, inject(questionResponsesKey, undefined) ?? shallow
 
 type TurnEntry = {
   index: number
-  message: ChatMessage | ConversationMessage
+  message: ChatMessage | ConversationMessageInput
 }
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.

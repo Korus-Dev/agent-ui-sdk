@@ -166,29 +166,14 @@
 </template>
 
 <script setup lang="ts">
+import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
+import type { ConversationMessageInput } from '@korus-dev/agent-ui-sdk';
 import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
 import { computed, defineComponent, h, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 const labCapabilities = { models: true, skills: true, reasoningEffort: true, serviceTier: true, planMode: true, goals: true, steerPrompt: true, interrupt: true, history: true, deleteTurn: true, editTurn: true, retryTurn: true, approvals: true, approvalPresets: ['ask-for-approval', 'approve-for-me', 'full-access'] as const };
 import { chartHtmlChunks, inlineHtmlChunks } from './inline-html-demo';
-import {
-  ConversationPane,
-  provideToolPresentation,
-  type ChatMessage,
-  type ChatTranscription,
-  type ContextUsage,
-  type ClientRequestResponse,
-  type ModelOption,
-  type MessageTextSelection,
-  type NativeAttachment,
-  type NativeAttachmentInput,
-  type QueuedPromptData,
-  type SkillSummary,
-  type ClientSendMessageOptions,
-  type ReasoningEffort,
-  type ConversationMessage,
-  type ConversationMessagePart,
-  type TurnGitDiff,
-} from '@korus-dev/agent-ui-sdk';
+import { ConversationPane, provideToolPresentation, type ChatMessage, type ChatTranscription, type ContextUsage, type ClientRequestResponse, type ModelOption, type MessageTextSelection, type NativeAttachment, type NativeAttachmentInput, type QueuedPromptData, type SkillSummary, type ReasoningEffort, type TurnGitDiff } from '@korus-dev/agent-ui-sdk';
+import type { MessagePart } from '@korus-dev/multi-agent-sdk';
 import type { Approval, ApprovalDecision, AskUserQuestion, ClientRequest, Plugin, Turn } from '@korus-dev/multi-agent-sdk';
 
 type Scenario = {
@@ -197,7 +182,7 @@ type Scenario = {
   summary: string;
   title: string;
   description: string;
-  messages: ConversationMessage[];
+  messages: ConversationMessageInput[];
   activeTurnId?: string | null;
   turns?: readonly Turn[];
   busy?: boolean;
@@ -363,7 +348,7 @@ const scenarios: [Scenario, ...Scenario[]] = [
     summary: 'Submit and stream from a deep transcript',
     title: 'Long conversation',
     description: 'Scroll away from the tail, submit a prompt, and verify that the streamed response stays visible.',
-    messages: Array.from({ length: 48 }, (_, index): ConversationMessage[] => [
+    messages: Array.from({ length: 48 }, (_, index): ConversationMessageInput[] => [
       {
         id: `history-user-${index}`, role: 'user', status: 'complete',
         parts: [{ type: 'text', text: `Earlier question ${index + 1}: explain the current state and next step.` }],
@@ -565,7 +550,7 @@ const selectedModelId = ref(models[0].id);
 const selectedEffort = ref<ReasoningEffort>('medium');
 const selectedServiceTier = ref<string | null>(null);
 const activity = ref('Ready');
-const messages = ref<ConversationMessage[]>([]);
+const messages = ref<ConversationMessageInput[]>([]);
 const mockBusy = ref(false);
 const mockActiveTurnId = ref<string | null>(null);
 const mockTurns = shallowRef<readonly Turn[]>([]);
@@ -844,14 +829,14 @@ function startReasoningActivityLifecycle(): void {
   streamTimers.add(commentaryTimer);
 }
 
-function updateReasoningActivity(parts: ConversationMessagePart[]): void {
+function updateReasoningActivity(parts: MessagePart[]): void {
   messages.value = messages.value.map((message) => message.id === 'reasoning-activity-assistant'
     ? { ...message, parts }
     : message);
 }
 
-function reasoningActivityParts(stage: 'planning' | 'inspecting' | 'commentary'): ConversationMessagePart[] {
-  const parts: ConversationMessagePart[] = [
+function reasoningActivityParts(stage: 'planning' | 'inspecting' | 'commentary'): MessagePart[] {
+  const parts: MessagePart[] = [
     {
       type: 'reasoning',
       itemId: 'reasoning-activity-planning',
@@ -896,12 +881,12 @@ function reasoningActivityParts(stage: 'planning' | 'inspecting' | 'commentary')
   return parts;
 }
 
-function submitPrompt(prompt: string, options?: ClientSendMessageOptions): void {
+function submitPrompt(prompt: string, options?: ReferenceSendPromptOptions): void {
   const contextText = selectedMessageContexts.value.length > 0
     ? `Selected message context:\n${selectedMessageContexts.value.map(({ text }) => `- ${text}`).join('\n')}`
     : '';
   const submittedPrompt = [prompt, contextText].filter(Boolean).join('\n\n');
-  const attachmentParts: ConversationMessagePart[] = (options?.attachments ?? []).map((attachment) => {
+  const attachmentParts: MessagePart[] = (options?.attachments ?? []).map((attachment) => {
     const resolved = mockAttachments.get(attachment.reference);
     return {
       type: 'attachment',

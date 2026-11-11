@@ -35,18 +35,18 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
-import type { Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary } from '@korus-dev/multi-agent-sdk';
 import { PlugIcon } from '../shared/icons/app-icons';
 import { pluginDescription, pluginDisplayName } from './composer-plugins';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   activeIndex: number;
-  visiblePlugins: Plugin[];
+  visiblePlugins: PluginSummary[];
 }>();
 
 defineEmits<{
-  select: [plugin: Plugin];
+  select: [plugin: PluginSummary];
 }>();
 // Stryker restore all
 

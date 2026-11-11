@@ -15,7 +15,7 @@
 import { Fragment, h, nextTick, onBeforeUnmount, onMounted, ref, render, useSlots, watch } from 'vue';
 import type { FileSearchItem, SkillSummary } from './contracts';
 import { normalizePromptContent, promptContentText, slicePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
-import type { PromptPart, PromptMention, Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PromptPart, PromptMention, PluginSummary } from '@korus-dev/multi-agent-sdk';
 import ChatMentionChip from './ChatMentionChip.vue';
 import {
   type ComposerMentionGroup,
@@ -45,7 +45,7 @@ const props = withDefaults(defineProps<{
   modelValue: string;
   content?: readonly PromptPart[];
   placeholder?: string;
-  plugins?: readonly Plugin[];
+  plugins?: readonly PluginSummary[];
   skills?: readonly SkillSummary[];
 }>(), {
   ariaLabel: 'Prompt',

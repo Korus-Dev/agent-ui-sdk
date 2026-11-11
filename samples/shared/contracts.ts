@@ -1,13 +1,14 @@
+import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import type { HarnessCapabilities, HarnessProvider, Harness, ModelOption, SessionState } from '@korus-dev/multi-agent-sdk';
-import type { ClientSendMessageOptions, SessionRequestResponse } from '@korus-dev/agent-ui-sdk';
+import type { SessionRequestResponse } from '@korus-dev/agent-ui-sdk';
 export type Conversation = { id: string; provider: HarnessProvider; state: SessionState; capabilities: HarnessCapabilities; models: ModelOption[] };
 export type SampleAuthentication = { connected: boolean; pending: boolean; error: string | null; loginCommand?: string };
 export type Snapshot = { backend: HarnessProvider; authentication: SampleAuthentication | null; conversations: Conversation[] };
 export type Commands = {
   create: [provider?: HarnessProvider];
   authenticate: [action: 'check' | 'login' | 'logout'];
-  send: [id: string, prompt: string, options?: ClientSendMessageOptions];
-  steer: [id: string, prompt: string, options?: ClientSendMessageOptions];
+  send: [id: string, prompt: string, options?: ReferenceSendPromptOptions];
+  steer: [id: string, prompt: string, options?: ReferenceSendPromptOptions];
   interrupt: [id: string];
   respond: [id: string, response: SessionRequestResponse];
   permission: [id: string, permission: string];
@@ -18,7 +19,7 @@ export type Commands = {
   turnHistory: [id: string, turnId: string];
   deleteTurn: [id: string, turnId: string];
   retryTurn: [id: string, turnId: string];
-  editTurn: [id: string, turnId: string, content: string, options?: Pick<ClientSendMessageOptions, 'content'>];
+  editTurn: [id: string, turnId: string, content: string, options?: Pick<ReferenceSendPromptOptions, 'content'>];
   release: [id: string];
   relaySnapshot: [];
   relayReset: [];

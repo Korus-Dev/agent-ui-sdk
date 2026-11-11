@@ -161,7 +161,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import type { ContextUsage, FileSearchItem, ApprovalPreset, Capabilities, CommandSummary, ModelOption, SkillSummary, ChatTranscription, ConversationPresentation, ReasoningEffort } from '../chat/contracts';
 import { promptContentDispatchText, promptContentText, trimPromptContent, replacePromptContentRange } from '@korus-dev/multi-agent-sdk/prompt';
-import type { PromptPart, ClientSendMessageOptions, Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PromptPart, ReferenceSendPromptOptions, PluginSummary } from '@korus-dev/multi-agent-sdk';
 import { resolveConversationPresentation } from '../chat/contracts';
 import { defaultCapabilities } from '../chat/default-capabilities';
 import { composerCommandsWithGoals } from '../chat/composer-goal-commands';
@@ -200,7 +200,7 @@ const props = defineProps<{
   files?: readonly FileSearchItem[];
   hasAttachments?: boolean;
   hasExternalContent?: boolean;
-  plugins?: readonly Plugin[];
+  plugins?: readonly PluginSummary[];
   promptHistory?: readonly string[];
   promptHistoryLoading?: boolean;
   capabilities?: Capabilities;
@@ -231,8 +231,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   continueInterruptedTurn: [];
   error: [message: string | null];
-  send: [prompt: string, options?: Pick<ClientSendMessageOptions, 'inputMethod' | 'content'>];
-  steer: [prompt: string, options?: Pick<ClientSendMessageOptions, 'inputMethod' | 'content'>];
+  send: [prompt: string, options?: Pick<ReferenceSendPromptOptions, 'inputMethod' | 'content'>];
+  steer: [prompt: string, options?: Pick<ReferenceSendPromptOptions, 'inputMethod' | 'content'>];
   steerQueuedPrompt: [promptId: string];
   attach: [];
   menuSelect: [item: ComposerMenuSelectableItem<Payload>];

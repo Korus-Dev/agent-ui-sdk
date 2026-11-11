@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
-import type { PromptPart, Plugin, Skill } from '@korus-dev/multi-agent-sdk';
+import type { PromptPart, PluginSummary, SkillSummary } from '@korus-dev/multi-agent-sdk';
 import { PlugIcon, SparklesIcon } from '../shared/icons/app-icons';
 import ChatMentionChip from './ChatMentionChip.vue';
 import { parseAuthoredUserText, type UserTextToken } from './user-text';
@@ -82,8 +82,8 @@ const props = withDefaults(defineProps<{
   content: string;
   promptContent?: readonly PromptPart[];
   mentionGroups?: readonly ComposerMentionGroup[];
-  plugins?: readonly Plugin[];
-  skills?: readonly Skill[];
+  plugins?: readonly PluginSummary[];
+  skills?: readonly SkillSummary[];
 }>(), {
   plugins: () => [],
   mentionGroups: () => [],

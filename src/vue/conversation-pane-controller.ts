@@ -1,3 +1,4 @@
+import type { ConversationMessageInput } from './chat/renderer-message-adapter';
 import type { ConversationRequest as ClientRequest } from './chat/conversation-request';
 import type {
   ConversationLink,
@@ -21,13 +22,13 @@ import type { ComposerState } from './composer-state';
 import type { QueuedChatPrompt } from './chat/queued-prompts';
 import type { ComposerMentionGroup, ComposerMentionItem } from './chat/composer-mentions-custom';
 import type { HostAttachment } from '@korus-dev/agent-ui-sdk/host';
-import type { Approval, ApprovalDecision, ApprovalScope, Plugin, Turn, ClientSendMessageOptions, ConversationMessage, UpdateConversationSettings } from '@korus-dev/multi-agent-sdk';
+import type { Approval, ApprovalDecision, ApprovalScope, PluginSummary, Turn, ReferenceSendPromptOptions, UpdateConversationSettings } from '@korus-dev/multi-agent-sdk';
 
 export type ConversationPaneIdentityState = {
   conversationKey?: string | number | null;
   activeTurnId?: string | null;
   turns?: readonly Turn[];
-  messages: readonly (ChatMessage | ConversationMessage)[];
+  messages: readonly (ChatMessage | ConversationMessageInput)[];
   busy?: boolean;
   disabled?: boolean;
   error?: string | null;
@@ -76,7 +77,7 @@ export type ConversationPaneCatalogState = {
   models?: readonly ModelOption[];
   commands?: readonly CommandSummary[];
   skills?: readonly SkillSummary[];
-  plugins?: readonly Plugin[];
+  plugins?: readonly PluginSummary[];
   mentionGroups?: readonly ComposerMentionGroup[];
   modelCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   skillCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
@@ -136,9 +137,9 @@ export type ConversationPaneActions<Payload = unknown> = {
   onMessageCopied?: PaneAction<[index: number]>;
   deleteTurn?: PaneAction<[turnId: string]>;
   deleteQueuedPrompt?: PaneAction<[promptId: string]>;
-  updateQueuedPrompt?: PaneAction<[promptId: string, prompt: string, options?: ClientSendMessageOptions]>;
+  updateQueuedPrompt?: PaneAction<[promptId: string, prompt: string, options?: ReferenceSendPromptOptions]>;
   editGoal?: PaneAction;
-  editTurn?: PaneAction<[payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }]>;
+  editTurn?: PaneAction<[payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ReferenceSendPromptOptions }]>;
   forkTurn?: PaneAction<[turnId: string]>;
   interrupt?: PaneAction;
   loadOlderHistory?: PaneAction;
@@ -163,9 +164,9 @@ export type ConversationPaneActions<Payload = unknown> = {
   retryTurn?: PaneAction<[turnId: string]>;
   selectApprovalPreset?: PaneAction<[preset: ApprovalPreset]>;
   sendFollowUp?: PaneAction<[prompt: string]>;
-  steer?: PaneAction<[prompt: string, options?: ClientSendMessageOptions]>;
-  steerQueuedPrompt?: PaneAction<[promptId: string, prompt?: string, options?: ClientSendMessageOptions]>;
-  submit?: PaneAction<[prompt: string, options?: ClientSendMessageOptions], ConversationSubmissionResult>;
+  steer?: PaneAction<[prompt: string, options?: ReferenceSendPromptOptions]>;
+  steerQueuedPrompt?: PaneAction<[promptId: string, prompt?: string, options?: ReferenceSendPromptOptions]>;
+  submit?: PaneAction<[prompt: string, options?: ReferenceSendPromptOptions], ConversationSubmissionResult>;
   updateAttachments?: PaneAction<[attachments: readonly HostAttachment[]]>;
   updateComposerState?: PaneAction<[state: ComposerState]>;
   updateSettings?: PaneAction<[settings: UpdateConversationSettings]>;

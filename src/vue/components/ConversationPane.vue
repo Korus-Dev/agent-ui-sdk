@@ -280,7 +280,7 @@ import { parseToolStatusDescriptor } from '../chat/tool-status';
 import { questionPayload, isQuestionRequest, isConfirmationRequest, type ConversationRequest as ClientRequest } from '../chat/conversation-request';
 import { computed, nextTick, provide, ref, shallowReactive, watch } from 'vue';
 import { promptContentDispatchText } from '@korus-dev/multi-agent-sdk/prompt';
-import type { ConversationRenderStrategy, ClientAttachment, Approval, ApprovalDecision, ApprovalScope, Plugin, Turn, ConversationMessage, ClientSendMessageOptions } from '@korus-dev/multi-agent-sdk';
+import type { ConversationRenderStrategy, PromptReferenceAttachment, Approval, ApprovalDecision, ApprovalScope, PluginSummary, Turn, ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import type { HostAttachment } from '@korus-dev/agent-ui-sdk/host';
 import type { ComposerMenuItem, ComposerMenuSelectableItem } from '../composer-menu';
 import type {
@@ -304,7 +304,7 @@ import type {
 import type { MessageTextSelection } from '../chat/message-text-selection';
 import { stripMessageContext } from '../chat/message-blocks';
 import type { QueuedChatPrompt } from '../chat/queued-prompts';
-import { renderedChatMessage } from '../chat/renderer-message-adapter';
+import { renderedChatMessage, type ConversationMessageInput } from '../chat/renderer-message-adapter';
 import type {
   ContextUsage,
   FileSearchItem,
@@ -396,7 +396,7 @@ const props = withDefaults(defineProps<{
   menuItems?: readonly ComposerMenuItem<Payload>[];
   modelMenuItems?: readonly ComposerMenuItem<Payload>[];
   mentionGroups?: readonly ComposerMentionGroup<Payload>[];
-  messages?: readonly (ChatMessage | ConversationMessage)[];
+  messages?: readonly (ChatMessage | ConversationMessageInput)[];
   turns?: readonly Turn[];
   modelCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   models?: readonly ModelOption[];
@@ -412,7 +412,7 @@ const props = withDefaults(defineProps<{
   readPromptHistory?: () => readonly string[] | Promise<readonly string[]>;
   approvalPreset?: ApprovalPreset | null;
   planMode?: boolean;
-  plugins?: readonly Plugin[];
+  plugins?: readonly PluginSummary[];
   presentation?: ConversationPresentation;
   queuedPrompts?: readonly QueuedChatPrompt[];
   selectedModelId?: string | null;
@@ -422,7 +422,7 @@ const props = withDefaults(defineProps<{
   showToolDetails?: boolean;
   skillCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   skills?: readonly SkillSummary[];
-  transformMessage?: (message: ChatMessage | ConversationMessage, index: number) => ChatMessage | ConversationMessage;
+  transformMessage?: (message: ChatMessage | ConversationMessageInput, index: number) => ChatMessage | ConversationMessageInput;
   transcribeAudio?: ChatTranscription;
   toolVisibility?: ToolVisibility;
   turnGitDiff?: TurnGitDiff | null;
@@ -515,9 +515,9 @@ const emit = defineEmits<{
   continueInterruptedTurn: [];
   deleteTurn: [turnId: string];
   deleteQueuedPrompt: [promptId: string];
-  updateQueuedPrompt: [promptId: string, prompt: string, options?: ClientSendMessageOptions];
+  updateQueuedPrompt: [promptId: string, prompt: string, options?: ReferenceSendPromptOptions];
   editGoal: [];
-  editTurn: [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }];
+  editTurn: [payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ReferenceSendPromptOptions }];
   forkTurn: [turnId: string];
   loadOlderHistory: [];
   loadTurnHistory: [turnId: string];
@@ -537,9 +537,9 @@ const emit = defineEmits<{
   retryTurn: [turnId: string];
   selectApprovalPreset: [preset: ApprovalPreset];
   sendFollowUp: [prompt: string];
-  submit: [prompt: string, options?: ClientSendMessageOptions];
-  steer: [prompt: string, options?: ClientSendMessageOptions];
-  steerQueuedPrompt: [promptId: string, prompt?: string, options?: ClientSendMessageOptions];
+  submit: [prompt: string, options?: ReferenceSendPromptOptions];
+  steer: [prompt: string, options?: ReferenceSendPromptOptions];
+  steerQueuedPrompt: [promptId: string, prompt?: string, options?: ReferenceSendPromptOptions];
   'update:modelId': [modelId: string];
   'update:composerState': [state: ComposerState];
   'update:modelValue': [value: string];
@@ -605,7 +605,7 @@ type PendingControlledSubmission = {
   canAdoptConversationKey: boolean;
   hasAdoptedConversationKey: boolean;
   priorMessageIds: ReadonlySet<string | undefined>;
-  message: ConversationMessage;
+  message: ConversationMessageInput;
   originConversationKey: string | number | null;
   prompt: string;
 };
@@ -623,7 +623,7 @@ const authoritativeMessages = computed(() => controlledValue(
   (state) => state.identity.messages,
   () => props.messages ?? [],
 ));
-const effectiveMessages = computed<readonly (ChatMessage | ConversationMessage)[]>(() => {
+const effectiveMessages = computed<readonly (ChatMessage | ConversationMessageInput)[]>(() => {
   const messages = authoritativeMessages.value;
   const pending = pendingControlledSubmission.value;
   if (!pending || messages.some((message) => matchesPendingSubmission(message, pending))) return messages;
@@ -752,7 +752,7 @@ const activeComposerConfirmationRequestIds = computed<ReadonlySet<string>>(() =>
   effectiveClientRequests.value.filter(request => isConfirmationRequest(request)
     && !displayAnsweredClientRequestIds.value.has(request.id)).map(request => request.id),
 ));
-function transformTranscriptMessage(message: ChatMessage | ConversationMessage, index: number): ChatMessage | ConversationMessage {
+function transformTranscriptMessage(message: ChatMessage | ConversationMessageInput, index: number): ChatMessage | ConversationMessageInput {
   const transformed = props.transformMessage?.(message, index) ?? message;
   const chatMessage = renderedChatMessage(transformed);
   const isHiddenTool = (toolCall: MessageToolCall) => {
@@ -1139,7 +1139,7 @@ function mergePromptHistories(
   return [...older, ...visible.slice(overlap)].slice(-100);
 }
 
-function submit(prompt: string, composerOptions?: Pick<ClientSendMessageOptions, 'inputMethod' | 'content'>): void {
+function submit(prompt: string, composerOptions?: Pick<ReferenceSendPromptOptions, 'inputMethod' | 'content'>): void {
   updateDraft('');
   const queuedPromptId = editingQueuedPromptId.value;
   if (queuedPromptId) {
@@ -1205,7 +1205,7 @@ function continueInterruptedTurn(): void {
 function beginControlledSubmission(
   prompt: string,
   attachments: readonly HostAttachment[],
-  content?: ClientSendMessageOptions['content'],
+  content?: ReferenceSendPromptOptions['content'],
 ): string | null {
   if (effectiveBusy.value || pendingControlledSubmission.value) return null;
   const id = `agent-ui-optimistic-user-${++optimisticSubmissionSequence}`;
@@ -1240,7 +1240,7 @@ function beginControlledSubmission(
 }
 
 function matchesPendingSubmission(
-  message: ChatMessage | ConversationMessage,
+  message: ChatMessage | ConversationMessageInput,
   pending: PendingControlledSubmission,
 ): boolean {
   const candidate = renderedChatMessage(message);
@@ -1420,10 +1420,10 @@ function replaceAttachments(attachments: HostAttachment[]): void {
 
 function sendOptionsForAttachments(
   attachments: readonly HostAttachment[],
-  composerOptions?: Pick<ClientSendMessageOptions, 'inputMethod' | 'content'>,
-): ClientSendMessageOptions | undefined {
+  composerOptions?: Pick<ReferenceSendPromptOptions, 'inputMethod' | 'content'>,
+): ReferenceSendPromptOptions | undefined {
   if (attachments.length === 0) return composerOptions;
-  const surfaceAttachments: ClientAttachment[] = attachments.map((attachment) => (
+  const surfaceAttachments: PromptReferenceAttachment[] = attachments.map((attachment) => (
     attachment.type === 'image'
       ? {
         type: 'image',
@@ -1504,7 +1504,7 @@ async function deleteTurn(turnId: string): Promise<void> {
   }
 }
 
-function editTurn(payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ClientSendMessageOptions }): void {
+function editTurn(payload: { content: string; turnId: string; options?: import('@korus-dev/multi-agent-sdk').ReferenceSendPromptOptions }): void {
   if (dispatchControllerAction('editTurn', payload)) return;
   if (effectiveController.value) return;
   emit('editTurn', payload);
@@ -1551,14 +1551,14 @@ function editQueuedPrompt(promptId: string): void {
   composer.value?.focus();
 }
 
-function updateQueuedPrompt(promptId: string, prompt: string, options?: ClientSendMessageOptions): void {
+function updateQueuedPrompt(promptId: string, prompt: string, options?: ReferenceSendPromptOptions): void {
   if (dispatchControllerAction('updateQueuedPrompt', ...options ? [promptId, prompt, options] as const : [promptId, prompt] as const)) return;
   if (effectiveController.value) return;
   if (options) emit('updateQueuedPrompt', promptId, prompt, options);
   else emit('updateQueuedPrompt', promptId, prompt);
 }
 
-function steerQueuedPrompt(promptId: string, prompt?: string, options?: ClientSendMessageOptions): void {
+function steerQueuedPrompt(promptId: string, prompt?: string, options?: ReferenceSendPromptOptions): void {
   if (!effectiveCapabilities.value.steerPrompt) return;
   if (editingQueuedPromptId.value === promptId) editingQueuedPromptId.value = null;
   if (prompt === undefined) dispatchControllerAction('steerQueuedPrompt', promptId);
@@ -1576,7 +1576,7 @@ function interrupt(): void {
   emit('interrupt');
 }
 
-function steer(prompt: string, composerOptions?: Pick<ClientSendMessageOptions, 'inputMethod' | 'content'>): void {
+function steer(prompt: string, composerOptions?: Pick<ReferenceSendPromptOptions, 'inputMethod' | 'content'>): void {
   if (!effectiveCapabilities.value.steerPrompt) {
     submit(prompt, composerOptions);
     return;

@@ -41,21 +41,7 @@ export type ModelOption = {
   providerMetadata?: Record<string, unknown>;
 };
 
-export type SkillSummary = {
-  id?: string;
-  name: string;
-  description?: string;
-  shortDescription?: string;
-  displayName?: string;
-  iconSmall?: string;
-  iconLarge?: string;
-  brandColor?: string;
-  defaultPrompt?: string;
-  path: string;
-  scope?: string;
-  enabled: boolean;
-  providerMetadata?: Record<string, unknown>;
-};
+export type { SkillSummary } from '@korus-dev/multi-agent-sdk';
 
 export type CommandSummary = {
   id: string;

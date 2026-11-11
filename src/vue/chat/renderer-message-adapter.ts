@@ -1,9 +1,11 @@
 import { computed, type ComputedRef } from 'vue';
 import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
-import type { ConversationMessage, ConversationMessagePart } from '@korus-dev/multi-agent-sdk';
+import type { Message, MessagePart as HarnessMessagePart } from '@korus-dev/multi-agent-sdk';
 import type { ChatMessage, MessagePart, MessageToolCall, ToolExecutionState } from './types';
 
-export type ChatMessageInput = ChatMessage | ConversationMessage;
+/** A harness message as the pane renders it: which session it belongs to is the host's concern. */
+export type ConversationMessageInput = Omit<Message, 'agentId' | 'deferredContent' | 'createdAt'> & { createdAt?: string };
+export type ChatMessageInput = ChatMessage | ConversationMessageInput;
 
 // Rendering receives immutable snapshots or Vue-reactive objects. A weak key
 // keeps settled conversions shared by the list, turn and message without owning
@@ -28,11 +30,11 @@ export function chatMessageFromInput(message: ChatMessageInput): ChatMessage {
   );
 }
 
-export function conversationMessageToChatMessage(message: ConversationMessage): ChatMessage {
+export function conversationMessageToChatMessage(message: ConversationMessageInput): ChatMessage {
   const contentParts: string[] = [];
   const parts: MessagePart[] = [];
   const toolCalls: MessageToolCall[] = [];
-  const turnId = message.turnId ?? stringMetadata(message.metadata, 'turnId');
+  const turnId = message.turnId;
 
   for (const part of message.parts) {
     if (part.type === 'tool') {
@@ -133,8 +135,8 @@ function terminalToolStatus(status: string | undefined): string {
   return 'failed';
 }
 
-function rendererToolPartToToolCall(message: ConversationMessage, part: Extract<ConversationMessagePart, { type: 'tool' }>, index: number): MessageToolCall {
-  const turnId = message.turnId ?? stringMetadata(message.metadata, 'turnId');
+function rendererToolPartToToolCall(message: ConversationMessageInput, part: Extract<HarnessMessagePart, { type: 'tool' }>, index: number): MessageToolCall {
+  const turnId = message.turnId;
   return {
     args: part.input ?? (part.body ? { output: part.body } : undefined),
     done: part.status !== 'running',
@@ -151,12 +153,7 @@ function rendererToolPartToToolCall(message: ConversationMessage, part: Extract<
   };
 }
 
-function stringMetadata(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
-  const value = metadata?.[key];
-  return typeof value === 'string' && value ? value : undefined;
-}
-
-function rendererToolPartResult(part: Extract<ConversationMessagePart, { type: 'tool' }>): unknown {
+function rendererToolPartResult(part: Extract<HarnessMessagePart, { type: 'tool' }>): unknown {
   if (isRecord(part.output) && 'structuredContent' in part.output) {
     return part.output.structuredContent;
   }
@@ -164,7 +161,7 @@ function rendererToolPartResult(part: Extract<ConversationMessagePart, { type: '
   return part.body ?? part.output;
 }
 
-function rendererToolStatusToState(status: Extract<ConversationMessagePart, { type: 'tool' }>['status']): ToolExecutionState {
+function rendererToolStatusToState(status: Extract<HarnessMessagePart, { type: 'tool' }>['status']): ToolExecutionState {
   if (status === 'running') {
     return 'running';
   }

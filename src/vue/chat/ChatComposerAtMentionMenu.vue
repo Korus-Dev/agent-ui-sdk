@@ -71,7 +71,7 @@
 <script setup lang="ts" generic="Payload = unknown">
 import { computed } from 'vue';
 import type { FileSearchItem } from './contracts';
-import type { Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary } from '@korus-dev/multi-agent-sdk';
 import { FileTextIcon, PlugIcon, SparklesIcon } from '../shared/icons/app-icons';
 import { pluginDescription, pluginDisplayName } from './composer-plugins';
 import type {
@@ -86,12 +86,12 @@ const props = defineProps<{
   mentionGroups?: readonly ComposerVisibleMentionGroup<Payload>[];
   showFileHint: boolean;
   visibleFiles: FileSearchItem[];
-  visiblePlugins: Plugin[];
+  visiblePlugins: PluginSummary[];
 }>();
 
 defineEmits<{
   'select-file': [file: FileSearchItem];
-  'select-plugin': [plugin: Plugin];
+  'select-plugin': [plugin: PluginSummary];
   'select-mention': [item: ComposerMentionItem<Payload>, group: ComposerMentionGroup<Payload>];
 }>();
 

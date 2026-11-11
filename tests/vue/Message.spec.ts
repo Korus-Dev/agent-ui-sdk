@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
+import type { ConversationMessageInput } from '../../src/vue';
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent, h } from 'vue';
-import type { ConversationMessage, ConversationMessagePart } from '@korus-dev/multi-agent-sdk';
+import type { MessagePart } from '@korus-dev/multi-agent-sdk';
 import ChatCompactionMessage from '../../src/vue/chat/ChatCompactionMessage.vue';
 import Message from '../../src/vue/components/Message.vue';
 import { customBlocksKey } from '../../src/vue/chat/custom-blocks';
@@ -90,9 +91,9 @@ describe('Message', () => {
   });
 
   it('keeps completed tool slot props stable while text streams and exposes tool corrections', async () => {
-    const message = (text: string, body = 'Done'): ConversationMessage => ({
+    const message = (text: string, body = 'Done'): ConversationMessageInput => ({
       id: 'stable-tool', role: 'assistant', status: 'streaming', parts: [
-        { type: 'tool', id: 'call', title: 'Read file', status: 'completed', body, metadata: { server: 'test', tool: 'read' } },
+        { type: 'tool', kind: 'generic', id: 'call', title: 'Read file', status: 'completed', body, metadata: { server: 'test', tool: 'read' } },
         { type: 'text', text },
       ],
     });
@@ -279,13 +280,13 @@ describe('Message', () => {
       media: { mimeType: 'image/png', title: 'Result', url: 'data:image/png;base64,cG5n' },
     }]],
     ['tool', [{
-      type: 'tool',
+      type: 'tool', kind: 'generic',
       toolCall: {
         args: {}, done: false, function: 'ask_user_question', id: 'question-1', result: null, state: 'running',
       },
     }]],
     ['tool-group', [{
-      type: 'tool',
+      type: 'tool', kind: 'generic',
       toolCall: { args: {}, done: false, function: 'shell', id: 'shell-1', result: null, state: 'running' },
     }]],
   ])('uses the streaming status dot for visible %s activity', (blockType, parts) => {
@@ -413,21 +414,21 @@ describe('Message', () => {
   });
 
   it('uses only the latest reasoning summary as the live activity title', async () => {
-    const completedTools: ConversationMessagePart[] = Array.from({ length: 7 }, (_, index) => ({
+    const completedTools: MessagePart[] = Array.from({ length: 7 }, (_, index) => ({
       type: 'tool' as const,
       id: `completed-tool-${index}`,
       title: `Completed tool ${index}`,
       kind: 'command' as const,
       status: 'completed',
     }));
-    const runningTool: Extract<ConversationMessagePart, { type: 'tool' }> = {
+    const runningTool: Extract<MessagePart, { type: 'tool' }> = {
       type: 'tool' as const,
       id: 'running-tool',
       title: 'Inspecting component contract backend',
       kind: 'command' as const,
       status: 'running',
     };
-    const activeParts: ConversationMessagePart[] = [
+    const activeParts: MessagePart[] = [
       {
         type: 'reasoning' as const,
         summary: '**Planning targeted filename searches**',
@@ -657,11 +658,11 @@ describe('Message', () => {
     expect(wrapper.findAll('.chat-attachment-block').map((block) => block.text()))
       .toStrictEqual(['', 'notes.md']);
     expect(wrapper.get('a.chat-attachment-block--chip').attributes('href')).toBe('/tmp/notes.md');
-    const attachmentParts: ConversationMessagePart[] = [
+    const attachmentParts: MessagePart[] = [
       { type: 'attachment', attachment: { kind: 'image', name: 'preview.png', path: '/tmp/preview.png', url: 'data:image/png;base64,cG5n', mimeType: 'image/png' } },
       { type: 'attachment', attachment: { kind: 'file', name: 'notes.md', path: '/tmp/notes.md' } },
     ];
-    for (const metadata of [undefined, { promptContent: [{ type: 'text', text: '<context>Attached annotations</context>\n(no user instructions)' }] }]) {
+    for (const metadata of [undefined, { promptContent: [{ type: 'text' as const, text: '<context>Attached annotations</context>\n(no user instructions)' }] }]) {
       await wrapper.setProps({ message: {
         id: 'attachment-only', role: 'user', status: 'complete', kind: 'steer',
         parts: [{ type: 'text', text: '(no user instructions)' }, ...attachmentParts], metadata,

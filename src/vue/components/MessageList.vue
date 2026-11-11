@@ -102,7 +102,7 @@ import { questionPayload } from '../chat/conversation-request';
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowReactive, shallowRef, watch } from 'vue'
 import { touchedMessageActionsKey } from '../chat/message-action-state'
 import { questionResponsesKey } from '../chat/message-work-state'
-import type { ConversationRenderStrategy, Plugin, Skill, Turn, ConversationMessage } from '@korus-dev/multi-agent-sdk';
+import type { ConversationRenderStrategy, PluginSummary, SkillSummary, Turn } from '@korus-dev/multi-agent-sdk';
 import type { ClientRequestResponse, ConversationLink, ConversationPresentation } from '../chat/contracts'
 import { resolveConversationPresentation } from '../chat/contracts'
 import type { ChatMessage } from '../chat/types'
@@ -111,7 +111,7 @@ import type { MessageImageOpenHandler } from '../chat/message-image'
 import { conversationImages, imageGalleryKey } from '../chat/image-gallery'
 import type { ConversationVisualization } from '../chat/visualization'
 import type { MessageTextSelection } from '../chat/message-text-selection'
-import { renderedChatMessage } from '../chat/renderer-message-adapter'
+import { renderedChatMessage, type ConversationMessageInput } from '../chat/renderer-message-adapter'
 import { filterVisibleMessageTools, type ToolVisibility } from '../chat/tool-visibility'
 import Message from './Message.vue'
 import MessageTurn from './MessageTurn.vue'
@@ -142,16 +142,16 @@ const props = withDefaults(defineProps<{
   loadingOlderMessages?: boolean
   messageBatchSize?: number
   messageTextSelection?: boolean
-  messages: readonly (ChatMessage | ConversationMessage)[]
+  messages: readonly (ChatMessage | ConversationMessageInput)[]
   mentionGroups?: readonly ComposerMentionGroup[]
   openImage?: MessageImageOpenHandler
-  transformMessage?: (message: ChatMessage | ConversationMessage, index: number) => ChatMessage | ConversationMessage
-  plugins?: readonly Plugin[]
+  transformMessage?: (message: ChatMessage | ConversationMessageInput, index: number) => ChatMessage | ConversationMessageInput
+  plugins?: readonly PluginSummary[]
   presentation?: ConversationPresentation
   resetKey?: string | number | null
   scrollToBottomLabel?: string
   showToolDetails?: boolean
-  skills?: readonly Skill[]
+  skills?: readonly SkillSummary[]
   toolVisibility?: ToolVisibility
   turns?: readonly Turn[]
 }>(), {
@@ -213,7 +213,7 @@ const emit = defineEmits<{
 }>()
 // Stryker restore all
 
-const thinkingPlaceholder: ConversationMessage = {
+const thinkingPlaceholder: ConversationMessageInput = {
   id: 'agent-ui-thinking-placeholder',
   role: 'assistant',
   status: 'streaming',
@@ -285,7 +285,7 @@ const visibleMessages = computed(() => effectiveRenderStrategy.value === 'lazy'
   : presentedMessages.value)
 type DisplayEntry = {
   index: number
-  message: ChatMessage | ConversationMessage
+  message: ChatMessage | ConversationMessageInput
   key: string | number
   activityState?: 'working'
 }
@@ -429,7 +429,7 @@ function isTerminalTurn(turnId: string | undefined): boolean {
   return turnStatusById.value.get(turnId) !== 'inProgress'
 }
 
-function displayMessage(message: ChatMessage | ConversationMessage, turnId: string | undefined): ChatMessage | ConversationMessage {
+function displayMessage(message: ChatMessage | ConversationMessageInput, turnId: string | undefined): ChatMessage | ConversationMessageInput {
   const status = turnId ? turnStatusById.value.get(turnId) : undefined
   if (!status || status === 'inProgress' || turnId === inferredActiveTurnId.value) return message
   if ('content' in message) {
@@ -739,7 +739,7 @@ function observeMessageBounds(): void {
   observedLastMessage = messageIdentityAt(props.messages, props.messages.length - 1)
 }
 
-function messageIdentityAt(messages: readonly (ChatMessage | ConversationMessage)[], index: number): MessageIdentity {
+function messageIdentityAt(messages: readonly (ChatMessage | ConversationMessageInput)[], index: number): MessageIdentity {
   const message = messages[index]
   return message ? message.id ?? message : null
 }
@@ -748,7 +748,7 @@ function sameMessageIdentity(left: MessageIdentity, right: MessageIdentity): boo
   return left === right
 }
 
-function findMessageIndex(messages: readonly (ChatMessage | ConversationMessage)[], identity: MessageIdentity): number {
+function findMessageIndex(messages: readonly (ChatMessage | ConversationMessageInput)[], identity: MessageIdentity): number {
   return messages.findIndex((message) => sameMessageIdentity(message.id ?? message, identity))
 }
 
@@ -757,17 +757,17 @@ function normalizedBatchSize(value: number | undefined): number {
 }
 
 function initialRenderStart(
-  messages: readonly (ChatMessage | ConversationMessage)[],
+  messages: readonly (ChatMessage | ConversationMessageInput)[],
   batchSize: number | undefined,
 ): number {
   return tailRenderStart(messages, normalizedBatchSize(batchSize))
 }
 
-function tailRenderStart(messages: readonly (ChatMessage | ConversationMessage)[], batchSize: number): number {
+function tailRenderStart(messages: readonly (ChatMessage | ConversationMessageInput)[], batchSize: number): number {
   return turnAlignedStart(messages, Math.max(0, messages.length - batchSize))
 }
 
-function turnAlignedStart(messages: readonly (ChatMessage | ConversationMessage)[], candidate: number): number {
+function turnAlignedStart(messages: readonly (ChatMessage | ConversationMessageInput)[], candidate: number): number {
   let start = Math.max(0, Math.min(messages.length, candidate))
   if (start >= messages.length) return start
   const turnId = renderedChatMessage(messages[start]!).turnId?.trim()

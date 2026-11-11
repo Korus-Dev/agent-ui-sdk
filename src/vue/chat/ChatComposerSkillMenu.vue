@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
 import { useChatTranslate } from './chat-i18n';
-import type { Plugin } from '@korus-dev/multi-agent-sdk';
+import type { PluginSummary } from '@korus-dev/multi-agent-sdk';
 import type { SkillSummary } from './contracts';
 import { skillDescription, skillDisplayName } from './composer-skills';
 import { SparklesIcon } from '../shared/icons/app-icons';
@@ -48,7 +48,7 @@ import { SparklesIcon } from '../shared/icons/app-icons';
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
   activeIndex: number;
-  plugins?: readonly Plugin[];
+  plugins?: readonly PluginSummary[];
   visibleSkills: SkillSummary[];
 }>();
 

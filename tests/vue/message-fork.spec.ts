@@ -7,10 +7,10 @@ import {
   Message,
   createConversationPaneController,
   type ConversationPaneState,
-  type ConversationMessage,
+  type ConversationMessageInput,
 } from '../../src/vue';
 
-const assistantMessage: ConversationMessage = {
+const assistantMessage: ConversationMessageInput = {
   id: 'assistant-fork',
   turnId: 'turn-fork',
   role: 'assistant',
