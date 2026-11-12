@@ -121,8 +121,14 @@ export function resolveConversationPaneValue<T>(
   return source as T;
 }
 
-/** A queued prompt or command can explicitly retire its optimistic user row. */
-export type ConversationSubmissionResult = void | { renderOptimisticMessage: boolean };
+/**
+ * A submission may retire its optimistic user row, or report the prompt the
+ * host actually sent when it decorates the text the user typed.
+ */
+export type ConversationSubmissionResult = void | {
+  renderOptimisticMessage?: boolean;
+  sentPrompt?: string;
+};
 type PaneAction<Args extends unknown[] = [], Result = void> = (...args: Args) => Result | Promise<Result>;
 
 export type ConversationPaneActions<Payload = unknown> = {

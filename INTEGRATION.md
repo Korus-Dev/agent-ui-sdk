@@ -84,6 +84,8 @@ The Electron attachment registry and conversation-content references are runtime
 
 Controlled submission callbacks may return `{ renderOptimisticMessage: false }` for commands or queued work that must not create an immediate transcript row. The standard binding uses this for goals and queued submissions, while preserving normal optimistic message rendering.
 
+Hosts that decorate the typed prompt before sending it (for example, appending an annotation summary) should return `{ sentPrompt }` from the submission callback so the optimistic row is matched against the prompt that was actually sent. Without it, the pending row can outlive the turn.
+
 ## One controlled conversation pane
 
 `ConversationPane` receives all state and actions through controlled inputs. It has no provider host prop, connection lifecycle, authentication or provider defaults. `readPromptHistory`, skill discovery and other optional operations are application-owned controller actions. The root starts with unavailable capabilities and an empty command catalog; supplied capabilities/catalogs determine the controls.

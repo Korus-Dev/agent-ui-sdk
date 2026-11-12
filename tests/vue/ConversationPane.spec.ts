@@ -542,6 +542,37 @@ describe('ConversationPane with provider fixtures', () => {
     expect(submit).toHaveBeenCalledWith('', undefined);
   });
 
+  describe('when the host rewrites the submitted prompt', () => {
+    const rewritten = '<context>\nChat annotations\n</context>\nFix this\n\n1 annotation';
+    const userRow = (text: string): ConversationMessageInput => ({ id: 'user-1', role: 'user', status: 'complete', parts: [{ type: 'text', text }] });
+
+    it.each([
+      ['after', true],
+      ['before', false],
+    ])('clears the optimistic submission when the sent prompt is reported and the message arrives %s the submit resolves', async (_label, arrivesAfter) => {
+      const state = reactive({
+        composer: { state: { text: 'Fix this', selectionStart: 8, selectionEnd: 8 } },
+        identity: { conversationKey: 'thread-rewrite', messages: messages as readonly ConversationMessageInput[], busy: false },
+      });
+      let finish!: () => void;
+      const submit = vi.fn(() => new Promise<{ sentPrompt: string }>((resolve) => { finish = () => resolve({ sentPrompt: rewritten }); }));
+      const wrapper = mountConversation({ props: { controller: createConversationPaneController({ state, actions: { submit } }) } });
+
+      await wrapper.get('button[aria-label="Send prompt"]').trigger('click');
+      await flushPromises();
+      expect(wrapper.find('.chat-message__thinking').exists()).toBe(true);
+
+      const admit = () => { state.identity.messages = [...messages, userRow(rewritten)]; state.identity.busy = true; };
+      if (arrivesAfter) { finish(); await flushPromises(); admit(); } else { admit(); await flushPromises(); finish(); }
+      await flushPromises();
+
+      state.identity.messages = [...state.identity.messages, { id: 'assistant-2', role: 'assistant', status: 'complete', parts: [{ type: 'text', text: 'Done' }] }];
+      state.identity.busy = false;
+      await flushPromises();
+      expect(wrapper.find('.chat-message__thinking').exists()).toBe(false);
+    });
+  });
+
   it('seeds prompt recall from existing user messages', async () => {
     const wrapper = mountConversation( {
       props: {

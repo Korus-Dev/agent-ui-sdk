@@ -1158,6 +1158,7 @@ function submit(prompt: string, composerOptions?: Pick<ReferenceSendPromptOption
         async () => {
           const result = await controlledSubmit(prompt, options);
           if (result?.renderOptimisticMessage === false) clearPendingControlledSubmission(optimisticMessageId);
+          else if (result?.sentPrompt !== undefined) adoptSentPrompt(optimisticMessageId, result.sentPrompt);
         },
         () => {
           clearPendingControlledSubmission(optimisticMessageId);
@@ -1243,6 +1244,16 @@ function matchesPendingSubmission(
 ): boolean {
   const candidate = renderedChatMessage(message);
   return !pending.priorMessageIds.has(candidate.id) && candidate.role === 'user' && stripMessageContext(candidate.content) === pending.prompt;
+}
+
+/** Hosts may decorate the typed prompt; match the transcript against what they actually sent. */
+function adoptSentPrompt(messageId: string | null, sentPrompt: string): void {
+  const pending = pendingControlledSubmission.value;
+  if (!messageId || pending?.message.id !== messageId) return;
+  const adopted = { ...pending, prompt: stripMessageContext(sentPrompt) };
+  pendingControlledSubmission.value = authoritativeMessages.value.some((message) => matchesPendingSubmission(message, adopted))
+    ? null
+    : adopted;
 }
 
 function clearPendingControlledSubmission(messageId: string | null): void {
