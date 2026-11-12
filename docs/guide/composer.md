@@ -75,7 +75,7 @@ Goal mode collects an objective before sending `/goal …`. Plan mode toggles pl
 
 Models, reasoning efforts and service tiers use the provider's own ids. The composer shows a model selector when `capabilities.models` is set, a reasoning submenu for models that list `supportedReasoningEfforts`, and a speed submenu for models with `serviceTiers`. Do not invent a universal model list or map one harness's permission ids onto another's.
 
-Host-owned items render before the model controls with `modelMenuItems`, and before Plan mode with `leadingMenuItems`. Permission options come from `capabilities.permissions`; see [permissions](/guide/session-binding#permissions).
+Host-owned menu items render before Plan mode with `leadingMenuItems`. The model selector is the [harness picker](/guide/components#harnessmodelselector): harness tabs, models, reasoning and speed in one popover. Permission options come from `capabilities.permissions`; see [permissions](/guide/session-binding#permissions).
 
 ## Voice input
 
@@ -100,4 +100,4 @@ The draft is `ComposerState`: `text`, structured `content`, `selectionStart`, `s
 
 ## Building your own composer
 
-`ComposerMenu`, `ComposerMenuList`, `ComposerSendButton`, `ModelReasoningSelector`, `RichTextEditor`, voice controls and shelf controls can be composed into a custom layout. See [Assembling a custom layout](/guide/assembling).
+`ComposerMenu`, `ComposerMenuList`, `ComposerSendButton`, `HarnessModelSelector`, `RichTextEditor`, voice controls and shelf controls can be composed into a custom layout. See [Assembling a custom layout](/guide/assembling).

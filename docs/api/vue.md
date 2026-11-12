@@ -67,9 +67,10 @@ import { ConversationPane } from '@korus-dev/agent-ui-sdk';
 | `followUpBehavior`, `followUpsDisabled` | `'queue' \| 'steer'`, `boolean` | Busy submission |
 | `capabilities` | `Capabilities` | Which controls exist |
 | `models`, `modelCatalogStatus`, `selectedModelId`, `selectedReasoningEffort`, `selectedServiceTier` | | Model controls |
+| `harnesses`, `harness` | `HarnessChoice[]`, `string` | Tabs and selected tab of the composer's [model picker](/guide/components#harnessmodelselector) |
 | `commands`, `skills`, `plugins`, `files`, `mentionGroups`, `skillCatalogStatus` | | Suggestion catalogs |
 | `permission`, `permissions`, `planMode` | | Composer menu state |
-| `leadingMenuItems`, `menuItems`, `modelMenuItems` | `ComposerMenuItem[]` | Host menu items |
+| `leadingMenuItems`, `menuItems` | `ComposerMenuItem[]` | Host menu items |
 | `hasComposerContext` | `boolean` | Allow sending when the host supplies external context |
 | `escapeInterrupt` | `boolean` (default `true`) | Double-Escape interrupts |
 | `transcribeAudio`, `pickAttachments`, `ingestAttachments` | | Host port overrides |
@@ -100,7 +101,7 @@ import { ConversationPane } from '@korus-dev/agent-ui-sdk';
 | `deleteQueuedPrompt`, `updateQueuedPrompt`, `steerQueuedPrompt` | prompt id, text, options |
 | `clearGoal`, `editGoal` | |
 | `error` | `message \| null` |
-| `update:composerState`, `update:modelId`, `update:reasoningEffort`, `update:serviceTier`, `update:permission`, `update:planMode`, `update:modelValue` | New value |
+| `update:composerState`, `update:modelId`, `update:reasoningEffort`, `update:serviceTier`, `update:permission`, `update:planMode`, `update:harness`, `update:modelValue` | New value |
 
 With a `controller`, the matching action runs instead of the event for the actions the controller defines. The pane emits `update:permission` alongside the other `update:*` events when no controller handles settings.
 
@@ -117,7 +118,8 @@ With a `controller`, the matching action runs instead of the event for the actio
 | `MessageList` | The transcript |
 | `Message`, `MessageTurn` | One message, one turn |
 | `ApprovalPrompt` | Approval card |
-| `ModelPicker`, `ModelReasoningSelector` | Model, reasoning and speed |
+| `ModelPicker` | Model, reasoning and speed list |
+| `HarnessModelSelector` | Harness tabs above a model list, in a popover |
 | `ConversationHistoryLoader` | History skeleton |
 | `ScrollToBottom` | Floating scroll button |
 | `WorkbenchLayout` | Header, body and footer layout |

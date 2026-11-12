@@ -2,7 +2,7 @@
 
 Document panels preview content your application loads: Markdown, source code and diffs. They support selection and annotation, so a person can comment on a range and send it back to the agent. Applications own file loading, navigation and authorization.
 
-Import the panels from the package root. Element Plus is required by panels that use its controls. File classification and diff-overview contracts are available from `/documents`.
+Import the panels from the package root. They need no extra peer dependencies. File classification and diff-overview contracts are available from `/documents`.
 
 | Component | Shows | Key props |
 | --- | --- | --- |

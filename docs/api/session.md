@@ -133,12 +133,13 @@ type ConversationPaneState = {
     followUpBehavior?: 'queue' | 'steer';
     leadingMenuItems?: readonly ComposerMenuItem[];
     menuItems?: readonly ComposerMenuItem[];
-    modelMenuItems?: readonly ComposerMenuItem[];
     permission?: string | null;
     planMode?: boolean;
     selectedModelId?: string | null;
     selectedReasoningEffort?: ReasoningEffort | null;
     selectedServiceTier?: string | null;
+    harnesses?: readonly HarnessChoice[];
+    harness?: string;
   };
   catalogs?: {
     files?: readonly FileSearchItem[];
@@ -176,6 +177,7 @@ type ConversationPaneActions<Payload = unknown> = {
   respond?(response: AgentRequestResponse): void;
   updateSettings?(defaults: Partial<HarnessDefaults>): void;
   setPlanMode?(planMode: boolean): void;
+  selectHarness?(harness: string): void;   // the person picked another tab in the harness picker
   updateComposerState?(state: ComposerState): void;
   updateAttachments?(attachments: readonly HostAttachment[]): void;
   attach?(): void;

@@ -1265,9 +1265,9 @@ describe('ChatComposer', () => {
     });
 
     expect(wrapper.text()).toContain('5.1 Codex Max');
-    expect(wrapper.text()).toContain('High');
+    expect(wrapper.text()).toContain('high');
 
-    await wrapper.get('.chat-model-selector__button').trigger('click');
+    await wrapper.get('.provider-model-selector').trigger('click');
     expect(wrapper.text()).toContain('GPT-5.1 Codex Max');
   });
 
@@ -1287,12 +1287,11 @@ describe('ChatComposer', () => {
       selectedModelId: 'codex-max',
     });
 
-    const trigger = wrapper.get<HTMLButtonElement>('.chat-model-selector__button');
+    const trigger = wrapper.get<HTMLButtonElement>('.provider-model-selector');
     expect(trigger.element.disabled).toBe(false);
 
     await trigger.trigger('click');
-    await wrapper.get('[data-submenu-id="model:codex-fast"]').trigger('mouseenter');
-    await wrapper.findAll('[data-submenu-id="model:codex-fast"] [role="menuitemradio"]')[0]!.trigger('click');
+    await wrapper.findAll('.app-menu__submenu-menu[aria-label="GPT-5.1 Codex Fast"] [role="menuitemradio"]')[0]!.trigger('click');
 
     expect(wrapper.emitted('update:modelId')).toStrictEqual([['codex-fast']]);
   });
@@ -1319,7 +1318,7 @@ describe('ChatComposer', () => {
     expect(inputRow.find('.chat-rich-text-editor').exists()).toBe(true);
     expect(leading.find('.chat-composer-action-menu__root').exists()).toBe(true);
     expect(leading.find('.chat-context-usage').exists()).toBe(false);
-    expect(trailing.find('.chat-model-selector').exists()).toBe(true);
+    expect(trailing.find('.provider-model-selector').exists()).toBe(true);
     expect(trailing.find('.chat-context-usage').exists()).toBe(true);
     expect(trailing.find('.chat-composer__voice').exists()).toBe(true);
     expect(trailing.find('.chat-composer__send').exists()).toBe(true);

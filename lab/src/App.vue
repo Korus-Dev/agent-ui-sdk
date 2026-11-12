@@ -106,7 +106,9 @@
           :has-composer-context="selectedMessageContexts.length > 0"
           :message-text-selection="selected.id === 'message-selection'"
           :messages="messages"
-          :models="models"
+          :models="labModels"
+          :harnesses="labHarnesses"
+          :harness="harness"
           :plan-mode="false"
           :plugins="plugins"
           :queued-prompts="selected.queuedPrompts"
@@ -122,6 +124,7 @@
           @continue-interrupted-turn="continueInterruptedTurn"
           @message-text-selection-change="selectedMessageText = $event"
           @submit="submitPrompt"
+          @update:harness="changeHarness"
           @update:model-id="selectedModelId = $event"
           @update:reasoning-effort="selectedEffort = $event"
           @update:service-tier="selectedServiceTier = $event"
@@ -169,6 +172,7 @@ import type { ConversationMessageInput } from '@korus-dev/agent-ui-sdk';
 import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
 import { computed, defineComponent, h, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 const labCapabilities = { models: true, skills: true, reasoningEffort: true, serviceTier: true, planMode: true, goals: true, steerPrompt: true, interrupt: true, history: true, deleteTurn: true, editTurn: true, retryTurn: true, approvals: true, permissions: [{ id: 'ask-for-approval' }, { id: 'approve-for-me' }, { id: 'full-access', dangerous: true }] };
+import { IconBrandOpenai, IconCube, IconSparkles } from '@tabler/icons-vue';
 import { chartHtmlChunks, inlineHtmlChunks } from './inline-html-demo';
 import { ConversationPane, provideToolPresentation, type ChatMessage, type ChatTranscription, type ContextUsage, type ModelOption, type MessageTextSelection, type NativeAttachment, type NativeAttachmentInput, type QueuedPromptData, type SkillSummary, type ReasoningEffort, type TurnGitDiff } from '@korus-dev/agent-ui-sdk';
 import type { MessagePart } from '@korus-dev/multi-agent-sdk';
@@ -230,6 +234,34 @@ const models: [ModelOption, ...ModelOption[]] = [{
   description: 'Mock model without reasoning settings',
   supportedReasoningEfforts: [], defaultReasoningEffort: null, isDefault: false,
 }];
+
+const harness = ref('codex');
+const labHarnesses = [
+  { id: 'codex', label: 'Codex', icon: IconBrandOpenai },
+  { id: 'claude', label: 'Claude', icon: IconSparkles },
+  { id: 'cursor', label: 'Cursor', icon: IconCube },
+];
+const efforts = (...values: string[]) => values.map(reasoningEffort => ({ reasoningEffort, description: reasoningEffort }));
+const harnessModels: Record<string, ModelOption[]> = {
+  codex: models,
+  claude: [
+    { id: 'opus', model: 'opus', displayName: 'Opus 5.5', supportedReasoningEfforts: efforts('low', 'medium', 'high'), defaultReasoningEffort: 'high' },
+    { id: 'sonnet', model: 'sonnet', displayName: 'Sonnet 5.5', supportedReasoningEfforts: efforts('low', 'medium', 'high'), defaultReasoningEffort: 'high', isDefault: true },
+    { id: 'haiku', model: 'haiku', displayName: 'Haiku 4.5', supportedReasoningEfforts: [], defaultReasoningEffort: null },
+  ],
+  cursor: [
+    { id: 'auto', model: 'auto', displayName: 'Auto', supportedReasoningEfforts: [], defaultReasoningEffort: null, isDefault: true },
+    { id: 'composer', model: 'composer', displayName: 'Composer 2', supportedReasoningEfforts: efforts('medium', 'high'), defaultReasoningEffort: 'medium' },
+  ],
+};
+const labModels = computed(() => harnessModels[harness.value]!);
+function changeHarness(next: string) {
+  harness.value = next;
+  const first = harnessModels[next]![0]!;
+  selectedModelId.value = first.id;
+  selectedEffort.value = (first.defaultReasoningEffort ?? '') as ReasoningEffort;
+  selectedServiceTier.value = null;
+}
 
 const transcribeAudio: ChatTranscription = async () => ({ text: 'Mock voice prompt' });
 

@@ -1,9 +1,10 @@
 <template>
   <div class="model-picker">
-    <div v-if="$slots.header || serviceTiers.length" class="model-picker__header">
+    <div v-if="$slots.header || $slots['service-tier'] || serviceTiers.length" class="model-picker__header">
       <slot name="header" />
-      <slot v-if="serviceTiers.length" name="service-tier" :items="tierItems" :tiers="serviceTiers" :select="selectTier">
-        <select :aria-label="serviceTierLabel" :value="selection.serviceTier ?? ''" :disabled="disabled" @change="selectTier(($event.target as HTMLSelectElement).value)">
+      <!-- A host that supplies the slot gets it for every model, with no tiers when the model has none. -->
+      <slot v-if="serviceTiers.length || $slots['service-tier']" name="service-tier" :items="tierItems" :tiers="serviceTiers" :select="selectTier">
+        <select v-if="serviceTiers.length" :aria-label="serviceTierLabel" :value="selection.serviceTier ?? ''" :disabled="disabled" @change="selectTier(($event.target as HTMLSelectElement).value)">
           <option value="">{{ standardTierLabel }}</option>
           <option v-for="tier in serviceTiers" :key="tier.id" :value="tier.id">{{ tier.name }}</option>
         </select>
@@ -18,13 +19,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { ModelOption } from '@korus-dev/multi-agent-sdk';
+import type { ModelOption as HarnessModelOption } from '@korus-dev/multi-agent-sdk';
+import type { ModelOption as PaneModelOption } from '../chat/contracts';
 import AppMenu from '../shared/menu/AppMenu.vue';
 import type { AppMenuItem } from '../shared/menu/app-menu';
 import type { ModelSelection } from '../model-selection';
 
 const props = withDefaults(defineProps<{
-  models: readonly ModelOption[];
+  /** A harness catalog entry, or the pane's own `ModelOption`. */
+  models: readonly (HarnessModelOption | PaneModelOption)[];
   selection: ModelSelection;
   disabled?: boolean;
   loading?: boolean;

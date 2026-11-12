@@ -59,7 +59,7 @@ Use `moduleResolution: "Bundler"` with `module: "ESNext"`. The package uses an e
 
 ## Element Plus component not found
 
-The browser panel and some document panels use Element Plus controls. Install `element-plus` (2.13 or later) and register it in your app.
+Only the browser panel (`/browser-ui`) uses Element Plus. The conversation pane, composer and document panels do not need it. Install `element-plus` (2.13 or later) when you use the browser panel.
 
 ## Everything works in the lab but not in my app
 

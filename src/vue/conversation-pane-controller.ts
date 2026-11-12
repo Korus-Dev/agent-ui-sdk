@@ -16,6 +16,7 @@ import type { ChatMessage } from './chat/types';
 import type { MessageImageOpenHandler } from './chat/message-image';
 import type { ConversationVisualization } from './chat/visualization';
 import type { ComposerState } from './composer-state';
+import type { HarnessChoice } from './components/HarnessModelSelector.vue';
 import type { QueuedChatPrompt } from './chat/queued-prompts';
 import type { ComposerMentionGroup, ComposerMentionItem } from './chat/composer-mentions-custom';
 import type { HostAttachment } from '@korus-dev/agent-ui-sdk/host';
@@ -60,14 +61,16 @@ export type ConversationPaneComposerState = {
   /** Host actions rendered after Approval and before Plan mode. */
   leadingMenuItems?: readonly ComposerMenuItem[];
   menuItems?: readonly ComposerMenuItem[];
-  /** Host-owned actions rendered before the SDK's model, reasoning, and speed controls. */
-  modelMenuItems?: readonly ComposerMenuItem[];
   /** The id of the permission in effect, one of the capabilities' permissions. */
   permission?: string | null;
   planMode?: boolean;
   selectedModelId?: string | null;
   selectedReasoningEffort?: ReasoningEffort | null;
   selectedServiceTier?: string | null;
+  /** The harnesses offered as tabs in the `'harness'` picker. */
+  harnesses?: readonly HarnessChoice[];
+  /** The id of the selected harness. */
+  harness?: string;
 };
 
 export type ConversationPaneCatalogState = {
@@ -171,6 +174,8 @@ export type ConversationPaneActions<Payload = unknown> = {
   /** Changes the defaults the session's next calls use. */
   updateSettings?: PaneAction<[defaults: Partial<HarnessDefaults>]>;
   setPlanMode?: PaneAction<[planMode: boolean]>;
+  /** The person picked another harness in the `'harness'` model picker. */
+  selectHarness?: PaneAction<[harness: string]>;
 };
 
 export type ConversationPaneController<Payload = unknown> = {

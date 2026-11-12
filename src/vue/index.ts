@@ -1,4 +1,5 @@
 export { default as ModelPicker } from './components/ModelPicker.vue';
+export { default as HarnessModelSelector, type HarnessChoice } from './components/HarnessModelSelector.vue';
 export type { ModelSelection } from './model-selection';
 export { default as Composer } from './components/Composer.vue';
 export type { ComposerState } from './composer-state';
@@ -65,7 +66,6 @@ export { default as MermaidBlock } from './chat/ChatMermaidBlock.vue';
 export { default as MessageActions } from './chat/ChatMessageActions.vue';
 export { default as MessageBlock } from './chat/ChatMessageBlock.vue';
 export { default as MessageEditor } from './chat/ChatMessageEditor.vue';
-export { default as ModelReasoningSelector } from './chat/ChatModelReasoningSelector.vue';
 export { default as QueuedPrompt } from './chat/ChatQueuedPrompt.vue';
 export { default as QueuedPrompts } from './chat/ChatQueuedPrompts.vue';
 export { default as ToolCall } from './chat/ChatToolCall.vue';

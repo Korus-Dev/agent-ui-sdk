@@ -98,6 +98,7 @@
   --shadow-md: 0 3px 8px rgb(0 0 0 / 8%);
   --shadow-lg: 0 8px 24px rgb(0 0 0 / 10%);
   --shadow-menu: 0 4px 6px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 5%);
+  --color-menu-background: var(--color-surface-lowest);
 }
 
 :where(.agent-ui-theme--dark, [data-theme="dark"]),
@@ -135,6 +136,7 @@
   --shadow-md: 0 3px 10px rgb(0 0 0 / 38%);
   --shadow-lg: 0 12px 32px rgb(0 0 0 / 42%);
   --shadow-menu: 0 12px 32px rgb(0 0 0 / 42%), 0 4px 10px rgb(0 0 0 / 32%);
+  --color-menu-background: var(--color-surface-lowest);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -173,5 +175,6 @@
     --shadow-md: 0 3px 10px rgb(0 0 0 / 38%);
     --shadow-lg: 0 12px 32px rgb(0 0 0 / 42%);
     --shadow-menu: 0 12px 32px rgb(0 0 0 / 42%), 0 4px 10px rgb(0 0 0 / 32%);
+    --color-menu-background: var(--color-surface-lowest);
   }
 }

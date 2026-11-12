@@ -29,7 +29,7 @@ The stylesheet carries control styles, code and math styles, and the packaged Ka
 
 ### Optional peers
 
-Electron is an optional peer for desktop hosts. Element Plus is an optional peer for the browser panel and the document panels that use its controls; install it when you use those components:
+Electron is an optional peer for desktop hosts. Element Plus is an optional peer used only by the browser panel; install it when you use that component:
 
 ```bash
 npm install element-plus

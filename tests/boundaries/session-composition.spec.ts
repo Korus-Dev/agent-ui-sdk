@@ -26,14 +26,14 @@ describe('neutral session composition', () => {
       actions: { updateSettings },
     });
     const pane = mount(ConversationPane, { props: { controller, escapeInterrupt: false } });
-    expect(pane.get('.chat-composer .chat-model-selector__button').text()).toContain('model:b');
-    await pane.get('.chat-model-selector__button').trigger('click');
-    await pane.get('[data-submenu-id="model:model:a"]').trigger('mouseenter');
-    await pane.findAll('[data-submenu-id="model:model:a"] [role="menuitemradio"]')[0]!.trigger('click');
+    expect(pane.get('.chat-composer .provider-model-selector').text()).toContain('model:b');
+    await pane.get('.provider-model-selector').trigger('click');
+    await pane.findAll('.app-menu__submenu-menu[aria-label="model:a"] [role="menuitemradio"]')[0]!.trigger('click');
     expect(updateSettings).toHaveBeenCalledWith({ model: 'model:a' });
     expect(updateSettings).not.toHaveBeenCalledWith({ model: 'catalog-key' });
     expect(updateSettings).toHaveBeenCalledWith({ reasoningEffort: 'low' });
-    expect(pane.get('.chat-composer .chat-model-selector__button').text()).toContain('model:a Low');
+    expect(pane.get('.chat-composer .provider-model-selector').text()).toContain('model:a');
+    expect(pane.get('.chat-composer .provider-model-selector').text()).toContain('low');
     expect(models[0]!.id).toBe('catalog-key');
     expect(models[0]).not.toHaveProperty('displayName');
     pane.unmount();

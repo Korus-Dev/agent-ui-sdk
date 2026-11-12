@@ -29,10 +29,10 @@ describe('standard session conversation', () => {
     const binding = createSessionConversationController({ conversationKey: 'shared-session', state, capabilities, client: { sendPrompt } });
     const pane = mount(ConversationPane, { props: { controller: binding.controller } });
     try {
-      expect(pane.find('.chat-model-selector').exists()).toBe(false);
+      expect(pane.find('.provider-model-selector').exists()).toBe(false);
       capabilities.value = { ...capabilities.value, models: true };
       await flushPromises();
-      expect(pane.find('.chat-model-selector').exists()).toBe(true);
+      expect(pane.find('.provider-model-selector').exists()).toBe(true);
       const editor = pane.get('[contenteditable="true"]');
       editor.element.textContent = 'Hello';
       await editor.trigger('input');
@@ -77,7 +77,8 @@ describe('standard session conversation', () => {
 
   it('provides composer models, plan/goal controls and opaque permission choices without host UI mapping', async () => {
     const { binding, pane, composer, client, state } = fixture();
-    expect(pane.get('.chat-model-selector__button').text()).toContain('model High');
+    expect(pane.get('.provider-model-selector').text()).toContain('model');
+    expect(pane.get('.provider-model-selector').text()).toContain('high');
     await pane.get('[aria-label="Composer actions"]').trigger('click');
     const permissionTrigger = pane.get('.agent-ui-composer-menu-list__submenu > button');
     expect(permissionTrigger.text()).toBe('Permissions');
@@ -130,15 +131,15 @@ describe('standard session conversation', () => {
     const binding = createSessionConversationController({ state, capabilities: { ...capabilitiesFixture, models: true, reasoningEffort: true },
       conversationKey: 'resumed', controls: { models }, client: { sendPrompt } });
     const pane = mount(ConversationPane, { props: { controller: binding.controller, escapeInterrupt: false } });
-    expect(pane.get('.chat-model-selector__button').text()).toBe('Terra Low');
+    expect(pane.get('.provider-model-selector').text()).toBe('Terralow');
     await binding.controller.actions.submit?.('Continue');
     expect(sendPrompt).toHaveBeenCalledWith('Continue', expect.objectContaining({ model: 'terra', reasoningEffort: 'low', serviceTier: 'default' }));
     await binding.controller.actions.updateSettings?.({ model: 'sol' }); await flushPromises();
     state.value = { ...state.value }; await flushPromises();
-    expect(pane.get('.chat-model-selector__button').text()).toBe('Sol Low');
+    expect(pane.get('.provider-model-selector').text()).toBe('Sollow');
     state.value = { ...state.value, selection: { model: 'sol', reasoningEffort: 'low', serviceTier: 'default' } }; await flushPromises();
     state.value = { ...state.value, selection: { model: 'terra', reasoningEffort: 'high', serviceTier: 'default' } }; await flushPromises();
-    expect(pane.get('.chat-model-selector__button').text()).toBe('Terra High');
+    expect(pane.get('.provider-model-selector').text()).toBe('Terrahigh');
     binding.dispose(); pane.unmount();
   });
 

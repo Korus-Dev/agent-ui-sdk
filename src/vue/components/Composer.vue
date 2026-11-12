@@ -117,21 +117,18 @@
           v-if="effectivePresentation.composer.contextUsage"
           :context-usage="contextUsage"
         />
-        <ChatModelReasoningSelector
+        <HarnessModelSelector
           v-if="effectiveCapabilities.models"
           :disabled="disabled"
-          :models="models"
-          :model-catalog-status="modelCatalogStatus"
-          :model-id="selectedModelId"
-          :menu-items="modelMenuItems"
-          :reasoning-effort="selectedReasoningEffort"
-          :service-tier="selectedServiceTier"
-          :show-service-tier="effectiveCapabilities.serviceTier"
-          :show-reasoning="effectiveCapabilities.reasoningEffort"
-          @update:model-id="$emit('update:modelId', $event)"
-          @menu-select="$emit('menuSelect', $event)"
-          @update:reasoning-effort="$emit('update:reasoningEffort', $event)"
-          @update:service-tier="$emit('update:serviceTier', $event)"
+          :models="models ?? []"
+          :loading="modelCatalogStatus === 'loading'"
+          :harnesses="harnesses"
+          :harness="harness"
+          placement="top"
+          align="end"
+          :selection="pickerSelection"
+          @update:harness="$emit('update:harness', $event)"
+          @update:selection="selectModelSelection"
         />
         <ChatComposerVoiceButton
           v-if="voiceVisible"
@@ -173,7 +170,8 @@ import ChatComposerActionMenu from '../chat/ChatComposerActionMenu.vue';
 import ChatComposerVoiceButton from '../chat/ChatComposerVoiceButton.vue';
 import ChatComposerVoiceField from '../chat/ChatComposerVoiceField.vue';
 import ChatContextUsageIndicator from '../chat/ChatContextUsageIndicator.vue';
-import ChatModelReasoningSelector from '../chat/ChatModelReasoningSelector.vue';
+import HarnessModelSelector, { type HarnessChoice } from './HarnessModelSelector.vue';
+import type { ModelSelection } from '../model-selection';
 import ChatComposerAtMentionMenu from '../chat/ChatComposerAtMentionMenu.vue';
 import ChatComposerSkillMenu from '../chat/ChatComposerSkillMenu.vue';
 import ChatComposerSlashMenu from '../chat/ChatComposerSlashMenu.vue';
@@ -213,7 +211,6 @@ const props = defineProps<{
   mentionGroups?: readonly ComposerMentionGroup<Payload>[];
   modelCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   models?: readonly ModelOption[];
-  modelMenuItems?: readonly ComposerMenuItem<Payload>[];
   placeholder?: string;
   suggestedPrompt?: string;
   queuedPromptId?: string | null;
@@ -223,6 +220,8 @@ const props = defineProps<{
   selectedModelId?: string | null;
   selectedReasoningEffort?: ReasoningEffort | null;
   selectedServiceTier?: string | null;
+  harnesses?: readonly HarnessChoice[];
+  harness?: string;
   skillCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
   skills?: readonly SkillSummary[];
   transcribeAudio?: ChatTranscription;
@@ -245,10 +244,31 @@ const emit = defineEmits<{
   'update:planMode': [enabled: boolean];
   'update:reasoningEffort': [reasoningEffort: ReasoningEffort];
   'update:serviceTier': [serviceTier: string | null];
+  'update:harness': [harness: string];
 }>();
 // Stryker restore all
 
 const hostCapabilities = useHostCapabilities();
+
+// `selectedModelId` and `update:modelId` carry catalog ids; the picker works with model values.
+// Without a selection, the catalog's default (else its first) model and that model's default effort are shown.
+const pickerSelection = computed<ModelSelection>(() => {
+  const catalog = props.models ?? [];
+  const option = catalog.find(candidate => candidate.id === props.selectedModelId)
+    ?? catalog.find(candidate => candidate.isDefault) ?? catalog[0];
+  return {
+    model: option?.model ?? props.selectedModelId,
+    reasoningEffort: props.selectedReasoningEffort ?? option?.defaultReasoningEffort ?? option?.supportedReasoningEfforts?.[0]?.reasoningEffort ?? null,
+    serviceTier: props.selectedServiceTier,
+  };
+});
+
+function selectModelSelection(next: ModelSelection): void {
+  const id = props.models?.find(option => option.model === next.model)?.id ?? next.model;
+  if (id && id !== props.selectedModelId) emit('update:modelId', id);
+  if (next.reasoningEffort && next.reasoningEffort !== props.selectedReasoningEffort) emit('update:reasoningEffort', next.reasoningEffort);
+  if ((next.serviceTier ?? null) !== (props.selectedServiceTier ?? null)) emit('update:serviceTier', next.serviceTier ?? null);
+}
 
 const prompt = ref('');
 const promptContent = ref<readonly PromptPart[]>([]);
@@ -922,6 +942,24 @@ defineExpose({ focus });
 .chat-composer__meta-trailing {
   flex: 0 0 auto;
   gap: var(--space-3);
+}
+
+/* The harness picker's trigger is a form field elsewhere; in the composer it matches the model menu. */
+.chat-composer__meta-trailing :deep(.provider-model-selector) {
+  width: auto;
+  max-width: 220px;
+  min-height: var(--chat-composer-button-size, 36px);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  background: transparent;
+}
+
+.chat-composer__meta-trailing :deep(.provider-model-selector:hover:not(:disabled)),
+.chat-composer__meta-trailing :deep(.provider-model-selector[aria-expanded="true"]) {
+  color: var(--color-text);
+  background: var(--color-surface-base);
 }
 
 @media (max-width: 720px) {

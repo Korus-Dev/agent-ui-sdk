@@ -62,8 +62,9 @@ The prompt box: rich text, mention chips, attachments row, action menu, model se
 | `commands`, `skills`, `plugins`, `files`, `mentionGroups` | catalogs | Suggestion sources for `/`, `$` and `@` |
 | `skillCatalogStatus`, `modelCatalogStatus` | `'notLoaded' \| 'loading' \| 'loaded' \| 'error'` | Catalog load state |
 | `models`, `selectedModelId`, `selectedReasoningEffort`, `selectedServiceTier` | | Model, reasoning and speed selector |
+| `harnesses`, `harness` | | Tabs and the selected tab of the model picker ([`HarnessModelSelector`](#harnessmodelselector)). Without at least two harnesses, no tabs show |
 | `planMode`, `permission` | | Active modes shown in the action menu |
-| `leadingMenuItems`, `menuItems`, `modelMenuItems` | `ComposerMenuItem[]` | Host menu items. Leading items render before Plan mode, `modelMenuItems` before the model controls |
+| `leadingMenuItems`, `menuItems` | `ComposerMenuItem[]` | Host menu items. Leading items render before Plan mode |
 | `presentation` | `ConversationPresentation` | Hide the action menu, context usage or voice |
 | `placeholder`, `suggestedPrompt` | `string` | Hint text; the suggested prompt is accepted into the draft |
 | `promptHistory`, `promptHistoryLoading` | | Up/Down recall |
@@ -76,7 +77,7 @@ The prompt box: rich text, mention chips, attachments row, action menu, model se
 | `transcribeAudio` | `ChatTranscription` | Batch dictation override |
 | `canContinueInterruptedTurn`, `interruptArmed` | `boolean` | Continue and double-Escape states |
 
-Events: `send`, `steer`, `steerQueuedPrompt`, `interrupt`, `attach`, `menuSelect`, `mentionSelect`, `requestSkills`, `selectPermission`, `continueInterruptedTurn`, `error`, `update:composerState`, `update:modelId`, `update:reasoningEffort`, `update:serviceTier`, `update:planMode`.
+Events: `send`, `steer`, `steerQueuedPrompt`, `interrupt`, `attach`, `menuSelect`, `mentionSelect`, `requestSkills`, `selectPermission`, `continueInterruptedTurn`, `error`, `update:composerState`, `update:modelId`, `update:reasoningEffort`, `update:serviceTier`, `update:harness`, `update:planMode`.
 
 Slots: `before`, `before-meta`, `after-input`, `after`, `mention`, `suggestion-item`, `menu-icon`, `menu-item`.
 
@@ -178,7 +179,7 @@ The area above the composer.
 
 ### Model controls
 
-`ModelPicker` is a standalone model, reasoning and speed menu. `ModelReasoningSelector` is the composer's version.
+`ModelPicker` is a standalone model, reasoning and speed list. [`HarnessModelSelector`](#harnessmodelselector) wraps it in a button and popover, and is the composer's model selector.
 
 | `ModelPicker` prop | Default | Purpose |
 | --- | --- | --- |
@@ -189,14 +190,32 @@ The area above the composer.
 
 Emits `update:selection` and `select`.
 
-| `ModelReasoningSelector` prop | Purpose |
-| --- | --- |
-| `models`, `modelId`, `reasoningEffort`, `serviceTier` | Current options and selection |
-| `modelCatalogStatus` | Load state |
-| `menuItems` | Host items before the model controls |
-| `showReasoning`, `showServiceTier`, `disabled` | Visibility and state |
+#### HarnessModelSelector
 
-Emits `update:modelId`, `update:reasoningEffort`, `update:serviceTier`.
+A button that shows the current model and opens a popover with one tab per harness above that harness's models, with reasoning and speed choices. It is the composer's model selector, and you can use it on its own, for example for an "Agent" field in a form. It is plain Vue and CSS, with no extra peer dependencies.
+
+| Prop | Default | Purpose |
+| --- | --- | --- |
+| `models` (required) | | The `ModelOption[]` of the selected harness |
+| `selection` (required) | | `{ model, reasoningEffort, serviceTier }` |
+| `harnesses` | `[]` | `{ id, label, icon? }[]` offered as tabs. Tabs appear from two harnesses on; you supply the icon component |
+| `harness` | | The id of the selected harness |
+| `placement` | `'bottom'` | `'top'` opens above the trigger, as in the composer |
+| `align` | `'start'` | `'start'` opens rightward from the trigger's left edge; `'end'` lines up with its right edge. Either way the popover stays inside the viewport |
+| `disabled`, `loading` | `false` | State; `loading` shows placeholder rows |
+
+Emits `update:selection` (a whole `ModelSelection`) and `update:harness` (the tab's id). The SDK never loads catalogs: when the harness changes, your host loads that harness's models and picks a selection. Wording comes from the `chat.modelSelector.*` translation keys. The popover and its submenus are fixed-position, placed from the trigger and kept inside the viewport (they flip or clamp at the edges), so dialogs and scrolling containers do not clip them. A long model list scrolls inside the popover while the header (tabs and speed button) stays put. With fewer than two harnesses, the current harness's icon shows where the tabs would be.
+
+```vue
+<HarnessModelSelector
+  :models="catalog[harness]"
+  :selection="selection"
+  :harnesses="[{ id: 'codex', label: 'Codex', icon: CodexIcon }, { id: 'claude', label: 'Claude', icon: ClaudeIcon }]"
+  :harness="harness"
+  @update:harness="id => { harness = id; selection = defaultSelectionFor(id); }"
+  @update:selection="selection = $event"
+/>
+```
 
 ### Voice
 

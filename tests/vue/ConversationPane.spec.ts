@@ -3014,7 +3014,6 @@ describe('ConversationPane with provider fixtures', () => {
     const files = [{ name: 'controller.ts', path: '/repo/controller.ts' }];
     const leadingMenuItems = [{ id: 'leading-controller', label: 'Leading', type: 'action' as const }];
     const menuItems = [{ id: 'menu-controller', label: 'Menu', type: 'custom' as const }];
-    const modelMenuItems = [{ id: 'model-menu-controller', label: 'Favorite', type: 'action' as const }];
     const queuedPrompts = [{ id: 'queued-controller', text: 'Controller queue' }];
     const turnGitDiff = {
       turnId: 'turn-controller',
@@ -3039,7 +3038,6 @@ describe('ConversationPane with provider fixtures', () => {
           permission: 'full-access',
           leadingMenuItems,
           menuItems,
-          modelMenuItems,
           placeholder: 'Controller placeholder',
           planMode: true,
           selectedModelId: 'model-controller',
@@ -3099,7 +3097,6 @@ describe('ConversationPane with provider fixtures', () => {
       files,
       leadingMenuItems,
       menuItems,
-      modelMenuItems,
       modelCatalogStatus: 'loaded',
       models,
       placeholder: 'Controller placeholder',
@@ -3141,7 +3138,6 @@ describe('ConversationPane with provider fixtures', () => {
       files: [],
       leadingMenuItems: [],
       menuItems: [],
-      modelMenuItems: [],
       selectedModelId: undefined,
       selectedReasoningEffort: undefined,
       selectedServiceTier: undefined,
@@ -3167,7 +3163,6 @@ describe('ConversationPane with provider fixtures', () => {
     const files = [{ name: 'legacy.ts', path: '/repo/legacy.ts' }];
     const leadingMenuItems = [{ id: 'legacy-leading', label: 'Leading', type: 'action' as const }];
     const menuItems = [{ id: 'legacy-menu', label: 'Menu', type: 'custom' as const }];
-    const modelMenuItems = [{ id: 'legacy-model-menu', label: 'Favorite', type: 'action' as const }];
     const turnGitDiff = {
       turnId: 'turn-legacy',
       addedLines: 5,
@@ -3186,7 +3181,6 @@ describe('ConversationPane with provider fixtures', () => {
         followUpsDisabled: true,
         leadingMenuItems,
         menuItems,
-        modelMenuItems,
         messages,
         modelValue: '',
         placeholder: 'Legacy placeholder',
@@ -3204,7 +3198,6 @@ describe('ConversationPane with provider fixtures', () => {
       files,
       leadingMenuItems,
       menuItems,
-      modelMenuItems,
       placeholder: 'Legacy placeholder',
       selectedModelId: 'legacy-model',
       selectedReasoningEffort: 'medium',

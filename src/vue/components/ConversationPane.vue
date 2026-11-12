@@ -161,7 +161,6 @@
             :is-sending="effectiveBusy"
             :leading-menu-items="effectiveLeadingMenuItems"
             :menu-items="effectiveMenuItems"
-            :model-menu-items="effectiveModelMenuItems"
             :mention-groups="effectiveMentionGroups"
             :model-catalog-status="effectiveModelCatalogStatus"
             :models="effectiveModels"
@@ -173,6 +172,8 @@
             :selected-model-id="effectiveSelectedModelId"
             :selected-reasoning-effort="effectiveSelectedReasoningEffort"
             :selected-service-tier="effectiveSelectedServiceTier"
+            :harnesses="effectiveHarnesses"
+            :harness="effectiveHarness"
             :skill-catalog-status="effectiveSkillCatalogStatus"
             :skills="effectiveSkills"
             :transcribe-audio="transcribeAudio"
@@ -192,6 +193,7 @@
             @update:plan-mode="updatePlanMode"
             @update:reasoning-effort="updateReasoningEffort"
             @update:service-tier="updateServiceTier"
+            @update:harness="updateHarness"
           >
             <template #before-meta>
               <span
@@ -346,6 +348,7 @@ import ChatConfirmationRequest from '../chat/ChatConfirmationRequest.vue';
 import ChatComposerShelf from '../chat/ChatComposerShelf.vue';
 import { questionResponsesKey } from '../chat/message-work-state';
 import Composer from './Composer.vue';
+import type { HarnessChoice } from './HarnessModelSelector.vue';
 import ApprovalPrompt from './ApprovalPrompt.vue';
 import ConversationHistoryLoader from './ConversationHistoryLoader.vue';
 import MessageListView from './MessageListView';
@@ -397,7 +400,6 @@ const props = withDefaults(defineProps<{
   messageTextSelection?: boolean;
   leadingMenuItems?: readonly ComposerMenuItem<Payload>[];
   menuItems?: readonly ComposerMenuItem<Payload>[];
-  modelMenuItems?: readonly ComposerMenuItem<Payload>[];
   mentionGroups?: readonly ComposerMentionGroup<Payload>[];
   messages?: readonly (ChatMessage | ConversationMessageInput)[];
   turns?: readonly Turn[];
@@ -421,6 +423,8 @@ const props = withDefaults(defineProps<{
   selectedModelId?: string | null;
   selectedReasoningEffort?: ReasoningEffort | null;
   selectedServiceTier?: string | null;
+  harnesses?: readonly HarnessChoice[];
+  harness?: string;
   scrollToBottomLabel?: string;
   showToolDetails?: boolean;
   skillCatalogStatus?: 'notLoaded' | 'loading' | 'loaded' | 'error';
@@ -449,7 +453,6 @@ const props = withDefaults(defineProps<{
   leadingMenuItems: () => [],
   messageBatchSize: 25,
   menuItems: () => [],
-  modelMenuItems: () => [],
   modelValue: '',
   planMode: undefined,
   showToolDetails: undefined,
@@ -544,6 +547,7 @@ const emit = defineEmits<{
   'update:planMode': [enabled: boolean];
   'update:reasoningEffort': [reasoningEffort: ReasoningEffort];
   'update:serviceTier': [serviceTier: string | null];
+  'update:harness': [harness: string];
 }>();
 // Stryker restore all
 
@@ -890,6 +894,14 @@ const effectiveSelectedServiceTier = computed(() => controlledValue(
   (state) => state.composer?.selectedServiceTier,
   () => props.selectedServiceTier,
 ));
+const effectiveHarnesses = computed(() => controlledValue(
+  (state) => state.composer?.harnesses,
+  () => props.harnesses,
+));
+const effectiveHarness = computed(() => controlledValue(
+  (state) => state.composer?.harness,
+  () => props.harness,
+));
 const effectiveSkillCatalogStatus = computed(() => controlledValue(
   (state) => state.catalogs?.skillCatalogStatus,
   () => props.skillCatalogStatus,
@@ -932,10 +944,6 @@ const effectiveLeadingMenuItems = computed(() => controlledValue(
 const effectiveMenuItems = computed(() => controlledValue(
   (state) => state.composer?.menuItems ?? [],
   () => props.menuItems,
-));
-const effectiveModelMenuItems = computed(() => controlledValue(
-  (state) => state.composer?.modelMenuItems ?? [],
-  () => props.modelMenuItems,
 ));
 const effectivePlaceholder = computed(() => controlledValue(
   (state) => state.composer?.placeholder,
@@ -1657,6 +1665,12 @@ function updateServiceTier(serviceTier: string | null): void {
   if (dispatchControllerAction('updateSettings', { serviceTier })) return;
   if (effectiveController.value) return;
   emit('update:serviceTier', serviceTier);
+}
+
+function updateHarness(harness: string): void {
+  if (dispatchControllerAction('selectHarness', harness)) return;
+  if (effectiveController.value) return;
+  emit('update:harness', harness);
 }
 
 function menuSelect(item: ComposerMenuSelectableItem<unknown>): void {
