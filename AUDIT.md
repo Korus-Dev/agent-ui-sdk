@@ -21,7 +21,7 @@ Compared against `codex-app-sdk` at `564f7f6` and the release/quality convention
 
 - VitePress site with installation, conversation binding, composer, messages/history, presentation/providers, documents/browser, native capabilities, samples, testing, release and entry-point guides.
 - Public README, contribution guide, initial changelog, issue/homepage metadata and consistent version/lockfile.
-- Root main/types and static public forwarding files, with no exports map, application-facing dist imports, NodeNext target or declaration rewrite step.
+- Root `main` and `types` fallbacks plus an explicit, extensionless exports map for every optional entry, with no application-facing dist imports, NodeNext target or declaration rewrite step.
 - Pull-request/main CI on Linux/macOS and Node 22.19/24; separate Chromium/WebKit job.
 - Manual OIDC npm publishing with version/lockfile/placeholder guards, quality/browser checks, archive publication and post-publish GitHub release. Manual Pages deployment.
 - Actual packed archive allowlist, static entry/declaration checks, strict Bundler consumer compilation, browser build and installed speech-asset resolution.

@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title description">
+  <title id="title">Agent UI SDK architecture</title>
+  <desc id="description">A trusted host runs a Multi Agent SDK harness and optional native adapters. Your application bridge carries session state and actions to a Vue renderer, where a session controller feeds the conversation pane.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10z" fill="#3c8f7e"/>
+    </marker>
+  </defs>
+  <style>
+    .panel { fill: #f6fbfa; stroke: #b9dcd4; stroke-width: 2; }
+    .card { fill: #ffffff; stroke: #c7d7d3; stroke-width: 2; }
+    .accent { fill: #e2f7f1; stroke: #58b9a5; stroke-width: 2; }
+    .external { fill: #eef3ff; stroke: #7d9fdf; stroke-width: 2; }
+    .label { fill: #12231f; font: 600 17px ui-sans-serif, system-ui, sans-serif; }
+    .small { fill: #4d625c; font: 500 13px ui-sans-serif, system-ui, sans-serif; }
+    .group { fill: #087f6a; font: 700 15px ui-sans-serif, system-ui, sans-serif; letter-spacing: .08em; }
+    .line { fill: none; stroke: #3c8f7e; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; marker-end: url(#arrow); }
+    .line-dashed { fill: none; stroke: #3c8f7e; stroke-dasharray: 7 7; stroke-width: 2; }
+    @media (prefers-color-scheme: dark) {
+      .panel { fill: #121b1a; stroke: #315f55; }
+      .card { fill: #1a2422; stroke: #3b5550; }
+      .accent { fill: #123c34; stroke: #41b79d; }
+      .external { fill: #18243d; stroke: #4f6fb0; }
+      .label { fill: #e8f4f1; }
+      .small { fill: #9db5af; }
+      .group { fill: #41d5b3; }
+      .line { stroke: #41b79d; }
+      .line-dashed { stroke: #41b79d; }
+    }
+  </style>
+
+  <rect class="panel" x="24" y="24" width="540" height="512" rx="24"/>
+  <text class="group" x="52" y="62">TRUSTED HOST</text>
+  <text class="small" x="52" y="84">Electron main process or your server</text>
+
+  <rect class="external" x="52" y="108" width="484" height="92" rx="16"/>
+  <text class="label" x="76" y="142">Multi Agent SDK harness</text>
+  <text class="small" x="76" y="168">Codex · Claude · Cursor · Antigravity — sessions, catalogs, authentication</text>
+
+  <rect class="card" x="52" y="224" width="232" height="96" rx="16"/>
+  <text class="label" x="72" y="258">/electron</text>
+  <text class="small" x="72" y="284">Typed IPC, window policy,</text>
+  <text class="small" x="72" y="302">attachments, clipboard</text>
+
+  <rect class="card" x="304" y="224" width="232" height="96" rx="16"/>
+  <text class="label" x="324" y="258">/speech</text>
+  <text class="small" x="324" y="284">Apple SpeechAnalyzer and</text>
+  <text class="small" x="324" y="302">OpenAI dictation sessions</text>
+
+  <rect class="card" x="52" y="340" width="232" height="96" rx="16"/>
+  <text class="label" x="72" y="374">/electron/browser</text>
+  <text class="small" x="72" y="400">Guarded webview manager,</text>
+  <text class="small" x="72" y="418">annotations, viewport</text>
+
+  <rect class="accent" x="52" y="456" width="484" height="60" rx="16"/>
+  <text class="label" x="76" y="482">Your session bridge</text>
+  <text class="small" x="76" y="502">Narrow, session-bound operations. Opaque references only.</text>
+
+  <rect class="panel" x="636" y="24" width="540" height="512" rx="24"/>
+  <text class="group" x="664" y="62">RENDERER</text>
+  <text class="small" x="664" y="84">Vue 3.5+, no provider handles, no Node</text>
+
+  <rect class="accent" x="664" y="108" width="484" height="92" rx="16"/>
+  <text class="label" x="688" y="142">createSessionConversationController</text>
+  <text class="small" x="688" y="168">Session state + capabilities + client → pane controller</text>
+
+  <rect class="card" x="664" y="224" width="484" height="148" rx="16"/>
+  <text class="label" x="688" y="258">ConversationPane</text>
+  <text class="small" x="688" y="284">Composer · MessageList · requests · queue · goals · model picker</text>
+  <text class="small" x="688" y="306">Capabilities decide which controls appear</text>
+  <text class="small" x="688" y="328">Slots, presentation flags and tokens customize the result</text>
+
+  <rect class="card" x="664" y="396" width="232" height="120" rx="16"/>
+  <text class="label" x="684" y="430">Documents</text>
+  <text class="small" x="684" y="456">Markdown, source and diff</text>
+  <text class="small" x="684" y="474">panels with annotations</text>
+
+  <rect class="card" x="916" y="396" width="232" height="120" rx="16"/>
+  <text class="label" x="936" y="430">Browser panel</text>
+  <text class="small" x="936" y="456">Embedded browsing, bookmarks</text>
+  <text class="small" x="936" y="474">and element annotations</text>
+
+  <path class="line" d="M536 486H600V154H650"/>
+  <path class="line-dashed" d="M410 200v24"/>
+  <path class="line" d="M906 200v24"/>
+</svg>

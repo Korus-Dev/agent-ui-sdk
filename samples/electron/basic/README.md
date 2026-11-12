@@ -1,7 +1,13 @@
 # Basic Electron sample
 
-Run `npm run dev:basic -- --backend codex` from the repository root. Supported backends are `codex`, `claude`, `cursor` and `antigravity`; Codex is the default.
+A multi-conversation client: it lists existing conversations from the selected runtime, resumes their history, starts new ones and shows each in `ConversationPane` with its own session binding.
 
-Basic uses the runtime’s standard home, authentication and configuration. Sign in with that runtime’s normal CLI first. It lists existing active chats, resumes their history and starts new conversations.
+```bash
+npm run dev:basic -- --backend codex
+```
 
-Use `SAMPLE_FOLDER` to choose a working directory. See the [sample guide](../../../docs/guide/samples.md).
+Backends are `codex`, `claude`, `cursor` and `antigravity`; Codex is the default.
+
+Basic uses the runtime's standard home, authentication and configuration, so sign in with that runtime's normal CLI first. Set `SAMPLE_FOLDER` to choose the working directory (default: the current directory).
+
+Start with `electron/service.ts` (the harness and chat service in the main process), `electron/preload.ts` (the narrow bridge) and `src/App.vue` (one `createSessionConversationController` per chat). See the [sample guide](https://korus-dev.github.io/agent-ui-sdk/guide/samples#basic-electron) and the [quick start](https://korus-dev.github.io/agent-ui-sdk/guide/quick-start).

@@ -1,36 +1,60 @@
-# Public entry points
+# API entry points
 
-Import the common Vue API from the package root. Optional modules use explicit, extensionless package exports, with matching JavaScript and declaration targets. The package keeps `main` and `types` as the root fallback. Use TypeScript Bundler resolution with a Vue-aware bundler.
+The package exposes intentional, layer-specific entry points with explicit, extensionless exports. Import from the narrowest entry that owns the capability you need. Each has matching JavaScript and declaration targets; `main` and `types` remain as the root fallback.
 
-| Import suffix | Exports and runtime |
+| Import suffix | Runtime | Main exports |
+| --- | --- | --- |
+| root | Renderer | Conversation controls, session and controller composition, themes, providers, document panels, neutral types |
+| `/styles.css` | Renderer CSS | Control styles, syntax and math styles, packaged fonts |
+| `/host` | Anywhere | `HostCapabilities` contracts, speech types, `toHarnessPromptOptions`, conversation image helpers |
+| `/electron` | Electron main | Typed IPC, window policy, `registerNativeIpc`, `ElectronAttachmentRegistry` |
+| `/electron/preload` | Electron preload | `exposeNativeRendererApi`, `createNativeRendererApi`, `TypedIpcRenderer` |
+| `/electron/browser` | Electron main | `BrowserPane` |
+| `/speech` | Trusted Node | Apple and OpenAI speech sessions and transcription |
+| `/browser` | Renderer or trusted | Browser contracts, bookmark, partition, viewport and URL helpers |
+| `/browser-ui` | Renderer | `BrowserPanel`, `BrowserBookmarks`, `BrowserExtensionIcon`, `AnnotationSendButton` |
+| `/documents` | Renderer or trusted | File classification and diff-overview contracts |
+
+All suffixes are relative to `@korus-dev/agent-ui-sdk`. Electron and speech entries require a trusted Node host; keep them outside renderer imports. Vue is a required peer. Electron and Element Plus are optional peers for the pieces that use them.
+
+## Typical imports
+
+```ts
+// Renderer
+import { ConversationPane, createSessionConversationController } from '@korus-dev/agent-ui-sdk';
+import '@korus-dev/agent-ui-sdk/styles.css';
+import { BrowserPanel } from '@korus-dev/agent-ui-sdk/browser-ui';
+
+// Electron main
+import { registerNativeIpc, installWindowPolicy } from '@korus-dev/agent-ui-sdk/electron';
+import { toHarnessPromptOptions } from '@korus-dev/agent-ui-sdk/host';
+import { BrowserPane } from '@korus-dev/agent-ui-sdk/electron/browser';
+
+// Preload
+import { exposeNativeRendererApi } from '@korus-dev/agent-ui-sdk/electron/preload';
+```
+
+TypeScript consumers should use Bundler module resolution with a Vue-aware bundler. NodeNext type resolution is not part of the supported contract.
+
+## Reference pages
+
+| Page | Covers |
 | --- | --- |
-| root | Vue conversation controls, session/controller composition, renderers, themes, providers, document panels and neutral types |
-| `/styles.css` | Control styles, syntax/math styles and packaged fonts |
-| `/host` | Host capability contracts and pure `toHarnessPromptOptions` translation |
-| `/electron` | Trusted IPC, window policy, native integration and attachment registry |
-| `/electron/preload` | Preload bridge helpers |
-| `/electron/browser` | Trusted Electron browser manager |
-| `/speech` | Trusted Apple/OpenAI speech sessions and transcription |
-| `/browser` | Browser-safe contracts, bookmark, partition and viewport helpers |
-| `/browser-ui` | Vue browser panel, bookmarks and annotation controls |
-| `/documents` | File-kind helpers and diff overview contracts |
-
-All suffixes are relative to `@korus-dev/agent-ui-sdk`. Electron and speech entry points require a trusted Node host; keep them outside renderer imports. Vue and Element Plus are peers for the controls that use them.
-
-## Conversation composition
-
-- `createSessionConversationController(options)` returns `{ controller, queuedPrompts, dispose }` for a reactive session, capabilities and client actions.
-- `sessionStateToConversationPaneState(state, capabilities, key?, controls?)` projects a session snapshot into pane state.
-- `createConversationPaneController(options)` binds grouped state and application-owned actions.
-- `requestResponseFromClientResponse` and `requestResponseFromApproval` translate request responses while preserving identity.
-- `toHarnessPromptOptions(options, resolveAttachment?)` translates UI selection/content/attachments at the trusted host boundary.
-
-## Controls
-
-`ConversationPane`, `Composer`, `MessageList`, `Message`, `MessageTurn`, `ApprovalPrompt`, `ModelPicker`, `ModelReasoningSelector`, `ConversationHistoryLoader`, `ScrollToBottom` and `WorkbenchLayout` cover the main composition. Leaf exports include composer menus/shelf/voice, message blocks/actions/editor, tools/groups/requests, goals, queued prompts, images, Mermaid, media and visualization blocks.
+| [Vue components](/api/vue) | Every exported component, with props, events and slots for the main ones, plus helpers and providers |
+| [Session and controller](/api/session) | `createSessionConversationController`, the grouped controller, state projection, request helpers |
+| [Contracts and presentation](/api/contracts) | `Capabilities`, catalog types, presentation, requests, goals and message types |
+| [Host capabilities](/api/host) | Attachments, clipboard, speech contracts and prompt translation |
+| [Electron](/api/electron) | Main and preload adapters |
+| [Browser](/api/browser) | Browser contracts, panel and manager |
+| [Speech](/api/speech) | Apple and OpenAI sessions |
+| [Documents](/api/documents) | File kinds and diff overview |
 
 ## Provider boundaries
 
-The root controls and host capability contracts are provider-neutral. Shared conversation DTOs use Multi Agent SDK's canonical names, including `ConversationMessage`, `ClientAttachment` and `ClientSendMessageOptions`. UI presentation types describe renderer choices rather than provider execution.
+The root controls and host capability contracts are provider-neutral. Shared conversation types come from Multi Agent SDK's canonical, neutral model: `Message`, `Turn`, `AgentRequest` and `AgentRequestResponse`, `HarnessCapabilities`, `SessionState`, `HarnessDefaults`, `PromptPart`, `ReferenceSendPromptOptions`, `PluginSummary` and `SkillSummary`. UI presentation types describe renderer choices rather than provider execution.
 
-Every harness uses `ConversationPane` with the same session/controller binding. The UI SDK has no provider-specific panes, hooks, command catalogs, authentication or transport bridges. Applications obtain normalized state and capabilities from Multi Agent SDK and supply session-bound actions. A provider label may be displayed as application-owned text; it does not select UI behavior.
+Every harness uses `ConversationPane` with the same session and controller binding. The SDK has no provider-specific panes, hooks, command catalogs, authentication or transport bridges. Applications obtain normalized state and capabilities from Multi Agent SDK and supply session-bound actions. A provider label may be displayed as application-owned text; it does not select UI behavior.
+
+## Stability
+
+The controller, session binding, host capability and presentation contracts are product-shaped and documented here. The SDK is pre-1.0; breaking changes are called out in the [changelog](https://github.com/Korus-Dev/agent-ui-sdk/blob/main/CHANGELOG.md).
