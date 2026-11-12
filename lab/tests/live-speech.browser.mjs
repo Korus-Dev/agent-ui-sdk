@@ -194,10 +194,10 @@ try {
     target.style.cssText = 'position:fixed;inset:12px;background:white;z-index:10000;padding:12px';
     document.body.append(target);
     createApp({ render: () => h(Question, { request: {
-      id: 'question-request', kind: 'ask_user', conversationId: 'thread', turnId: 'turn', itemId: 'question-item',
-      payload: { request: { itemId: 'question-item', delivery: 'async', blocking: false,
+      id: 'question-request', kind: 'question', conversationId: 'thread', turnId: 'turn', itemId: 'question-item',
+      question: { itemId: 'question-item', delivery: 'async', blocking: false,
         questions: [{ id: 'answer', header: 'Details', question: 'What should we change?', isOther: true, isSecret: false,
-          options: [{ label: 'Default', description: '' }] }] } },
+          options: [{ label: 'Default', description: '' }] }] },
     }, onClientResponse: answer => probe.answers.push(answer) }) }).mount(target);
   }, { root, packaged: process.env.SDK_SPEECH_PACKAGE === '1' });
   const question = page.locator('#question-speech-fixture');
