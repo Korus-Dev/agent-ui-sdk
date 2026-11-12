@@ -16,4 +16,16 @@ describe('Basic sample backend selection', () => {
     } finally { await service.close(); }
     expect(harness.close).toHaveBeenCalledOnce();
   });
+
+  it('lists with a session in the working folder, because Claude and Cursor list the folder of the session they are asked through', async () => {
+    const listConversations = vi.fn(async () => []);
+    const open = vi.fn(() => Object.freeze({}) as Session);
+    const harness = { open, onEvent: () => () => {}, close: vi.fn(async () => {}), listConversations };
+    const service = createChatService('/workspace', { load: () => [], save: () => {} }, () => { throw new Error('No attachments'); }, () => {}, 'claude', () => harness as unknown as Harness);
+    try {
+      await service.api.chats();
+      expect(open).toHaveBeenCalledWith(expect.objectContaining({ id: 'sample-lister', folder: '/workspace' }));
+      expect(listConversations).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ cwd: '/workspace' }));
+    } finally { await service.close(); }
+  });
 });

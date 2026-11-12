@@ -36,7 +36,9 @@ export function createChatService(
   const chats = new Map<string, Chat>();
   const owned = new Map<string, ChatRecord>(store.load().map(record => [record.id, record]));
   for (const { ref, ...chat } of owned.values()) chats.set(chat.id, { ...chat, ref: harness.restoreRef(ref) });
-  const lister = harness.open({ id: 'sample-lister', folder: null });
+  // Claude and Cursor list the folder of the session they are asked through, and refuse to resume a
+  // conversation in another folder, so the lister lives in the same folder as every chat session.
+  const lister = harness.open({ id: 'sample-lister', folder });
   // Refs are opaque handles; their plain data identifies a conversation across list calls.
   const refKey = (ref: ConversationRef) => JSON.stringify(harness.getRefData(ref).data);
 
@@ -97,7 +99,7 @@ export function createChatService(
         const ref = chat.ref ?? (chat.session ? harness.getConversationRef(chat.session) : null);
         return ref ? [[refKey(ref), chat] as const] : [];
       }));
-      for (const summary of await harness.listConversations(lister, { limit: 200 })) {
+      for (const summary of await harness.listConversations(lister, { cwd: folder, limit: 200 })) {
         const existing = known.get(refKey(summary.ref)) ?? chats.get(summary.id);
         if (existing) { existing.ref ??= summary.ref; continue; }
         chats.set(summary.id, { id: summary.id, title: summary.title || summary.preview || 'Untitled', updatedAt: summary.updatedAt, ref: summary.ref });

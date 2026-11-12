@@ -18,7 +18,7 @@ function fixture() {
   const openExternal = vi.fn(async () => {});
   const factory = vi.fn(() => host);
   const signIn = createCodexSignIn('/isolated/spark/codex', openExternal, factory as never);
-  const emit = (state: Authentication) => listener({ type: 'provider.event', event: { type: 'provider.authenticationChanged', payload: { kind: 'codex', connected: Boolean(state.account || !state.requiresOpenaiAuth), state } } } as never);
+  const emit = (state: Authentication) => listener({ type: 'provider.authenticationChanged', provider: 'codex', payload: { kind: 'codex', connected: Boolean(state.account || !state.requiresOpenaiAuth), state } } as never);
   return { host, signIn, factory, openExternal, off, emit };
 }
 describe('isolated Codex sign-in', () => {
