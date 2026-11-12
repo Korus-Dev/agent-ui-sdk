@@ -46,6 +46,11 @@ export function sdkSources(projectRoot, environment = process.env, requested) {
     for (const [entry, value] of Object.entries(entries)) {
       const target = typeof value === 'string' ? value : value.default;
       const types = typeof value === 'string' ? undefined : value.types;
+      // The stylesheet is built into dist; locally and in browser jobs it comes straight from source.
+      if (name === '@korus-dev/agent-ui-sdk' && entry === './styles.css') {
+        aliases.push({ find: /^@korus-dev\/agent-ui-sdk\/styles\.css$/, replacement: path.resolve(directory, 'src/vue/styles.css') });
+        continue;
+      }
       if (!target?.startsWith('./dist/') || !target.endsWith('.js')) continue;
       const specifier = name + (entry === '.' ? '' : entry.slice(1));
       let source = target.replace(/^\.\/dist\//, 'src/').replace(/\.(d\.ts|js)$/, '');
