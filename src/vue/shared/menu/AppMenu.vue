@@ -213,8 +213,12 @@
 </template>
 
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue';
 import { CheckIcon, ChevronRightIcon } from '../icons/app-icons';
 import type { AppMenuCheckboxItem, AppMenuItem, AppMenuRadioItem } from './app-menu';
+
+// Element Plus is an optional peer: it is loaded only when a switch-style row actually renders.
+const ElSwitch = defineAsyncComponent(() => import('element-plus').then(module => module.ElSwitch));
 
 defineOptions({
   name: 'AppMenu',
