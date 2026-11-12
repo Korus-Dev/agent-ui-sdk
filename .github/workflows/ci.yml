@@ -46,7 +46,7 @@ jobs:
       - run: npm run test:lab:browser
       - run: npm run test:samples:browser
   macos:
-    runs-on: blacksmith-6vcpu-macos-15
+    runs-on: blacksmith-6vcpu-macos-latest
     timeout-minutes: 15
     env:
       SDK_LOCAL_SOURCE: '0'
