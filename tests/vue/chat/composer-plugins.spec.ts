@@ -7,7 +7,6 @@ import {
   pluginInsertText,
   pluginMatchesMention,
 } from '../../../src/vue/chat/composer-plugins';
-import { isApprovalPreset } from '../../../src/vue/chat/approval-presets';
 import { filterComposerMentionGroups, findComposerMention } from '../../../src/vue/chat/composer-mentions-custom';
 
 const plugins: PluginSummary[] = [
@@ -78,13 +77,5 @@ describe('composer plugin policy', () => {
     expect(findComposerMention(groups, ' person:nico ')).toStrictEqual({ group: groups[0], item: target });
     expect(findComposerMention(groups, 'missing')).toBeUndefined();
     expect(findComposerMention([], 'person:nico')).toBeUndefined();
-  });
-
-  it('recognizes only supported approval presets', () => {
-    expect(isApprovalPreset('ask-for-approval')).toBe(true);
-    expect(isApprovalPreset('approve-for-me')).toBe(true);
-    expect(isApprovalPreset('full-access')).toBe(true);
-    expect(isApprovalPreset('never')).toBe(false);
-    expect(isApprovalPreset(null)).toBe(false);
   });
 });

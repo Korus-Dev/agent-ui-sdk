@@ -5,7 +5,6 @@ import type {
   FileSearchItem,
   ModelOption,
   SkillSummary,
-  ApprovalPreset,
   Capabilities,
   CommandSummary,
   ReasoningEffort,
@@ -63,7 +62,8 @@ export type ConversationPaneComposerState = {
   menuItems?: readonly ComposerMenuItem[];
   /** Host-owned actions rendered before the SDK's model, reasoning, and speed controls. */
   modelMenuItems?: readonly ComposerMenuItem[];
-  approvalPreset?: ApprovalPreset | null;
+  /** The id of the permission in effect, one of the capabilities' permissions. */
+  permission?: string | null;
   planMode?: boolean;
   selectedModelId?: string | null;
   selectedReasoningEffort?: ReasoningEffort | null;

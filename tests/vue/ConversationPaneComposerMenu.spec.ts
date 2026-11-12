@@ -16,13 +16,13 @@ describe('ConversationPane composer menu', () => {
         identity: { messages: [] },
         capabilities: {
           models: false, skills: false, reasoningEffort: false, serviceTier: false,
-          planMode: true, goals: true, approvals: true, approvalPresets: ['ask-for-approval'],
+          planMode: true, goals: true, approvals: true, permissions: [{ id: 'ask-for-approval' }],
           steerPrompt: false, interrupt: false, history: false,
           deleteTurn: false, editTurn: false, retryTurn: false,
         },
         catalogs: { commands: [{ id: 'host.goal', name: 'goal', composerMode: { label: 'Goal' } }] },
         composer: {
-          approvalPreset: 'ask-for-approval',
+          permission: 'ask-for-approval',
           leadingMenuItems: [permissions],
           menuItems: [{ id: 'custom', type: 'custom', label: 'Custom' }],
         },

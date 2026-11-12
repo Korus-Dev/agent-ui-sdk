@@ -167,7 +167,7 @@
             :models="effectiveModels"
             :placeholder="effectivePlaceholder"
             :suggested-prompt="effectiveSuggestedPrompt"
-            :approval-preset="effectiveApprovalPreset"
+            :permission="effectivePermission"
             :plan-mode="effectivePlanMode"
             :presentation="effectivePresentation"
             :selected-model-id="effectiveSelectedModelId"
@@ -183,7 +183,7 @@
             @menu-select="menuSelect"
             @mention-select="mentionSelect"
             @request-skills="requestSkills"
-            @select-approval-preset="selectApprovalPreset"
+            @select-permission="selectPermission"
             @send="submit"
             @steer="steer"
             @steer-queued-prompt="steerQueuedPrompt"
@@ -311,7 +311,7 @@ import { renderedChatMessage, type ConversationMessageInput } from '../chat/rend
 import type {
   ContextUsage,
   FileSearchItem,
-  ApprovalPreset,
+  PermissionOption,
   Capabilities,
   CommandSummary,
   ConversationPresentation,
@@ -359,7 +359,7 @@ const props = withDefaults(defineProps<{
   answeredClientRequestIds?: ReadonlySet<string>;
   /** Pending requests the person answers: approvals, questions and tool confirmations. */
   requests?: readonly AgentRequest[];
-  approvalPresets?: readonly ApprovalPreset[];
+  permissions?: readonly PermissionOption[];
   attachEnabled?: boolean;
   attachments?: readonly HostAttachment[];
   autofocus?: boolean;
@@ -413,7 +413,7 @@ const props = withDefaults(defineProps<{
   suggestedPrompt?: string;
   promptHistory?: readonly string[];
   readPromptHistory?: () => readonly string[] | Promise<readonly string[]>;
-  approvalPreset?: ApprovalPreset | null;
+  permission?: string | null;
   planMode?: boolean;
   plugins?: readonly PluginSummary[];
   presentation?: ConversationPresentation;
@@ -857,9 +857,9 @@ const effectiveModels = computed(() => controlledValue(
   (state) => state.catalogs?.models,
   () => props.models,
 ));
-const effectiveApprovalPreset = computed(() => controlledValue(
-  (state) => state.composer?.approvalPreset,
-  () => props.approvalPreset,
+const effectivePermission = computed(() => controlledValue(
+  (state) => state.composer?.permission,
+  () => props.permission,
 ));
 const effectivePlanMode = computed(() => controlledValue(
   (state) => state.composer?.planMode,
@@ -911,11 +911,11 @@ const effectiveCapabilities = computed<Capabilities>(() => ({
   ...(effectiveControllerState.value
     ? effectiveControllerState.value.capabilities
     : props.capabilities),
-  approvalPresets: effectiveControllerState.value?.capabilities?.approvalPresets
+  permissions: effectiveControllerState.value?.capabilities?.permissions
     ?? (effectiveControllerState.value
-      ? defaultCapabilities.approvalPresets
-      : props.approvalPresets ?? props.capabilities?.approvalPresets)
-    ?? defaultCapabilities.approvalPresets,
+      ? defaultCapabilities.permissions
+      : props.permissions ?? props.capabilities?.permissions)
+    ?? defaultCapabilities.permissions,
 }));
 const effectiveCommands = computed(() => controlledValue(
   (state) => state.catalogs?.commands ?? [],
@@ -1610,10 +1610,10 @@ function steer(prompt: string, composerOptions?: Pick<ReferenceSendPromptOptions
   replaceAttachments([]);
 }
 
-function selectApprovalPreset(preset: ApprovalPreset): void {
-  if (dispatchControllerAction('updateSettings', { permission: preset })) return;
+function selectPermission(permission: string): void {
+  if (dispatchControllerAction('updateSettings', { permission })) return;
   if (effectiveController.value) return;
-  emit('update:permission', preset);
+  emit('update:permission', permission);
 }
 
 function resolveApproval(

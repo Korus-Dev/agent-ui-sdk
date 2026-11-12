@@ -28,17 +28,16 @@
 </template>
 
 <script setup lang="ts" generic="Payload = unknown">
-import { computed, type Component } from 'vue';
-import type { ApprovalPreset } from './contracts';
-import { approvalPresetOptions } from './approval-presets';
+import { computed } from 'vue';
+import type { PermissionOption } from './contracts';
 import ComposerMenu from '../components/ComposerMenu.vue';
 import type {
   ComposerMenuItem,
   ComposerMenuSelectableItem,
 } from '../composer-menu';
-import { HandStopIcon, ListDetailsIcon, PaperclipIcon, PlusIcon, ShieldCheckIcon, Sparkles, TargetArrowIcon } from '../shared/icons/app-icons';
+import { HandStopIcon, ListDetailsIcon, PaperclipIcon, PlusIcon, ShieldCheckIcon, TargetArrowIcon } from '../shared/icons/app-icons';
 
-type ComposerMenuAction = { kind: 'approval'; preset: ApprovalPreset };
+type ComposerMenuAction = { kind: 'permission'; permission: string };
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = withDefaults(defineProps<{
@@ -46,11 +45,11 @@ const props = withDefaults(defineProps<{
   disabled?: boolean;
   leadingMenuItems?: readonly ComposerMenuItem<Payload>[];
   items?: readonly ComposerMenuItem<Payload>[];
-  approvalPreset?: ApprovalPreset | null;
-  approvalPresets?: readonly ApprovalPreset[];
+  permission?: string | null;
+  permissions?: readonly PermissionOption[];
   goalMode?: boolean;
   planMode: boolean;
-  showApprovalMenu?: boolean;
+  showPermissionMenu?: boolean;
   showGoalMode?: boolean;
   showPlanMode?: boolean;
 }>(), {
@@ -58,11 +57,11 @@ const props = withDefaults(defineProps<{
   disabled: false,
   leadingMenuItems: () => [],
   items: () => [],
-  approvalPreset: null,
-  approvalPresets: () => [],
+  permission: null,
+  permissions: () => [],
   goalMode: false,
   planMode: false,
-  showApprovalMenu: false,
+  showPermissionMenu: false,
   showGoalMode: false,
   showPlanMode: true,
 });
@@ -70,36 +69,34 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   attach: [];
   select: [item: ComposerMenuSelectableItem<Payload>];
-  selectApprovalPreset: [preset: ApprovalPreset];
+  selectPermission: [permission: string];
   'update:goalMode': [enabled: boolean];
   'update:planMode': [enabled: boolean];
 }>();
 // Stryker restore all
 
-const allowedApprovalPresets = computed(() => new Set(props.approvalPresets));
 const menuItems = computed<ComposerMenuItem<ComposerMenuAction | Payload>[]>(() => {
   const items: ComposerMenuItem<ComposerMenuAction | Payload>[] = [];
 
-  if (props.showApprovalMenu) {
+  if (props.showPermissionMenu) {
     items.push({
-      id: 'approval',
+      id: 'permission',
       type: 'submenu',
       label: 'Permissions',
       submenuAlignment: 'bottom',
       submenuWidth: 'wide',
       icon: ShieldCheckIcon,
-      items: approvalPresetOptions.map((option) => ({
-        id: `approval:${option.id}`,
+      items: props.permissions.map((option) => ({
+        id: `permission:${option.id}`,
         type: 'radio',
-        label: option.label,
-        description: option.description,
-        icon: approvalIcon(option.id),
-        checked: option.id === props.approvalPreset,
-        disabled: !allowedApprovalPresets.value.has(option.id),
-        payload: { kind: 'approval', preset: option.id },
+        label: option.label ?? permissionLabel(option.id),
+        description: option.description ?? (option.dangerous ? 'Allows tools to run without approval.' : undefined),
+        icon: option.dangerous ? ShieldCheckIcon : HandStopIcon,
+        checked: option.id === props.permission,
+        payload: { kind: 'permission', permission: option.id },
       })),
     });
-    items.push({ id: 'group-approval', type: 'separator' });
+    items.push({ id: 'group-permission', type: 'separator' });
   }
 
   items.push(...props.leadingMenuItems);
@@ -145,14 +142,9 @@ const menuItems = computed<ComposerMenuItem<ComposerMenuAction | Payload>[]>(() 
   return grouped;
 });
 
-function approvalIcon(preset: ApprovalPreset): Component {
-  if (preset === 'ask-for-approval') {
-    return HandStopIcon;
-  }
-  if (preset === 'approve-for-me') {
-    return Sparkles;
-  }
-  return ShieldCheckIcon;
+/** Words for a harness's permission id when the app supplies none: `acceptEdits` and `full-access` read as written. */
+function permissionLabel(id: string): string {
+  return id.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[-_]/g, ' ').replace(/^./, (char) => char.toUpperCase());
 }
 
 function selectMenuItem(item: ComposerMenuSelectableItem<ComposerMenuAction | Payload>): void {
@@ -165,8 +157,8 @@ function selectMenuItem(item: ComposerMenuSelectableItem<ComposerMenuAction | Pa
     emit('update:goalMode', !props.goalMode);
     return;
   }
-  if (item.id.startsWith('approval:') && isComposerMenuAction(action) && action.kind === 'approval') {
-    emit('selectApprovalPreset', action.preset);
+  if (item.id.startsWith('permission:') && isComposerMenuAction(action) && action.kind === 'permission') {
+    emit('selectPermission', action.permission);
     return;
   }
   if (item.id === 'attach') {

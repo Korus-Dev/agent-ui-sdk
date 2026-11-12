@@ -4,7 +4,6 @@ import { mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 import { describe, expect, it } from 'vitest';
 
-import { defaultApprovalPreset, isApprovalPreset } from '../../../src/vue/chat/approval-presets';
 import {
   defaultChatTranslate,
   provideChatTranslate,
@@ -62,10 +61,6 @@ describe('chat public contracts', () => {
     expect(isImageGenerationToolCall(toolCall({ kind: 'dynamicTool', function: 'image-generation' }))).toBe(false);
   });
 
-  it('publishes the default approval preset and recognizes only supported values', () => {
-    expect(defaultApprovalPreset).toBe('ask-for-approval');
-    expect(isApprovalPreset(defaultApprovalPreset)).toBe(true);
-  });
 });
 
 describe('chat translation', () => {

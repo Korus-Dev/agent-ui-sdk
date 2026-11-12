@@ -2868,7 +2868,7 @@ describe('ConversationPane with provider fixtures', () => {
     expect(wrapper.emitted('mentionSelect')).toBeUndefined();
   });
 
-  it('uses controlled settings as the approval-preset fallback action', async () => {
+  it('uses controlled settings as the permission fallback action', async () => {
     const updateSettings = vi.fn();
     const controller = createConversationPaneController({
       state: { identity: { conversationKey: 'controlled-preset-fallback', messages } },
@@ -2877,7 +2877,7 @@ describe('ConversationPane with provider fixtures', () => {
     const wrapper = mountConversation( { props: { controller } });
 
     (wrapper.findComponent(Composer) as unknown as VueWrapper).vm
-      .$emit('selectApprovalPreset', 'approve-for-me');
+      .$emit('selectPermission', 'approve-for-me');
     await flushPromises();
 
     expect(updateSettings).toHaveBeenCalledWith({ permission: 'approve-for-me' });
@@ -2925,7 +2925,7 @@ describe('ConversationPane with provider fixtures', () => {
         },
         composer: {
           state: { text: '', selectionStart: 0, selectionEnd: 0 },
-          approvalPreset: null,
+          permission: null,
           planMode: false,
           selectedModelId: null,
           selectedReasoningEffort: null,
@@ -3005,7 +3005,7 @@ describe('ConversationPane with provider fixtures', () => {
         identity: { conversationKey: 'controller-thread', messages, turns },
         thread: { queuedPrompts, turnGitDiff },
         composer: {
-          approvalPreset: 'full-access',
+          permission: 'full-access',
           leadingMenuItems,
           menuItems,
           modelMenuItems,
@@ -3038,7 +3038,7 @@ describe('ConversationPane with provider fixtures', () => {
           editTurn: true,
           retryTurn: true,
           approvals: true,
-          approvalPresets: ['full-access'],
+          permissions: [{ id: 'full-access', dangerous: true }],
         },
         policy: {
           actionsDisabled: true,
@@ -3063,7 +3063,7 @@ describe('ConversationPane with provider fixtures', () => {
 
     const composer = wrapper.findComponent(Composer) as unknown as VueWrapper;
     expect(composer.props()).toMatchObject({
-      approvalPreset: 'full-access',
+      permission: 'full-access',
       commands,
       files,
       leadingMenuItems,
@@ -3080,8 +3080,8 @@ describe('ConversationPane with provider fixtures', () => {
       skillCatalogStatus: 'error',
       skills,
     });
-    expect((composer.props() as { capabilities: { approvalPresets: readonly string[] } }).capabilities.approvalPresets)
-      .toStrictEqual(['full-access']);
+    expect((composer.props() as { capabilities: { permissions: readonly { id: string }[] } }).capabilities.permissions)
+      .toStrictEqual([{ id: 'full-access', dangerous: true }]);
 
     expect(wrapper.findComponent(MessageList).props()).toMatchObject({
       actionsDisabled: true,
@@ -3952,7 +3952,7 @@ function emitPaneActionTable(
 function emitComposerActionTable(wrapper: VueWrapper): void {
   const composer = wrapper.findComponent(Composer) as unknown as VueWrapper;
   composer.vm.$emit('interrupt');
-  composer.vm.$emit('selectApprovalPreset', 'full-access');
+  composer.vm.$emit('selectPermission', 'full-access');
   composer.vm.$emit('update:modelId', 'gpt-routing');
   composer.vm.$emit('update:planMode', true);
   composer.vm.$emit('update:reasoningEffort', 'high');

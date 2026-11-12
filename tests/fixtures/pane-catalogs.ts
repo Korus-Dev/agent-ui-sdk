@@ -14,7 +14,7 @@ export const exampleCapabilities: Capabilities = {
   editTurn: true,
   retryTurn: true,
   approvals: true,
-  approvalPresets: ['ask-for-approval', 'approve-for-me', 'full-access'],
+  permissions: [{ id: 'ask-for-approval' }, { id: 'approve-for-me' }, { id: 'full-access', dangerous: true }],
 } as const;
 
 

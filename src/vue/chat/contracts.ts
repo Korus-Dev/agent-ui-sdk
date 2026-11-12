@@ -1,7 +1,11 @@
 import type { SpeechTranscriptionResult as NativeSpeechTranscriptionResult } from '@korus-dev/agent-ui-sdk/host';
 import type { ProviderServiceTier } from '@korus-dev/multi-agent-sdk';
 
-export type ApprovalPreset = 'ask-for-approval' | 'approve-for-me' | 'full-access';
+/**
+ * A permission the harness offers, as its capabilities list it: the id is the harness's own.
+ * The app may supply the words; without them the label is derived from the id.
+ */
+export type PermissionOption = { id: string; label?: string; description?: string; dangerous?: boolean };
 
 export type ReasoningEffort = string;
 
@@ -19,7 +23,8 @@ export type Capabilities = {
   editTurn: boolean;
   retryTurn: boolean;
   approvals: boolean;
-  approvalPresets?: readonly ApprovalPreset[];
+  /** The permissions the harness offers for this conversation, from its capabilities. */
+  permissions?: readonly PermissionOption[];
 };
 
 export type ReasoningEffortOption = {

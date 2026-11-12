@@ -83,7 +83,6 @@ export {
   defaultConversationPresentation,
   resolveConversationPresentation,
 } from './chat/contracts';
-export { approvalPresetOptions, defaultApprovalPreset, isApprovalPreset } from './chat/approval-presets';
 export { defaultChatTranslate, provideChatTranslate, useChatTranslate } from './chat/chat-i18n';
 export { provideToolCallDetails, useToolCallDetails } from './chat/tool-call-details';
 export { provideToolPresentation, useToolPresentation } from './chat/tool-presentation';
@@ -157,7 +156,7 @@ export type {
   ConversationLink,
   FileSearchItem,
   SpeechTranscriptionResult,
-  ApprovalPreset,
+  PermissionOption,
   AskUserAnswers,
   AskUserQuestion,
   AskUserQuestionOption,

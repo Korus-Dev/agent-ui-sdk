@@ -88,16 +88,16 @@
           :disabled="disabled"
           :leading-menu-items="leadingMenuItems"
           :items="menuItems"
-          :approval-preset="approvalPreset"
-          :approval-presets="effectiveCapabilities.approvalPresets ?? []"
+          :permission="permission"
+          :permissions="effectiveCapabilities.permissions ?? []"
           :goal-mode="goalMode"
           :plan-mode="effectivePlanMode"
-          :show-approval-menu="effectiveCapabilities.approvals && Boolean(approvalPreset) && (effectiveCapabilities.approvalPresets?.length ?? 0) > 0"
+          :show-permission-menu="(effectiveCapabilities.permissions?.length ?? 0) > 0"
           :show-goal-mode="effectiveCapabilities.goals"
           :show-plan-mode="effectiveCapabilities.planMode"
           @attach="$emit('attach')"
           @select="$emit('menuSelect', $event)"
-          @select-approval-preset="$emit('selectApprovalPreset', $event)"
+          @select-permission="$emit('selectPermission', $event)"
           @update:goal-mode="updateGoalMode"
           @update:plan-mode="updatePlanMode"
         >
@@ -159,7 +159,7 @@
 
 <script setup lang="ts" generic="Payload = unknown">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import type { ContextUsage, FileSearchItem, ApprovalPreset, Capabilities, CommandSummary, ModelOption, SkillSummary, ChatTranscription, ConversationPresentation, ReasoningEffort } from '../chat/contracts';
+import type { ContextUsage, FileSearchItem, Capabilities, CommandSummary, ModelOption, SkillSummary, ChatTranscription, ConversationPresentation, ReasoningEffort } from '../chat/contracts';
 import { promptContentDispatchText, promptContentText, trimPromptContent, replacePromptContentRange } from '@korus-dev/multi-agent-sdk/prompt';
 import type { PromptPart, ReferenceSendPromptOptions, PluginSummary } from '@korus-dev/multi-agent-sdk';
 import { resolveConversationPresentation } from '../chat/contracts';
@@ -217,7 +217,7 @@ const props = defineProps<{
   placeholder?: string;
   suggestedPrompt?: string;
   queuedPromptId?: string | null;
-  approvalPreset?: ApprovalPreset | null;
+  permission?: string | null;
   planMode?: boolean;
   presentation?: ConversationPresentation;
   selectedModelId?: string | null;
@@ -241,7 +241,7 @@ const emit = defineEmits<{
   interrupt: [];
   'update:modelId': [modelId: string];
   'update:composerState': [state: ComposerState];
-  selectApprovalPreset: [preset: ApprovalPreset];
+  selectPermission: [permission: string];
   'update:planMode': [enabled: boolean];
   'update:reasoningEffort': [reasoningEffort: ReasoningEffort];
   'update:serviceTier': [serviceTier: string | null];

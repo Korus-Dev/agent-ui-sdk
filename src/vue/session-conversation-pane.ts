@@ -57,8 +57,8 @@ export function sessionStateToConversationPaneState(
       history: capabilities.history, deleteTurn: capabilities.deleteTurn,
       editTurn: capabilities.editTurn, retryTurn: capabilities.retryTurn,
       approvals: capabilities.approvals,
-      // Permission IDs belong to the harness; never reinterpret them as presets.
-      approvalPresets: [],
+      // The session controller lists the harness's permissions itself, with the app's wording.
+      permissions: [],
     },
     policy: {
       attachEnabled: capabilities.attachments, canDeleteTurn: capabilities.deleteTurn,

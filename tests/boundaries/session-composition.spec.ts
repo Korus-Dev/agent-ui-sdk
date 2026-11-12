@@ -186,7 +186,7 @@ describe('neutral session composition', () => {
     expect(pane.identity.turns?.[0]).toMatchObject({ id: 'turn-1', status: 'inProgress', durationMs: null, startedAt: null });
     // The pane receives the session's requests as they are; it splits approvals from inline requests itself.
     expect(pane.thread?.requests).toBe(sessionFixture.requests);
-    expect(pane.capabilities).toMatchObject({ planMode: false, skills: false, approvals: true, approvalPresets: [] });
+    expect(pane.capabilities).toMatchObject({ planMode: false, skills: false, approvals: true, permissions: [] });
     expect(toChatMessage(sessionFixture.messages[1]!).toolCalls?.[0]).toMatchObject({ id: 'tool-1', state: 'running' });
   });
 

@@ -168,7 +168,7 @@ import type { ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import type { ConversationMessageInput } from '@korus-dev/agent-ui-sdk';
 import { normalizePromptContent } from '@korus-dev/multi-agent-sdk/prompt';
 import { computed, defineComponent, h, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
-const labCapabilities = { models: true, skills: true, reasoningEffort: true, serviceTier: true, planMode: true, goals: true, steerPrompt: true, interrupt: true, history: true, deleteTurn: true, editTurn: true, retryTurn: true, approvals: true, approvalPresets: ['ask-for-approval', 'approve-for-me', 'full-access'] as const };
+const labCapabilities = { models: true, skills: true, reasoningEffort: true, serviceTier: true, planMode: true, goals: true, steerPrompt: true, interrupt: true, history: true, deleteTurn: true, editTurn: true, retryTurn: true, approvals: true, permissions: [{ id: 'ask-for-approval' }, { id: 'approve-for-me' }, { id: 'full-access', dangerous: true }] };
 import { chartHtmlChunks, inlineHtmlChunks } from './inline-html-demo';
 import { ConversationPane, provideToolPresentation, type ChatMessage, type ChatTranscription, type ContextUsage, type ModelOption, type MessageTextSelection, type NativeAttachment, type NativeAttachmentInput, type QueuedPromptData, type SkillSummary, type ReasoningEffort, type TurnGitDiff } from '@korus-dev/agent-ui-sdk';
 import type { MessagePart } from '@korus-dev/multi-agent-sdk';

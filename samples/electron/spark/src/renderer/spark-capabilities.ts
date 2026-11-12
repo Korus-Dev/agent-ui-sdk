@@ -13,5 +13,5 @@ export const sparkCapabilities: Capabilities = {
   editTurn: false,
   retryTurn: false,
   approvals: false,
-  approvalPresets: [],
+  permissions: [],
 };

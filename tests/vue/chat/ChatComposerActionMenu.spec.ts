@@ -27,38 +27,40 @@ describe('ChatComposerActionMenu', () => {
     expect(wrapper.find('.chat-composer-action-menu').exists()).toBe(false);
   });
 
-  it('shows approval presets and emits selected mode', async () => {
+  it('lists the permissions the harness offers, whatever their ids, and emits the selected id', async () => {
     const wrapper = mountMenu({
-      approvalPreset: 'full-access',
-      approvalPresets: ['ask-for-approval', 'approve-for-me', 'full-access'],
-      showApprovalMenu: true,
+      permission: 'bypassPermissions',
+      permissions: [{ id: 'default', label: 'Ask for approval' }, { id: 'acceptEdits', description: 'Edits files without asking.' }, { id: 'bypassPermissions', dangerous: true }],
+      showPermissionMenu: true,
     });
 
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
 
     expect(wrapper.get('.agent-ui-composer-menu-list__submenu > button').text()).toBe('Permissions');
     expect(wrapper.get('.agent-ui-composer-menu-list__submenu > button > svg').classes()).toContain('tabler-icon-shield-check');
+    // The app's words win; without them the label is the id made readable, and a dangerous option says so.
     expect(wrapper.text()).toContain('Ask for approval');
-    expect(wrapper.text()).toContain('Approve for me');
-    expect(wrapper.text()).toContain('Automatically approve safe tool calls for this session.');
-    expect(wrapper.text()).toContain('Full access');
+    expect(wrapper.text()).toContain('Accept Edits');
+    expect(wrapper.text()).toContain('Edits files without asking.');
+    expect(wrapper.text()).toContain('Bypass Permissions');
+    expect(wrapper.text()).toContain('Allows tools to run without approval.');
     expect(wrapper.find('.agent-ui-composer-menu-list__chevron').exists()).toBe(true);
     const approvalItems = wrapper.findAll('[role="menuitemradio"]');
     expect(approvalItems.map((item) => item.attributes('aria-checked')))
       .toStrictEqual(['false', 'false', 'true']);
     expect(approvalItems.map((item) => item.get('svg').attributes('class'))).toStrictEqual([
       expect.stringContaining('tabler-icon-hand-stop'),
-      expect.stringContaining('tabler-icon-sparkles'),
+      expect.stringContaining('tabler-icon-hand-stop'),
       expect.stringContaining('agent-ui-composer-menu-list__radio-check'),
     ]);
     await wrapper.findAll('[role="menuitemradio"]')[1]?.trigger('click');
 
-    expect(wrapper.emitted('selectApprovalPreset')).toStrictEqual([['approve-for-me']]);
+    expect(wrapper.emitted('selectPermission')).toStrictEqual([['acceptEdits']]);
     expect(wrapper.find('.chat-composer-action-menu').exists()).toBe(false);
   });
 
   it.each([false, true])('separates approval once when the host supplies a divider: %s', async (hostDivider) => {
-    const wrapper = mountMenu({ showApprovalMenu: true, showGoalMode: true,
+    const wrapper = mountMenu({ showPermissionMenu: true, showGoalMode: true,
       leadingMenuItems: hostDivider ? [{ id: 'app-commands', type: 'separator' }] : [],
     });
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
@@ -86,9 +88,9 @@ describe('ChatComposerActionMenu', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     onTestFinished(() => { vi.useRealTimers(); });
     const wrapper = mountMenu({
-      approvalPreset: 'ask-for-approval',
-      approvalPresets: ['ask-for-approval', 'approve-for-me', 'full-access'],
-      showApprovalMenu: true,
+      permission: 'ask-for-approval',
+      permissions: [{ id: 'ask-for-approval' }, { id: 'approve-for-me' }, { id: 'full-access', dangerous: true }],
+      showPermissionMenu: true,
     });
 
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
@@ -110,29 +112,22 @@ describe('ChatComposerActionMenu', () => {
     expect(approvalSubmenu.classes()).toContain('agent-ui-composer-menu-list__submenu--open');
     await fullAccess.trigger('click');
 
-    expect(wrapper.emitted('selectApprovalPreset')).toStrictEqual([['full-access']]);
+    expect(wrapper.emitted('selectPermission')).toStrictEqual([['full-access']]);
     expect(wrapper.find('.chat-composer-action-menu').exists()).toBe(false);
   });
 
-  it('disables approval presets unavailable from backend capabilities', async () => {
+  it('lists only the permissions the harness offers', async () => {
     const wrapper = mountMenu({
-      approvalPreset: 'ask-for-approval',
-      approvalPresets: ['ask-for-approval'],
-      showApprovalMenu: true,
+      permission: 'ask-for-approval',
+      permissions: [{ id: 'ask-for-approval' }],
+      showPermissionMenu: true,
     });
 
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
 
     expect(wrapper.get('.agent-ui-composer-menu-list__submenu > button').text()).toBe('Permissions');
     expect(wrapper.get('.agent-ui-composer-menu-list__submenu > button > svg').classes()).toContain('tabler-icon-shield-check');
-    expect(wrapper.text()).toContain('Ask for approval');
-    expect(wrapper.text()).toContain('Approve for me');
-    expect(wrapper.text()).toContain('Full access');
-    expect(wrapper.findAll('[role="menuitemradio"]').map((item) => item.attributes('disabled'))).toStrictEqual([
-      undefined,
-      '',
-      '',
-    ]);
+    expect(wrapper.findAll('[role="menuitemradio"]').map((item) => item.text())).toStrictEqual(['Ask for approval']);
   });
 
   it('merges host actions into the full menu and emits their payload', async () => {
@@ -150,8 +145,8 @@ describe('ChatComposerActionMenu', () => {
 
   it('renders leading host actions after Approval and before Goal then Plan mode', async () => {
     const wrapper = mountMenu({
-      approvalPreset: 'ask-for-approval',
-      approvalPresets: ['ask-for-approval'],
+      permission: 'ask-for-approval',
+      permissions: [{ id: 'ask-for-approval' }],
       leadingMenuItems: [{
         id: 'permissions',
         type: 'custom',
@@ -159,7 +154,7 @@ describe('ChatComposerActionMenu', () => {
         payload: { source: 'host' },
       }],
       items: [{ id: 'refresh', type: 'custom', label: 'Refresh', payload: { source: 'host' } }],
-      showApprovalMenu: true,
+      showPermissionMenu: true,
       showGoalMode: true,
       showPlanMode: true,
     });
@@ -205,22 +200,22 @@ describe('ChatComposerActionMenu', () => {
   });
 
   it.each([
-    ['approval id without an action payload', { id: 'approval:host', type: 'custom', label: 'Approval host', payload: null }],
+    ['approval id without an action payload', { id: 'permission:host', type: 'custom', label: 'Approval host', payload: null }],
     ['approval payload without an approval id', {
       id: 'host-approval', type: 'custom', label: 'Host approval',
-      payload: { kind: 'approval', preset: 'full-access' },
+      payload: { kind: 'permission', permission: 'full-access' },
     }],
     ['non-approval action payload', {
-      id: 'approval:attach', type: 'custom', label: 'Approval attach', payload: { kind: 'attach' },
+      id: 'permission:attach', type: 'custom', label: 'Approval attach', payload: { kind: 'attach' },
     }],
-    ['primitive payload', { id: 'approval:text', type: 'custom', label: 'Approval text', payload: 'host' }],
+    ['primitive payload', { id: 'permission:text', type: 'custom', label: 'Approval text', payload: 'host' }],
   ] satisfies Array<[string, ComposerMenuItem<unknown>]>)('routes a host item with %s to the host', async (_, item) => {
     const wrapper = mountMenu({ items: [item] });
     await wrapper.get('.chat-composer-action-menu__button').trigger('click');
     await wrapper.findAll('button').find((button) => button.text().includes(item.label))!.trigger('click');
 
     expect(wrapper.emitted('select')).toStrictEqual([[item]]);
-    expect(wrapper.emitted('selectApprovalPreset')).toBeUndefined();
+    expect(wrapper.emitted('selectPermission')).toBeUndefined();
     expect(wrapper.emitted('attach')).toBeUndefined();
   });
 
@@ -282,23 +277,23 @@ describe('ChatComposerActionMenu', () => {
 });
 
 function mountMenu(props: Partial<{
-  approvalPreset: 'ask-for-approval' | 'approve-for-me' | 'full-access' | null;
-  approvalPresets: ('ask-for-approval' | 'approve-for-me' | 'full-access')[];
+  permission: string | null;
+  permissions: { id: string; label?: string; description?: string; dangerous?: boolean }[];
   attachEnabled: boolean;
   disabled: boolean;
   leadingMenuItems: ComposerMenuItem<unknown>[];
   items: ComposerMenuItem<unknown>[];
   planMode: boolean;
-  showApprovalMenu: boolean;
+  showPermissionMenu: boolean;
   showGoalMode: boolean;
   showPlanMode: boolean;
 }> = {}) {
   return mount(ChatComposerActionMenu, {
     props: {
       disabled: false,
-      approvalPreset: null,
+      permission: null,
       planMode: false,
-      showApprovalMenu: false,
+      showPermissionMenu: false,
       ...props,
     },
     attachTo: document.body,
