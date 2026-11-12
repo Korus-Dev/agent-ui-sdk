@@ -1,10 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.27.0
 
 - The composer's permission menu lists the permissions the harness offers. `capabilities.permissions` takes `PermissionOption[]` (`id`, optional `label`, `description`, `dangerous`) and `permission` names the one in effect; a label is derived from the id when the app supplies none. `approvalPresets`, `approvalPreset`, the `ApprovalPreset` type and `approvalPresetOptions`, `defaultApprovalPreset` and `isApprovalPreset` are removed.
 - Explicit package exports with extensionless optional entry points.
-- Provider-neutral component, presentation and host capability names, using Multi Agent SDK 0.26.0 neutral contracts.
+- Provider-neutral component, presentation and host capability names, using Multi Agent SDK 0.27.0 neutral contracts.
 - One capability-driven conversation pane for every harness; removed legacy provider-specific panes, hooks, catalogs and Electron execution bridges.
 - The conversation pane takes neutral `requests` (`AgentRequest[]`) and answers them through `respond(AgentRequestResponse)`. Settings changes go through `updateSettings(Partial<HarnessDefaults>)` and `setPlanMode`; without a controller, the pane emits `update:permission` alongside the other `update:*` events.
 - Session conversation bindings apply a permission change once, through the session, and never pass it to `onControlsChange`.

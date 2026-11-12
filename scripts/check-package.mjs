@@ -43,9 +43,9 @@ try {
 import { Composer, ConversationPane, type ComposerState } from '${metadata.name}';
 import { toHarnessPromptOptions } from '${metadata.name}/host';
 const draft: ComposerState = { text: '', selectionStart: 0, selectionEnd: 0 };
-void [draft, Composer, ConversationPane]; toHarnessPromptOptions({ model: 'catalog-model' });
+void [draft, Composer, ConversationPane]; toHarnessPromptOptions({ selection: { model: 'catalog-model' } });
 type PaneProps = Parameters<typeof ConversationPane>[0];
-const paneProps: PaneProps = { messages: [], approvals: [], placeholder: 'Ask' }; void paneProps;
+const paneProps: PaneProps = { messages: [], requests: [], placeholder: 'Ask' }; void paneProps;
 `);
   // Resolve public declarations with no checkout aliases or declaration suppression.
   execFileSync(process.execPath, [path.join(root, 'node_modules/typescript/bin/tsc'), '--ignoreConfig', '--noEmit', '--strict', '--types', 'node', '--typeRoots', path.join(root, 'node_modules/@types'), '--module', 'ESNext', '--moduleResolution', 'Bundler', '--target', 'ES2022', path.join(temp, 'consumer.ts')], { stdio: 'inherit' });
