@@ -948,7 +948,7 @@ defineExpose({ focus });
 .chat-composer__meta-trailing :deep(.provider-model-selector) {
   width: auto;
   max-width: 220px;
-  min-height: var(--chat-composer-button-size, 36px);
+  min-height: 28px;
   padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-full);
