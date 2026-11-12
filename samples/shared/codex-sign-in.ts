@@ -16,8 +16,8 @@ export function createCodexSignIn(home: string, openExternal: (url: string) => P
           const completed = new Promise<void>((resolve, reject) => {
             cancel = () => reject(new Error('Sign-in was cancelled.'));
             off = harness.onEvent(event => {
-              if (event.type !== 'provider.event' || event.event.type !== 'provider.authenticationChanged' || event.event.payload.kind !== 'codex') return;
-              const { connected, state } = event.event.payload;
+              if (event.type !== 'provider.authenticationChanged' || event.payload.kind !== 'codex') return;
+              const { connected, state } = event.payload;
               if (state.login.status === 'error' || state.login.status === 'cancelled') reject(new Error(state.login.error ?? 'Sign-in was cancelled.'));
               else if (connected) resolve();
             });
