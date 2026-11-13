@@ -10,7 +10,7 @@ Import the panels from the package root. They need no extra peer dependencies. F
 | `SourcePreviewPanel` | Highlighted source | `content`, `language`, `path`, `showLineNumbers`, `wordWrap`, `annotatable` |
 | `DiffPreviewPanel` | A unified diff, per file | `diff`, `state`, `error`, `overview`, `groupByKind`, `fileKindFilter`, `annotatable`, `wordWrap` |
 | `AnnotationPopup` | A comment box anchored to a rectangle | `anchor`, `placement`, `initialValue`, `submitLabel`, `optional` |
-| `CodeSelectionAnnotation` | The floating "comment" action for a code selection | `selection`, `commenting` |
+| `CodeSelectionAnnotation` | The floating "comment" action for a code selection; the selected text stays highlighted while the comment is written | `selection`, `commenting` |
 
 All panels take `state` of `'idle' | 'loading' | 'error'` and an `error` message. Loading and error states are SDK-owned, so the host only decides what to load. A `translate` prop (`BrowserTranslator`) localizes panel strings.
 

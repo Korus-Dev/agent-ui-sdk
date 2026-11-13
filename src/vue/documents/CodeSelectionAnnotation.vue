@@ -27,6 +27,7 @@ import { computed, ref, watch } from 'vue';
 import { useDocumentTranslation } from './document-messages';
 import AnnotationPopup from './AnnotationPopup.vue';
 import { describeCodeRange } from './annotation-types';
+import { currentSelectionRange, useAnnotationHighlight } from './use-annotation-highlight';
 import type { CodeSelection } from './use-code-selection';
 
 const props = defineProps<{ selection: CodeSelection | null; commenting?: CodeSelection | null }>();
@@ -36,6 +37,7 @@ const emit = defineEmits<{
 }>();
 
 const t = useDocumentTranslation();
+const annotationHighlight = useAnnotationHighlight();
 const commenting = ref<CodeSelection | null>(null);
 const actionStyle = computed(() => {
   const anchor = props.selection?.anchor;
@@ -47,6 +49,8 @@ const actionStyle = computed(() => {
   };
 });
 
+watch(commenting, next => { if (!next) annotationHighlight.release(); });
+
 // A different file or range replaces the one being commented on.
 watch(() => props.selection, (next) => {
   if (commenting.value && next !== commenting.value) commenting.value = null;
@@ -56,7 +60,10 @@ watch(() => props.commenting, next => { commenting.value = next ?? null; }, { im
 const description = (selection: CodeSelection) => describeCodeRange(selection);
 
 function startComment(): void {
-  if (props.selection) commenting.value = props.selection;
+  if (!props.selection) return;
+  // Taking focus in the comment box clears the native selection, so keep the passage painted until the comment ends.
+  annotationHighlight.hold(currentSelectionRange());
+  commenting.value = props.selection;
 }
 
 function cancelComment(): void {
@@ -95,5 +102,13 @@ function saveComment(comment: string): void {
 .code-selection-annotation__add:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+</style>
+
+<style>
+/* Global: a highlight pseudo-element cannot be scoped to the component. */
+::highlight(code-annotation-focus) {
+  background-color: rgb(255 235 59 / 55%);
+  color: inherit;
 }
 </style>

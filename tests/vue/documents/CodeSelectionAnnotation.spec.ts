@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { mount } from '@vue/test-utils';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import CodeSelectionAnnotation from '../../../src/vue/documents/CodeSelectionAnnotation.vue';
 import type { CodeSelection } from '../../../src/vue/documents/use-code-selection';
 
@@ -43,5 +43,56 @@ describe('CodeSelectionAnnotation', () => {
     await wrapper.get('.code-selection-annotation__add').trigger('click');
     await wrapper.setProps({ selection: { ...selection, startLine: 9, endLine: 9 } });
     expect(wrapper.findComponent(Popup).exists()).toBe(false);
+  });
+});
+
+describe('CodeSelectionAnnotation highlight', () => {
+  const globals = globalThis as { CSS?: unknown; Highlight?: unknown };
+  const original = { css: globals.CSS, highlight: globals.Highlight };
+  const install = () => {
+    const highlights = new Map<string, unknown>();
+    globals.CSS = { highlights };
+    globals.Highlight = class { constructor(public range: Range) {} };
+    return highlights;
+  };
+  afterEach(() => { globals.CSS = original.css; globals.Highlight = original.highlight; window.getSelection()?.removeAllRanges(); document.body.innerHTML = ''; });
+  const selectCode = () => {
+    document.body.innerHTML = '<pre id="code">const total = 1;</pre>';
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('code')!);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+  };
+  const startComment = async () => {
+    selectCode();
+    const wrapper = mountIt(selection);
+    await wrapper.get('.code-selection-annotation__add').trigger('click');
+    return wrapper;
+  };
+
+  it('keeps the selected code painted while the comment is written', async () => {
+    const highlights = install();
+    await startComment();
+    expect(highlights.has('code-annotation-focus')).toBe(true);
+  });
+
+  it.each([
+    ['saved', (wrapper: Awaited<ReturnType<typeof startComment>>) => wrapper.getComponent(Popup).vm.$emit('submit', 'Guard this.')],
+    ['cancelled', (wrapper: Awaited<ReturnType<typeof startComment>>) => wrapper.getComponent(Popup).vm.$emit('cancel')],
+    ['dismissed by the host', (wrapper: Awaited<ReturnType<typeof startComment>>) => wrapper.setProps({ selection: null })],
+    ['unmounted', (wrapper: Awaited<ReturnType<typeof startComment>>) => wrapper.unmount()],
+  ])('releases the highlight when the comment is %s', async (_name, finish) => {
+    const highlights = install();
+    const wrapper = await startComment();
+    await finish(wrapper);
+    await wrapper.vm.$nextTick?.();
+    expect(highlights.has('code-annotation-focus')).toBe(false);
+  });
+
+  it('does nothing where the host has no highlight API', async () => {
+    globals.CSS = undefined;
+    globals.Highlight = undefined;
+    const wrapper = await startComment();
+    expect(wrapper.findComponent(Popup).exists()).toBe(true);
   });
 });
