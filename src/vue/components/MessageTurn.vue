@@ -59,10 +59,15 @@ const collapsible = computed(() => statesPhases.value || props.itemsView !== und
 const derivedPhases = computed(() => {
   if (statesPhases.value) return undefined
   const sequence: Array<{ entry: number; part: number; work: boolean }> = []
+  const narration: string[] = []
   for (const { entry, message } of messages.value) {
     if (message.role !== 'assistant') continue
     message.parts?.forEach((part, partIndex) => {
-      if (part.type === 'tool' || part.type === 'reasoning') sequence.push({ entry: entry.index, part: partIndex, work: true })
+      if (part.type === 'tool' || part.type === 'reasoning') {
+        sequence.push({ entry: entry.index, part: partIndex, work: true })
+        // Without stated phases a reasoning part carries the narration the person is meant to read.
+        if (part.type === 'reasoning' && part.summary.trim()) narration.push(`${entry.index}:${partIndex}`)
+      }
       else if (part.type === 'text' && part.content.trim()) sequence.push({ entry: entry.index, part: partIndex, work: false })
     })
   }
@@ -71,6 +76,7 @@ const derivedPhases = computed(() => {
   sequence.forEach((item, position) => {
     if (!item.work) phases.set(`${item.entry}:${item.part}`, position > lastWork ? 'final_answer' : 'commentary')
   })
+  for (const key of narration) phases.set(key, 'commentary')
   return phases
 })
 const phased = computed(() => statesPhases.value

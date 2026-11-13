@@ -286,10 +286,11 @@ const chatMessage = computed(() => {
     || message.turnId !== assistantWorkTurn?.turnId.value) return message
   let changed = false
   const parts = message.parts.map((part, partIndex) => {
-    const phase = part.type === 'text' && part.phase === undefined ? phaseFor(props.index!, partIndex) : undefined
+    const phase = (part.type === 'text' && part.phase === undefined) || part.type === 'reasoning' ? phaseFor(props.index!, partIndex) : undefined
     if (!phase) return part
     changed = true
-    return { ...part, phase }
+    // Narration a harness sends as reasoning reads as an ordinary paragraph in its place, not as a work title.
+    return part.type === 'reasoning' ? { type: 'text' as const, content: part.summary, phase, ...(part.itemId ? { itemId: part.itemId } : {}) } : { ...part, phase }
   })
   return changed ? { ...message, parts } : message
 })

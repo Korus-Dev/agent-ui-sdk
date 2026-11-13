@@ -751,6 +751,56 @@ describe('MessageList', () => {
     expect(wrapper.text()).toContain('Running read');
   });
 
+  it('shows reasoning text inline, in order, when the harness states no phases', () => {
+    const wrapper = mount(MessageList, {
+      props: {
+        messages: [{
+          id: 'assistant-narration',
+          role: 'assistant',
+          status: 'complete',
+          turnId: 'turn-narration',
+          parts: [
+            { type: 'text', text: 'Looking at the repository.' },
+            { type: 'tool', kind: 'generic', id: 'tool-status', title: 'git status', status: 'completed' },
+            { type: 'reasoning', summary: 'Nothing is committed yet, so I am asking about the shared export.', itemId: 'r1', summaryIndex: 0 },
+            { type: 'tool', kind: 'generic', id: 'tool-finish', title: 'finish_turn', status: 'completed' },
+            { type: 'text', text: 'Nothing is committed yet.' },
+          ],
+        }],
+        turns: [{ ...turnLifecycle('turn-narration', 'completed'), durationMs: 8_000 }],
+      },
+    });
+
+    const text = wrapper.text();
+    expect(text).toContain('Nothing is committed yet, so I am asking about the shared export.');
+    expect(text.indexOf('Looking at the repository.')).toBeLessThan(text.indexOf('Nothing is committed yet, so I am asking'));
+    expect(text.indexOf('Nothing is committed yet, so I am asking')).toBeLessThan(text.lastIndexOf('Nothing is committed yet.'));
+    expect(wrapper.find('button.chat-work-group__header').exists()).toBe(false);
+  });
+
+  it('keeps reasoning as a work summary when the harness states its phases', () => {
+    const wrapper = mount(MessageList, {
+      props: {
+        workPhases: true,
+        messages: [{
+          id: 'assistant-summary',
+          role: 'assistant',
+          status: 'complete',
+          turnId: 'turn-summary',
+          parts: [
+            { type: 'reasoning', summary: '**Reading the files**', itemId: 'r1', summaryIndex: 0 },
+            { type: 'tool', kind: 'generic', id: 'tool-read', title: 'read', status: 'completed' },
+            { type: 'text', text: 'All done.', phase: 'final_answer' },
+          ],
+        }],
+        turns: [{ ...turnLifecycle('turn-summary', 'completed'), durationMs: 8_000 }],
+      },
+    });
+
+    expect(wrapper.find('button.chat-work-group__header').exists()).toBe(true);
+    expect(wrapper.text()).toContain('All done.');
+  });
+
   it('uses visible commentary as the turn disclosure when tool blocks are hidden', () => {
     const wrapper = mount(MessageList, {
       props: {
@@ -1016,7 +1066,7 @@ describe('MessageList', () => {
       ],
     };
     const wrapper = mount(MessageList, { props: {
-      activeTurnId: 'tool-turn', busy: true, canForkTurn: true, messages: [message],
+      activeTurnId: 'tool-turn', busy: true, canForkTurn: true, messages: [message], workPhases: true,
       turns: [turnLifecycle('tool-turn', 'inProgress')],
     } });
     expect(wrapper.find('.chat-message__actions').exists()).toBe(false);
