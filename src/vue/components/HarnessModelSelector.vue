@@ -23,10 +23,10 @@
       <template #service-tier="{ items, select }">
         <span class="provider-model-selector__tier" :title="serviceTiers.length ? tierTooltip : t('modelPicker.speedUnavailable')">
           <span v-if="serviceTiers.length > 1" class="provider-model-selector__tier-menu">
-            <button class="provider-model-selector__tier-button" :class="{ 'provider-model-selector__tier-button--active': serviceTier }" type="button" aria-haspopup="menu" :aria-expanded="tierOpen" :disabled="disabled" :aria-label="tierAccessibleName" @click.stop="tierOpen = !tierOpen"><UltrafastIcon v-if="serviceTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
+            <button class="provider-model-selector__tier-button" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" aria-haspopup="menu" :aria-expanded="tierOpen" :disabled="disabled" :aria-label="tierAccessibleName" @click.stop="tierOpen = !tierOpen"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
             <AppMenu v-if="tierOpen" class="app-menu--embedded provider-model-selector__tier-list" :ariaLabel="t('modelPicker.serviceTier')" :items="items" @select="id => { select(id); tierOpen = false; }" />
           </span>
-          <button v-else class="provider-model-selector__tier-button" :class="{ 'provider-model-selector__tier-button--active': serviceTier }" type="button" :disabled="disabled || !serviceTiers.length" :aria-label="tierAccessibleName" :aria-pressed="Boolean(serviceTier)" @click="select(serviceTier ? '' : serviceTiers[0]!.id)"><UltrafastIcon v-if="serviceTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
+          <button v-else class="provider-model-selector__tier-button" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" :disabled="disabled || !serviceTiers.length" :aria-label="tierAccessibleName" :aria-pressed="Boolean(activeTier)" @click="select(activeTier ? '' : serviceTiers[0]!.id)"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
         </span>
       </template>
     </ModelPicker>
@@ -165,12 +165,15 @@ watch(open, isOpen => {
 const selectedModel = computed(() => props.models.find(option => option.model === model.value)
   ?? (model.value ? { id: model.value, model: model.value, displayName: model.value } : undefined));
 const serviceTiers = computed(() => selectedModel.value?.serviceTiers ?? []);
-const currentTierName = computed(() => serviceTiers.value.find(tier => tier.id === serviceTier.value)?.name ?? t('modelPicker.standardTier'));
+const currentTierName = computed(() => serviceTiers.value.find(tier => tier.id === serviceTier.value)?.name ?? (activeTier.value ?? t('modelPicker.standardTier')));
 const tierAccessibleName = computed(() => t('modelPicker.currentServiceTier', { tier: currentTierName.value }));
-const tierTooltip = computed(() => !serviceTier.value ? t('modelPicker.normalSpeed') : currentTierName.value.toLowerCase() === 'fast' ? t('modelPicker.fastMode') : currentTierName.value);
+const tierTooltip = computed(() => !activeTier.value ? t('modelPicker.normalSpeed') : currentTierName.value.toLowerCase() === 'fast' ? t('modelPicker.fastMode') : currentTierName.value);
 // Lowercase like the effort next to it, so the two read as one setting.
 const tierLabel = (name: string) => name.toLowerCase();
-const serviceTierName = computed(() => tierLabel(selectedModel.value?.serviceTiers?.find(tier => tier.id === serviceTier.value)?.name ?? ''));
+// Standard speed is reported as 'normal' or 'default' by some harnesses: it is not a speed to call out.
+const activeTier = computed(() => serviceTier.value && !['normal', 'default'].includes(serviceTier.value) ? serviceTier.value : null);
+// A tier the catalog does not list (an older chat, or a catalog still loading) still shows its id.
+const serviceTierName = computed(() => activeTier.value ? tierLabel(selectedModel.value?.serviceTiers?.find(tier => tier.id === activeTier.value)?.name ?? activeTier.value) : '');
 function updateModelSelection(value: ModelSelection) {
   emit('update:selection', value);
 }

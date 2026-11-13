@@ -99,3 +99,14 @@ it('is the composer model selector: it opens upward and reports picks as compose
   await picker.findAll('[role="tab"]')[0]!.trigger('click');
   expect(picker.emitted('update:harness')).toEqual([['codex']]);
 });
+
+it('shows the speed in use on the trigger even when the catalog does not list that tier', () => {
+  const trigger = mountSelector({ selection: { model: 'fast', reasoningEffort: null, serviceTier: 'ultrafast' } }).get('button.provider-model-selector');
+  expect(trigger.text()).toContain('ultrafast');
+});
+
+it('treats the normal tier as standard speed', async () => {
+  const wrapper = await open({ selection: { model: 'fast', reasoningEffort: null, serviceTier: 'normal' } });
+  expect(wrapper.get('button.provider-model-selector').text()).not.toContain('normal');
+  expect(wrapper.find('.provider-model-selector__tier-button--active').exists()).toBe(false);
+});
