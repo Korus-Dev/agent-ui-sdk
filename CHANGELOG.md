@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.27.2
 
 - Reasoning parts of a harness that states no work phases (`capabilities.workPhases` false, such as Claude) show their text inline, in order, as ordinary paragraphs, including when the turn is grouped under Working/Done. Harnesses that state phases keep reasoning as work summaries.
 - New `CopyButton` export: an icon button that copies through your `action`, shows a check for 1.5 seconds on success and does nothing visible when the action fails. It takes `size` (`small` or `regular`), keeps a constant accessible `label` while the tooltip switches to `copiedLabel`, and accepts a default slot for a text label beside the icon.
