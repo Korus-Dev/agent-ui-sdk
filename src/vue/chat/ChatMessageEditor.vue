@@ -40,6 +40,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { trimPromptContent } from '@korus-dev/multi-agent-sdk/prompt';
 import type { PromptPart, ReferenceSendPromptOptions } from '@korus-dev/multi-agent-sdk';
 import ChatRichTextEditor, { type RichTextEditorExpose } from './ChatRichTextEditor.vue'
+import { clipboardText } from './clipboard-text'
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
 const props = defineProps<{
@@ -94,7 +95,7 @@ function cancel(): void {
 function handlePaste(event: ClipboardEvent): void {
   if (!event.clipboardData) return;
   event.preventDefault();
-  const text = event.clipboardData.getData('text/plain');
+  const text = clipboardText(event.clipboardData);
   if (text) richInput.value?.insertTextAtSelection(text);
 }
 

@@ -1058,6 +1058,21 @@ describe('ChatComposer', () => {
     expect(editorValue(wrapper)).toBe('before after');
   });
 
+  it('pastes a link that sits on the clipboard without plain text', async () => {
+    const wrapper = mountComposer();
+    await setEditorValue(wrapper, 'see ');
+    const paste = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
+    Object.defineProperty(paste, 'clipboardData', {
+      value: { files: [], getData: (type: string) => type === 'text/uri-list' ? '# a link\r\nkorus://share/abc-123\r\n' : '', types: ['text/uri-list'] },
+    });
+
+    editor(wrapper).element.dispatchEvent(paste);
+    await nextTick();
+
+    expect(paste.defaultPrevented).toBe(true);
+    expect(editorValue(wrapper)).toBe('see korus://share/abc-123');
+  });
+
   it('accepts plain text from a clipboard that omits the optional types list', async () => {
     const wrapper = mountComposer();
     const paste = clipboardEvent({ files: [], text: 'plain text' });

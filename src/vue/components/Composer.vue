@@ -182,6 +182,7 @@ import type { ComposerMenuItem, ComposerMenuSelectableItem } from '../composer-m
 import { useHostCapabilities } from '../native-capabilities';
 import type { ComposerState } from '../composer-state';
 import { normalizeComposerState } from '../composer-state';
+import { clipboardText } from '../chat/clipboard-text';
 import type { ComposerMentionGroup, ComposerMentionItem } from '../chat/composer-mentions-custom';
 
 // Stryker disable all: Vue compiler macros cannot be wrapped in mutation activation branches.
@@ -812,7 +813,7 @@ function emitComposerState(): void {
 function handleEditorPaste(event: ClipboardEvent): void {
   const clipboard = event.clipboardData;
   if (!clipboard) return;
-  const text = clipboard.getData('text/plain');
+  const text = clipboardText(clipboard);
   const containsRichOrFileContent = clipboard.files.length > 0 || [...(clipboard.types ?? [])].includes('text/html');
   if (!text && !containsRichOrFileContent) return;
   event.preventDefault();
