@@ -751,6 +751,27 @@ describe('MessageList', () => {
     expect(wrapper.text()).toContain('Running read');
   });
 
+  it('re-renders only the streaming message when its turn derives phases for siblings', async () => {
+    let messageUpdates = 0;
+    const history = Array.from({ length: 5 }, (_, index) => ({
+      id: `history-${index}`, role: 'assistant' as const, status: 'complete' as const, turnId: 'same-turn',
+      parts: [{ type: 'text' as const, text: `History ${index}` }, { type: 'tool' as const, kind: 'generic' as const, id: `tool-${index}`, title: 'read', status: 'completed' as const }],
+    }));
+    const streaming = (text: string) => ({ id: 'streaming', role: 'assistant' as const, status: 'streaming' as const, turnId: 'same-turn', parts: [{ type: 'text' as const, text }] });
+    const wrapper = mount(MessageList, {
+      props: { busy: true, messages: [...history, streaming('Current')] },
+      global: { mixins: [{ updated() { if ((this as { $options: { __name?: string } }).$options.__name === 'Message') messageUpdates += 1; } }] },
+    });
+    await nextTick();
+    messageUpdates = 0;
+
+    for (const text of ['Current tok', 'Current token', 'Current token again']) {
+      await wrapper.setProps({ messages: [...history, streaming(text)] });
+    }
+
+    expect(messageUpdates).toBe(3);
+  });
+
   it('shows reasoning text inline, in order, when the harness states no phases', () => {
     const wrapper = mount(MessageList, {
       props: {

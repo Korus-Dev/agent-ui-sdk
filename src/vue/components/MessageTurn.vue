@@ -56,7 +56,8 @@ const statesPhases = computed(() => props.workPhases === true || messages.value.
 )))
 // Only turns with stated phases, or that report an items view, fold their work behind "View details".
 const collapsible = computed(() => statesPhases.value || props.itemsView !== undefined)
-const derivedPhases = computed(() => {
+// The map keeps its identity while its entries are unchanged, so streaming tokens do not re-render sibling messages.
+const derivedPhases = computed<Map<string, MessagePhase> | undefined>((previous) => {
   if (statesPhases.value) return undefined
   const sequence: Array<{ entry: number; part: number; work: boolean }> = []
   const narration: string[] = []
@@ -77,7 +78,7 @@ const derivedPhases = computed(() => {
     if (!item.work) phases.set(`${item.entry}:${item.part}`, position > lastWork ? 'final_answer' : 'commentary')
   })
   for (const key of narration) phases.set(key, 'commentary')
-  return phases
+  return previous && previous.size === phases.size && [...phases].every(([key, phase]) => previous.get(key) === phase) ? previous : phases
 })
 const phased = computed(() => statesPhases.value
   ? messages.value.some(({ message }) => message.role === 'assistant' && hasExplicitAssistantWorkPhases(message))
