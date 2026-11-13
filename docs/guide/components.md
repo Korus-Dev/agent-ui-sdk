@@ -12,7 +12,8 @@ All components are styled by one stylesheet (`@korus-dev/agent-ui-sdk/styles.css
 | Only the transcript | `MessageList` |
 | One message, or one turn of messages | `Message`, `MessageTurn` |
 | Only the prompt box | `Composer` |
-| A model and reasoning picker outside the composer | `ModelPicker` |
+| A model and reasoning picker outside the composer | `ModelPicker`, or `HarnessModelSelector` for the button and popover the composer uses |
+| A copy button with a check that resets | `CopyButton` |
 | An approval prompt in your own chrome | `ApprovalPrompt` |
 | A question or tool confirmation | `QuestionRequest`, `ToolConfirmation`, `ToolUserInputRequest` |
 | A queue, goal or diff summary above the composer | `ComposerShelf`, `QueuedPrompts`, `Goal`, `TurnGitInfo` |
@@ -290,6 +291,26 @@ Slots: `message`, `header`, `block`, `text`, `attachment`, `tool`, `actions`, `s
 | `WorkGroup` | `active`, `finalStarted`, `continuation` | Collapsible work-so-far section |
 | `FoldTransition` | `open` | Animated fold |
 | `IconButton` | `label`, `title`, `bordered`, `danger`, `disabled`, `href`, `download`, `target`, `rel` | Icon button used throughout |
+| `CopyButton` | `action`, `label`, `copiedLabel`, `size`, `disabled` | Copy button that confirms with a check; see [below](#copybutton) |
+| `UltrafastIcon` | `size` (`16`) | The lightning icon the speed button shows for the `ultrafast` tier |
+
+#### CopyButton
+
+An icon button that copies through your `action` and confirms with a check.
+
+| Prop | Default | Purpose |
+| --- | --- | --- |
+| `action` (required) | | Does the copy. May return a promise |
+| `label` (required) | | The accessible name, which never changes, and the tooltip before copying |
+| `copiedLabel` (required) | | The tooltip while the check shows |
+| `size` | `'regular'` | `'small'` shrinks the button and its icon; `'regular'` follows `--chat-message-action-control-size` |
+| `disabled` | `false` | Disable the button |
+
+The default slot renders a text label beside the icon. The check returns to the copy icon after 1.5 seconds, and the timer is cleared on unmount. When `action` throws or rejects the button shows no check and does not rethrow, so your code reports its own error.
+
+```vue
+<CopyButton size="small" label="Copy link" copied-label="Copied" :action="() => navigator.clipboard.writeText(url)">Copy</CopyButton>
+```
 
 ## Rich blocks
 

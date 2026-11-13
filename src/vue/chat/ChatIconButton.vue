@@ -78,7 +78,7 @@ defineProps<{
 }
 
 .chat-icon-button :deep(svg) {
-  width: var(--icon-sm);
-  height: var(--icon-sm);
+  width: var(--chat-icon-button-icon-size, var(--icon-sm));
+  height: var(--chat-icon-button-icon-size, var(--icon-sm));
 }
 </style>

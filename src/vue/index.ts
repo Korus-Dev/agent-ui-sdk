@@ -54,6 +54,7 @@ export {
   type ComposerVoiceController,
   type ComposerVoiceOptions,
 } from './chat/use-chat-composer-voice';
+export { default as CopyButton } from './chat/CopyButton.vue';
 export { default as ContextUsageIndicator } from './chat/ChatContextUsageIndicator.vue';
 export { default as UltrafastIcon } from './chat/UltrafastIcon.vue';
 export { default as FoldTransition } from './chat/ChatFoldTransition.vue';

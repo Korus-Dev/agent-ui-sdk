@@ -130,7 +130,7 @@ With a `controller`, the matching action runs instead of the event for the actio
 
 ### Message family
 
-`MessageBlock`, `MessageActions`, `MessageEditor`, `UserText`, `CompactionMessage`, `FollowUps`, `WorkGroup`, `FoldTransition`, `IconButton`, `AnimatedDiffStat`, `TurnGitInfo`.
+`MessageBlock`, `MessageActions`, `MessageEditor`, `UserText`, `CompactionMessage`, `FollowUps`, `WorkGroup`, `FoldTransition`, `IconButton`, `CopyButton`, `AnimatedDiffStat`, `TurnGitInfo`.
 
 ### Rich blocks, tools and requests
 
