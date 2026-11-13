@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Reasoning parts of a harness that states no work phases (`capabilities.workPhases` false, such as Claude) show their text inline, in order, as ordinary paragraphs, including when the turn is grouped under Working/Done. Harnesses that state phases keep reasoning as work summaries.
+- New `CopyButton` export: an icon button that copies through your `action`, shows a check for 1.5 seconds on success and does nothing visible when the action fails. It takes `size` (`small` or `regular`), keeps a constant accessible `label` while the tooltip switches to `copiedLabel`, and accepts a default slot for a text label beside the icon.
+- Pasting in the composer and the message editor inserts a link that is on the clipboard without plain text (a URL-only pasteboard, as copied from Messages on macOS), read from `text/uri-list` or `text/x-moz-url`.
+- While a comment on selected code is written, the selected text stays highlighted. It is released on save, cancel, dismiss and unmount. It uses the CSS Custom Highlight API and does nothing where that is unavailable; hosts need no code.
 - The harness picker's trigger shows the speed in use even when the model catalog does not list that tier, and the speed button no longer reads as active for the standard tiers (`normal`, `default`).
 - `@korus-dev/multi-agent-sdk` is now a peer dependency (`^0.27.1`) instead of a regular dependency. Install it alongside the UI SDK so the application and the UI share one copy of its types. Patch releases of Multi Agent SDK no longer require a UI release.
 
