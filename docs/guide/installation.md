@@ -15,7 +15,7 @@ The package is ESM-only. TypeScript consumers should use `target: ES2022`, `modu
 ## Install
 
 ```bash
-npm install @korus-dev/agent-ui-sdk vue
+npm install @korus-dev/agent-ui-sdk @korus-dev/multi-agent-sdk vue
 ```
 
 Import the stylesheet once in your renderer:
@@ -37,7 +37,7 @@ npm install element-plus
 
 ### Provider execution
 
-The SDK renders conversations; it does not run them. Install `@korus-dev/multi-agent-sdk` in your trusted host and the runtime for each harness you support (Codex, Claude, Cursor or Antigravity). See the [quick start](/guide/quick-start) for how the pieces connect.
+The SDK renders conversations; it does not run them. `@korus-dev/multi-agent-sdk` is a peer dependency (`^0.27.1`): your application owns its version, and the UI shares that single installed copy, so a patch release of Multi Agent SDK never requires a UI release. Install the runtime for each harness you support (Codex, Claude, Cursor or Antigravity) in your trusted host. See the [quick start](/guide/quick-start) for how the pieces connect.
 
 ## Import boundaries
 

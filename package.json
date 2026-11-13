@@ -113,7 +113,6 @@
     "test:ai": "vitest --run --silent --reporter=./tests/reporter/silent.ts"
   },
   "dependencies": {
-    "@korus-dev/multi-agent-sdk": "0.27.1",
     "@pierre/highlights": "0.2.0",
     "@shikijs/langs": "4.3.1",
     "@shikijs/themes": "4.3.1",
@@ -128,6 +127,7 @@
     "ws": "8.22.2"
   },
   "peerDependencies": {
+    "@korus-dev/multi-agent-sdk": "^0.27.1",
     "electron": ">=30",
     "element-plus": ">=2.13",
     "vue": "^3.5.0"
@@ -141,6 +141,7 @@
     }
   },
   "devDependencies": {
+    "@korus-dev/multi-agent-sdk": "0.27.1",
     "@modelcontextprotocol/sdk": "1.32.2",
     "@types/node": "25.9.5",
     "@types/ws": "8.18.2",

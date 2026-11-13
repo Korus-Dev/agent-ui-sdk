@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- The harness picker's trigger shows the speed in use even when the model catalog does not list that tier, and the speed button no longer reads as active for the standard tiers (`normal`, `default`).
+- `@korus-dev/multi-agent-sdk` is now a peer dependency (`^0.27.1`) instead of a regular dependency. Install it alongside the UI SDK so the application and the UI share one copy of its types. Patch releases of Multi Agent SDK no longer require a UI release.
+
 ## 0.27.1
 
 - Built on Multi Agent SDK 0.27.1.

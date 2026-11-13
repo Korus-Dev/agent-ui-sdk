@@ -26,7 +26,7 @@ The SDK renders the conversation. [`@korus-dev/multi-agent-sdk`](https://www.npm
 ## Install
 
 ```bash
-npm install @korus-dev/agent-ui-sdk vue
+npm install @korus-dev/agent-ui-sdk @korus-dev/multi-agent-sdk vue
 ```
 
 Requires Vue 3.5+ and a Vue-aware ESM bundler. Node.js 22.19+ is needed for development and trusted adapters. Electron and Element Plus are optional peers; install Element Plus only if you use the browser panel. See the [installation guide](https://korus-dev.github.io/agent-ui-sdk/guide/installation) for TypeScript settings and import boundaries.
