@@ -32,7 +32,7 @@ Connect `loadOlderHistory` to fetch an older page. The list requests it as the p
 
 ### Summary turns
 
-Providers can restore a long conversation as **summary** turns: the final answer is present, the work behind it is not. A `Turn` with `itemsView: 'summary'` shows "View details" on its work group; expanding it calls `loadTurnHistory(turnId)`. While `detailsLoading` is true the group shows a loading row; a `detailsError` stays visible and retryable.
+Providers can restore a long conversation as **summary** turns: the final answer is present, the work behind it is not. A `Turn` with `itemsView: 'summary'` shows "View details" on its work group (only summary turns and turns whose harness states work phases offer it); expanding it calls `loadTurnHistory(turnId)`. While `detailsLoading` is true the group shows a loading row; a `detailsError` stays visible and retryable.
 
 Do not infer native history completeness from the number of DOM nodes.
 

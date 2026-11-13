@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Work groups show "Working" and "Done" with the elapsed time for every harness. "View details" appears only for summary turns (`itemsView: 'summary'`) and for harnesses that state text phases (`capabilities.workPhases`); other harnesses keep their work visible with no toggle, and the pane derives the answer from the turn structure.
 - The composer's model selector is now the harness picker (`HarnessModelSelector`, also exported on its own): a button that opens one popover with an optional tab per harness, that harness's models, reasoning efforts and a speed button. The speed button stays in place and is dimmed when the model has no speed options. Pass `harnesses` (`HarnessChoice[]`: `id`, `label`, `icon`) and `harness` to `ConversationPane` or `Composer` for the tabs, and handle `update:harness` or the `selectHarness` action. Without two or more harnesses it shows no tabs.
 - Removed the previous model menu: the `ModelReasoningSelector` export and the `modelMenuItems` prop and controller field. Host favorites in the model menu are not supported for now.
 - `ModelPicker` accepts the pane's own `ModelOption` as well as the harness's. The theme defines `--color-menu-background`, which `AppMenu` panels (such as submenus) were missing.

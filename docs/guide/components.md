@@ -266,7 +266,7 @@ Slots: `message`, `header`, `block`, `text`, `attachment`, `tool`, `actions`, `s
 
 `Message` renders one message with the same props and slots as `MessageList` for its scope: `message` (required), `index`, `presentation`, `canDeleteTurn`, `canEditTurn`, `canForkTurn`, `canRetryTurn`, `actionsDisabled`, `actionsAlwaysVisible`, `deletingTurn`, `followUpsDisabled`, `threadActionsDisabled`, `showToolDetails`, `openImage`, `skills`, `plugins`, `mentionGroups`, `answeredClientRequestIds`, `hiddenClientRequestIds`, `activityState`.
 
-`MessageTurn` renders the entries of one turn with the work group: `entries` (required), `showToolBlocks` (required), `active`, `status`, `turnId`, `startedAt`, `durationMs`, `itemsView` (`'summary' | 'full'`), `detailsLoading`, `detailsError`. It emits `loadTurnHistory`.
+`MessageTurn` renders the entries of one turn with the work group: `entries` (required), `showToolBlocks` (required), `active`, `status`, `turnId`, `startedAt`, `durationMs`, `itemsView` (`'summary' | 'full'`), `detailsLoading`, `detailsError`, `workPhases` (the harness states each text part's phase; otherwise the work group has no details toggle). It emits `loadTurnHistory`.
 
 ### MessageBlock and UserText
 

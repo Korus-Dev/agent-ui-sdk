@@ -57,6 +57,8 @@ export function sessionStateToConversationPaneState(
       history: capabilities.history, deleteTurn: capabilities.deleteTurn,
       editTurn: capabilities.editTurn, retryTurn: capabilities.retryTurn,
       approvals: capabilities.approvals,
+      // Read from the harness; older Multi Agent SDK versions do not report it.
+      workPhases: (capabilities as { workPhases?: boolean }).workPhases === true,
       // The session controller lists the harness's permissions itself, with the app's wording.
       permissions: [],
     },

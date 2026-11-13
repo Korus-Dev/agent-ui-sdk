@@ -1,6 +1,7 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { TurnStatus } from '@korus-dev/multi-agent-sdk';
 import type { ClientRequestResponse } from './contracts'
+import type { MessagePhase } from './types'
 
 export const questionResponsesKey: InjectionKey<Map<string, ClientRequestResponse['payload']>> = Symbol('agent-ui-sdk-question-responses')
 
@@ -15,6 +16,10 @@ export type AssistantWorkTurnContext = {
   phased: ComputedRef<boolean>
   startedAt?: ComputedRef<string | null | undefined>
   hasDetails?: ComputedRef<boolean>
+  /** The turn's work can be folded behind "View details". False when the harness reports no phases and no summary. */
+  collapsible?: ComputedRef<boolean>
+  /** The phase derived for a text part when the harness states none. */
+  phaseFor?: (messageIndex: number, partIndex: number) => MessagePhase | undefined
   itemsView?: ComputedRef<'summary' | 'full' | undefined>
   detailsLoading?: ComputedRef<boolean | undefined>
   detailsError?: ComputedRef<string | null | undefined>

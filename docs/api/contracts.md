@@ -19,6 +19,8 @@ type Capabilities = {
   editTurn: boolean;
   retryTurn: boolean;
   approvals: boolean;
+  /** The harness states each text part's phase. Without it the pane derives the work/answer split and shows no details toggle. */
+  workPhases?: boolean;
   /** The permissions the harness offers for this conversation. */
   permissions?: readonly PermissionOption[];
 };

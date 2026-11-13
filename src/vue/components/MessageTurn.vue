@@ -13,7 +13,7 @@ import {
   isAssistantWorkBlock,
 } from '../chat/message-blocks'
 import { renderedChatMessage, type ConversationMessageInput } from '../chat/renderer-message-adapter'
-import type { ChatMessage } from '../chat/types'
+import type { ChatMessage, MessagePhase } from '../chat/types'
 import { assistantWorkTurnKey, questionResponsesKey } from '../chat/message-work-state'
 
 provide(questionResponsesKey, inject(questionResponsesKey, undefined) ?? shallowReactive(new Map()))
@@ -36,6 +36,8 @@ const props = defineProps<{
   startedAt?: string | null
   status?: TurnStatus
   turnId?: string
+  /** The harness states work phases itself (see `Capabilities.workPhases`). */
+  workPhases?: boolean
 }>()
 const emit = defineEmits<{ loadTurnHistory: [turnId: string] }>()
 // Stryker restore all
@@ -45,9 +47,37 @@ const messages = computed(() => props.entries.map((entry) => ({
   message: renderedChatMessage(entry.message),
 })))
 const turnId = computed(() => props.turnId)
-const phased = computed(() => messages.value.some(({ message }) => (
-  message.role === 'assistant' && hasExplicitAssistantWorkPhases(message)
+// A harness that states phases (Codex) groups a turn by them. Otherwise the turn's text carries no phase, and the
+// work/answer split is derived from the structure: text after the last tool or reasoning item is the answer.
+const statesPhases = computed(() => props.workPhases === true || messages.value.some(({ message }) => (
+  message.role === 'assistant' && message.parts?.some(part => (
+    (part.type === 'text' || part.type === 'media') && part.phase !== undefined
+  ))
 )))
+// Only turns with stated phases, or that report an items view, fold their work behind "View details".
+const collapsible = computed(() => statesPhases.value || props.itemsView !== undefined)
+const derivedPhases = computed(() => {
+  if (statesPhases.value) return undefined
+  const sequence: Array<{ entry: number; part: number; work: boolean }> = []
+  for (const { entry, message } of messages.value) {
+    if (message.role !== 'assistant') continue
+    message.parts?.forEach((part, partIndex) => {
+      if (part.type === 'tool' || part.type === 'reasoning') sequence.push({ entry: entry.index, part: partIndex, work: true })
+      else if (part.type === 'text' && part.content.trim()) sequence.push({ entry: entry.index, part: partIndex, work: false })
+    })
+  }
+  const lastWork = sequence.map(item => item.work).lastIndexOf(true)
+  const phases = new Map<string, MessagePhase>()
+  sequence.forEach((item, position) => {
+    if (!item.work) phases.set(`${item.entry}:${item.part}`, position > lastWork ? 'final_answer' : 'commentary')
+  })
+  return phases
+})
+const phased = computed(() => statesPhases.value
+  ? messages.value.some(({ message }) => message.role === 'assistant' && hasExplicitAssistantWorkPhases(message))
+  : messages.value.some(({ message }) => message.role === 'assistant' && message.parts?.some(part => (
+    part.type === 'tool' || part.type === 'reasoning'
+  ))))
 const latestStreamingAssistantIndex = computed(() => [...messages.value]
   .reverse()
   .find(({ message }) => message.role === 'assistant' && message.streaming === true)
@@ -62,7 +92,9 @@ const latestStreamingWorkIndex = computed(() => props.active === false
         && (message.parts?.length ?? 0) > 0
       ))
       ?.entry.index)
-const finalStarted = computed(() => messages.value.some(({ entry, message }) => (
+const finalStarted = computed(() => !statesPhases.value
+  ? [...(derivedPhases.value?.values() ?? [])].includes('final_answer')
+  : messages.value.some(({ entry, message }) => (
   message.role === 'assistant'
   && (latestStreamingWorkIndex.value === undefined
     || entry.index >= latestStreamingWorkIndex.value)
@@ -72,20 +104,23 @@ const finalStarted = computed(() => messages.value.some(({ entry, message }) => 
       && part.content.trim().length > 0
   )) ?? false)
 )))
-const active = computed(() => !finalStarted.value && (props.active ?? messages.value.some(({ message }) => (
+// Without stated phases the turn is working until it ends, even while its answer streams.
+const active = computed(() => (statesPhases.value ? !finalStarted.value : true) && (props.active ?? messages.value.some(({ message }) => (
   message.role === 'assistant' && message.streaming === true
 ))))
 const status = computed(() => props.status)
 const startedAt = computed(() => props.startedAt)
 const durationMs = computed(() => props.durationMs)
 const stoppedWithoutFinal = computed(() => (
-  props.itemsView !== 'summary'
+  collapsible.value
+  && props.itemsView !== 'summary'
   && !active.value
   && !finalStarted.value
   && (status.value === 'interrupted' || status.value === 'failed')
 ))
 const completedWithoutFinal = computed(() => (
-  props.itemsView === undefined
+  collapsible.value
+  && props.itemsView === undefined
   && phased.value
   && !active.value
   && !finalStarted.value
@@ -120,7 +155,7 @@ provide(assistantWorkTurnKey, {
   active,
   completedWithoutFinal,
   enabled,
-  expanded: computed(() => expanded.value && !detailsLoading.value && (active.value || props.itemsView !== 'summary' || Boolean(props.detailsError))),
+  expanded: computed(() => !collapsible.value || (expanded.value && !detailsLoading.value && (active.value || props.itemsView !== 'summary' || Boolean(props.detailsError)))),
   finalStarted,
   headerMessageIndex,
   latestStreamingAssistantIndex,
@@ -128,6 +163,8 @@ provide(assistantWorkTurnKey, {
   startedAt,
   durationMs,
   hasDetails,
+  collapsible,
+  phaseFor: (messageIndex, partIndex) => derivedPhases.value?.get(`${messageIndex}:${partIndex}`),
   itemsView: computed(() => props.itemsView),
   detailsLoading,
   detailsError: computed(() => props.detailsError),

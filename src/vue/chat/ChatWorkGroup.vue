@@ -4,8 +4,12 @@
     class="agent-ui-theme chat-work-group"
     :class="{ 'chat-work-group--continuation': !showHeader }"
   >
-    <div v-if="showHeader && !hasDetails" class="chat-work-group__header">
-      <span class="chat-work-group__title">{{ label }}</span>
+    <div v-if="showHeader && !toggleable" class="chat-work-group__header">
+      <span
+        class="chat-work-group__title"
+        :class="{ 'agent-ui-text-shimmer': active }"
+        :data-label="label"
+      >{{ label }}</span>
     </div>
     <button
       v-else-if="showHeader"
@@ -74,6 +78,9 @@ const active = computed(() => (
 ))
 const hasDetails = computed(() => !usesTurn.value || active.value || assistantWorkTurn!.hasDetails?.value !== false)
 const detailsLoading = computed(() => assistantWorkTurn?.detailsLoading?.value === true)
+// Work that cannot be folded away shows under a plain "Working" / "Done" label, without a details toggle.
+const collapsible = computed(() => !usesTurn.value || assistantWorkTurn!.collapsible?.value !== false)
+const toggleable = computed(() => hasDetails.value && collapsible.value)
 const expanded = computed(() => (
   active.value
     ? true
@@ -111,7 +118,7 @@ const label = computed(() => {
     : assistantWorkTurn?.status.value === 'failed' ? 'failed'
     : 'done'
   if (state === 'working') return t(timed ? 'chat.work.workingFor' : 'chat.work.working', params)
-  if (!hasDetails.value) return t(`chat.work.${state}${timed ? 'For' : ''}`, params)
+  if (!toggleable.value) return t(`chat.work.${state}${timed ? 'For' : ''}`, params)
   const action = expanded.value ? 'HideDetails' : 'ViewDetails'
   return t(`chat.work.${state}${action}${timed ? 'For' : ''}`, params)
 })

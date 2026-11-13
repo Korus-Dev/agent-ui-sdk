@@ -23,6 +23,11 @@ export type Capabilities = {
   editTurn: boolean;
   retryTurn: boolean;
   approvals: boolean;
+  /**
+   * The harness states each text part's work phase (`commentary` or `final_answer`) itself. When it does not,
+   * a turn's text carries no phase and the pane derives the work/answer split from the turn's structure.
+   */
+  workPhases?: boolean;
   /** The permissions the harness offers for this conversation, from its capabilities. */
   permissions?: readonly PermissionOption[];
 };

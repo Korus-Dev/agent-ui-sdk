@@ -728,7 +728,7 @@ describe('MessageList', () => {
     expect(wrapper.text()).toContain('The local workflow is ready.');
   });
 
-  it('keeps unphased streaming text and tools on the flat rendering path', () => {
+  it('shows unphased streaming text and tools under a plain Working label, with no details toggle', () => {
     const wrapper = mount(MessageList, {
       props: {
         busy: true,
@@ -745,7 +745,8 @@ describe('MessageList', () => {
       },
     });
 
-    expect(wrapper.find('.chat-work-group').exists()).toBe(false);
+    expect(wrapper.get('.chat-work-group__title').text()).toBe('Working');
+    expect(wrapper.find('button.chat-work-group__header').exists()).toBe(false);
     expect(wrapper.text()).toContain('Claude is checking the file.');
     expect(wrapper.text()).toContain('Running read');
   });

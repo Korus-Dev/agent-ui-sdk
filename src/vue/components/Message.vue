@@ -277,9 +277,23 @@ const t = useChatTranslate()
 const activityLabel = computed(() => props.activityState === 'working'
   || (assistantWorkTurn?.phased.value && assistantWorkTurn.active.value)
   ? t('chat.work.working') : 'Thinking')
-const chatMessage = computed(() => renderedChatMessage(props.message))
-provide(imageGalleryMessageKey, chatMessage)
 const assistantWorkTurn = inject(assistantWorkTurnKey, undefined)
+// When the harness states no phases, the turn derives them from its structure; this message adopts its share.
+const chatMessage = computed(() => {
+  const message = renderedChatMessage(props.message)
+  const phaseFor = assistantWorkTurn?.phaseFor
+  if (!phaseFor || props.index === undefined || message.role !== 'assistant' || !message.parts
+    || message.turnId !== assistantWorkTurn?.turnId.value) return message
+  let changed = false
+  const parts = message.parts.map((part, partIndex) => {
+    const phase = part.type === 'text' && part.phase === undefined ? phaseFor(props.index!, partIndex) : undefined
+    if (!phase) return part
+    changed = true
+    return { ...part, phase }
+  })
+  return changed ? { ...message, parts } : message
+})
+provide(imageGalleryMessageKey, chatMessage)
 provide(assistantWorkMessageIndexKey, computed(() => props.index))
 const messageTurnState = computed(() => (
   chatMessage.value.turnId === assistantWorkTurn?.turnId.value

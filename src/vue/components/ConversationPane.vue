@@ -40,6 +40,7 @@
         :has-older-messages="effectiveHasOlderHistory"
         :hidden-client-request-ids="hiddenQuestionRequestIds"
         :render-strategy="effectiveRenderStrategy"
+        :work-phases="effectiveCapabilities.workPhases"
         :loading-older-messages="effectiveLoadingOlderHistory"
         :initial-message-batch-size="initialMessageBatchSize"
         :message-batch-size="messageBatchSize"

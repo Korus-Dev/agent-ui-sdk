@@ -28,6 +28,7 @@
           :duration-ms="group.turnId ? turnTimingById.get(group.turnId)?.durationMs : undefined"
           :turn-id="group.turnId"
           :items-view="group.turnId ? turnById.get(group.turnId)?.itemsView : undefined"
+          :work-phases="workPhases"
           :details-loading="group.turnId ? turnById.get(group.turnId)?.detailsLoading : undefined"
           :details-error="group.turnId ? turnById.get(group.turnId)?.detailsError : undefined"
           @load-turn-history="emit('load-turn-history', $event)"
@@ -137,6 +138,8 @@ const props = withDefaults(defineProps<{
   hasOlderMessages?: boolean
   hiddenClientRequestIds?: ReadonlySet<string>
   renderStrategy?: ConversationRenderStrategy
+  /** The harness states work phases itself (see `Capabilities.workPhases`). */
+  workPhases?: boolean
   /** @deprecated Use renderStrategy instead. */
   lazyMessages?: boolean
   initialMessageBatchSize?: number

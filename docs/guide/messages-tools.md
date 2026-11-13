@@ -52,7 +52,7 @@ Assistant output that is a complete HTML document in an `html` fence, or wrapped
 
 ## Tool calls
 
-Tool groups preserve the chronological relationship between work and final output: a turn's work collapses under one summary ("Done · View details") with the final answer after it.
+Tool groups preserve the chronological relationship between work and final output: a turn shows "Working" with its elapsed time and then "Done · 1m 49s" above its work. When the harness states each text part's phase (`capabilities.workPhases`), the work collapses under that summary ("Done · View details") with the final answer after it. Without stated phases the work stays visible and there is no toggle; the pane treats text after the last tool or reasoning step as the answer.
 
 - Raw tool inputs and outputs are **hidden by default**. `provideToolCallDetails(true)` enables disclosure for a trusted subtree; review sensitive content before enabling it.
 - `provideToolPresentation` customizes icons and titles without replacing grouping or streaming behavior. See [Vue providers](/guide/vue-providers#tool-presentation).
