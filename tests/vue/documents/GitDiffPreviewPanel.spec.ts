@@ -294,4 +294,44 @@ describe('annotating a diff', () => {
     await rows(plain)[1]!.get('.git-diff-preview-panel__line-number').trigger('mousedown');
     expect(plain.find('.code-selection-annotation__add').exists()).toBe(false);
   });
+
+  describe('when a file\'s patch was left out because it is too large', () => {
+    const header = (path: string) => `diff --git a/${path} b/${path}\n--- a/${path}\n+++ b/${path}\n`;
+    const small = 'diff --git a/src/small.ts b/src/small.ts\n--- a/src/small.ts\n+++ b/src/small.ts\n@@ -1 +1 @@\n-old\n+new\n';
+    const omittedFiles = [{ path: 'src/big.ts', addedLines: 7000, removedLines: 652 }];
+    const fileOf = (wrapper: ReturnType<typeof mount>, path: string) => wrapper.get(`[data-code-path="${path}"]`);
+
+    it('shows the real counts and a too-large message with no line numbers', () => {
+      const wrapper = mount(GitDiffPreviewPanel, { props: { diff: header('src/big.ts') + small, omittedFiles, annotatable: true } });
+      const big = fileOf(wrapper, 'src/big.ts');
+      expect(big.get('.git-diff-preview-panel__file-meta').text()).toBe('+7000-652');
+      expect(big.text()).toContain('Diff too large to be shown');
+      expect(big.text()).not.toContain('No textual hunks');
+      expect(big.find('.git-diff-preview-panel__line-number').exists()).toBe(false);
+      expect(big.find('[data-code-line]').exists()).toBe(false);
+      expect(big.find('.git-diff-preview-panel__annotate').exists()).toBe(false);
+      expect(fileOf(wrapper, 'src/small.ts').find('[data-code-line]').exists()).toBe(true);
+    });
+
+    it('leaves a header-only file that is not listed as having no textual hunks', () => {
+      const wrapper = mount(GitDiffPreviewPanel, { props: { diff: header('src/big.ts') } });
+      expect(wrapper.text()).toContain('No textual hunks.');
+      expect(wrapper.text()).not.toContain('too large');
+    });
+
+    it('translates the message through the translate prop and reports the counts to the overview', () => {
+      let overviewFiles: Array<{ fullPath: string; addedLines: number; removedLines: number }> = [];
+      const translate = (key: string) => key === 'surface.gitDiffPreviewPanel.diffTooLarge' ? 'Diff trop volumineux' : key;
+      const wrapper = mount(GitDiffPreviewPanel, {
+        props: { diff: header('src/big.ts'), omittedFiles, translate },
+        slots: { overview: (props: { files: typeof overviewFiles }) => { overviewFiles = props.files; return 'overview'; } },
+      });
+      expect(fileOf(wrapper, 'src/big.ts').text()).toContain('Diff trop volumineux');
+      mount(GitDiffPreviewPanel, {
+        props: { diff: header('src/big.ts'), omittedFiles, overview: true },
+        slots: { overview: (props: { files: typeof overviewFiles }) => { overviewFiles = props.files; return 'overview'; } },
+      });
+      expect(overviewFiles.map(file => [file.fullPath, file.addedLines, file.removedLines])).toEqual([['src/big.ts', 7000, 652]]);
+    });
+  });
 });

@@ -229,7 +229,7 @@ export { default as MarkdownPanel } from './documents/MarkdownPanel.vue';
 export { collectMarkdownHeadings, type MarkdownHeading } from './documents/markdown-outline';
 export { sanitizeSvg } from './documents/visualization-svg';
 export { default as SourcePreviewPanel } from './documents/SourcePreviewPanel.vue';
-export { default as DiffPreviewPanel } from './documents/DiffPreviewPanel.vue';
+export { default as DiffPreviewPanel, type DiffOmittedFile } from './documents/DiffPreviewPanel.vue';
 export { default as AnnotationPopup, type AnnotationPopupAnchor } from './documents/AnnotationPopup.vue';
 export { default as CodeSelectionAnnotation } from './documents/CodeSelectionAnnotation.vue';
 export { useCodeSelection, type CodeSelection, type CodeSelectionAnchor } from './documents/use-code-selection';

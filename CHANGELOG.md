@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- `DiffPreviewPanel` takes `omittedFiles` (`DiffOmittedFile[]`: `path`, `addedLines`, `removedLines`) for files whose patch was left out because it is too large. Their header shows the real counts and the body reads "Diff too large to be shown" (translatable as `surface.gitDiffPreviewPanel.diffTooLarge`) with no line numbers or annotate affordance.
+
 ## 0.27.2
 
 - Built on Multi Agent SDK 0.27.2. Claude's reasoning text, which that release delivers as `reasoning` parts, shows inline in the conversation.

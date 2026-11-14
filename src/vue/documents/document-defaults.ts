@@ -11,6 +11,7 @@ export const documentDefaults = {
     "openFileInTab": "Open {file} in a tab",
     "unmodified": "unmodified",
     "noTextualHunks": "No textual hunks.",
+    "diffTooLarge": "Diff too large to be shown",
     "noDiffContent": "No diff content.",
     "unableToParseDiff": "Unable to parse diff.",
     "unableToLoadDiff": "Unable to load diff."

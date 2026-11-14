@@ -8,7 +8,7 @@ Import the panels from the package root. They need no extra peer dependencies. F
 | --- | --- | --- |
 | `MarkdownPanel` | Rendered Markdown with an outline | `content`, `state`, `error`, `outlineEnabled` |
 | `SourcePreviewPanel` | Highlighted source | `content`, `language`, `path`, `showLineNumbers`, `wordWrap`, `annotatable` |
-| `DiffPreviewPanel` | A unified diff, per file | `diff`, `state`, `error`, `overview`, `groupByKind`, `fileKindFilter`, `annotatable`, `wordWrap` |
+| `DiffPreviewPanel` | A unified diff, per file | `diff`, `state`, `error`, `overview`, `groupByKind`, `fileKindFilter`, `annotatable`, `omittedFiles`, `wordWrap` |
 | `AnnotationPopup` | A comment box anchored to a rectangle | `anchor`, `placement`, `initialValue`, `submitLabel`, `optional` |
 | `CodeSelectionAnnotation` | The floating "comment" action for a code selection; the selected text stays highlighted while the comment is written | `selection`, `commenting` |
 
@@ -53,6 +53,19 @@ With `annotatable` and a `path`, a person can select code text or use a line's p
 The panel parses the unified diff, folds each file, and can group files under code, tests, documentation and other headers (`FileKind`). `excludeLockfiles` hides dependency lockfiles, and `fileKindFilter` narrows the view without changing the loaded patch. `expandAllSignal` and `collapseAllSignal` take counters; bump one to expand or collapse every file. The panel emits `allExpandedChange` so your toolbar can track state.
 
 A diff view product (a treemap, a review tool) is application-specific and does not belong in the SDK. The panel gives you the pieces to build one.
+
+### Files too large to show
+
+When a host leaves a very large file's hunks out of the patch, keep its header (`diff --git`, `---`, `+++`) and list it in `omittedFiles` with git's own counts:
+
+```vue
+<DiffPreviewPanel
+  :diff="patch"
+  :omitted-files="[{ path: 'src/generated.ts', addedLines: 7000, removedLines: 652 }]"
+/>
+```
+
+The file's header shows the real `+7000 -652`, and its body reads "Diff too large to be shown" with no line numbers and nothing to annotate. The message is translatable through the `translate` prop with the key `surface.gitDiffPreviewPanel.diffTooLarge`. A header-only file that is not listed still reads "No textual hunks."
 
 ### Host-owned overview
 

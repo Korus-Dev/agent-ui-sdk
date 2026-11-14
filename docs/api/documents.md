@@ -60,6 +60,7 @@ Both types are also exported from the root.
 | `excludeLockfiles` | `boolean` | Hide dependency lockfiles |
 | `expandAllSignal`, `collapseAllSignal` | `number` | Bump to expand or collapse every file |
 | `annotatable` | `boolean` | Line plus button and text-selection comments |
+| `omittedFiles` | `DiffOmittedFile[]` | Files whose patch was left out for size: `{ path, addedLines, removedLines }`. See [too-large files](/guide/documents#files-too-large-to-show) |
 | `openFileEnabled` | `boolean` | Show the open-file action |
 | `wordWrap` | `boolean` | Wrap long lines |
 | `translate` | `BrowserTranslator` | Localization |

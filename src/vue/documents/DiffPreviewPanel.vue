@@ -103,7 +103,11 @@
         </div>
 
         <div
-          v-if="isFileExpanded(file.key) && file.chunks.length"
+          v-if="isFileExpanded(file.key) && file.omitted"
+          class="git-diff-preview-panel__empty git-diff-preview-panel__empty--omitted"
+        > {{ $t('surface.gitDiffPreviewPanel.diffTooLarge') }} </div>
+        <div
+          v-else-if="isFileExpanded(file.key) && file.chunks.length"
           class="git-diff-preview-panel__chunks"
         >
           <div
@@ -198,6 +202,11 @@ const props = withDefaults(defineProps<{
   groupByKind?: boolean;
   /** Annotate from a line's plus button, or select code text. */
   annotatable?: boolean;
+  /**
+   * Files whose patch was left out because it is too large: the patch holds only their header, and `addedLines` and
+   * `removedLines` are the counts to show (git's numstat). Their body reads "Diff too large to be shown".
+   */
+  omittedFiles?: readonly DiffOmittedFile[];
   openFileEnabled?: boolean;
   state?: 'idle' | 'loading' | 'error';
   wordWrap?: boolean;
@@ -210,6 +219,7 @@ const props = withDefaults(defineProps<{
   focusKind: null,
   focusSequence: 0,
   annotatable: false,
+  omittedFiles: () => [],
   groupByKind: false,
   openFileEnabled: false,
   state: 'idle',
@@ -226,6 +236,9 @@ const emit = defineEmits<{
   openFile: [filePath: string];
   annotate: [annotation: CodeAnnotationInput];
 }>();
+
+/** A file whose patch the host left out: its path and git's own line counts. */
+export type DiffOmittedFile = { path: string; addedLines: number; removedLines: number };
 
 type DiffLineKind = 'added' | 'deleted' | 'context' | 'message';
 
@@ -257,6 +270,8 @@ type DiffFileView = {
   addedLines: number;
   removedLines: number;
   chunks: DiffChunkView[];
+  /** The patch was left out for size: show the message, not hunks. */
+  omitted: boolean;
 };
 
 type DiffFileIconKind = 'javascript' | 'typescript' | 'vue' | 'code';
@@ -421,6 +436,7 @@ function mapFile(file: AnyFileChange, fileIndex: number): DiffFileView {
     if (mappedChunk) mappedChunks.push(mappedChunk);
     return mappedChunks;
   }, []);
+  const omitted = props.omittedFiles.find(entry => entry.path === visiblePath);
   return {
     key: `${file.type}:${title}:${fileIndex}`,
     directory: compactDirectory(directory),
@@ -428,9 +444,10 @@ function mapFile(file: AnyFileChange, fileIndex: number): DiffFileView {
     name,
     iconKind: fileIconKind(name),
     openable: file.type !== 'DeletedFile',
-    addedLines: countLines(chunks, 'added'),
-    removedLines: countLines(chunks, 'deleted'),
-    chunks,
+    addedLines: omitted?.addedLines ?? countLines(chunks, 'added'),
+    removedLines: omitted?.removedLines ?? countLines(chunks, 'deleted'),
+    chunks: omitted ? [] : chunks,
+    omitted: Boolean(omitted),
   };
 }
 
@@ -902,5 +919,13 @@ function mapLine(line: Chunk['changes'][number]): DiffLineView {
 
 .git-diff-preview-panel__empty--file {
   font-family: var(--font-family-mono);
+}
+
+.git-diff-preview-panel__empty--omitted {
+  padding-block: var(--space-10);
+  /* Lines up with the file name: the header's padding, its icon and the gap after it. */
+  padding-inline-start: calc(var(--space-8) + var(--space-12) + var(--space-6));
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-20);
 }
 </style>
