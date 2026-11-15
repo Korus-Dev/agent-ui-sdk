@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.27.5
+
+- Built on Multi Agent SDK 0.28.2.
+
 ## 0.27.4
 
 - `@korus-dev/multi-agent-sdk` is accepted at `^0.27.1 || ^0.28.0`, and the package is built and validated against Multi Agent SDK 0.28.1.
