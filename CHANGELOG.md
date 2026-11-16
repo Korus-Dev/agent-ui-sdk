@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- The context compaction divider draws a line on each side of its title instead of one line behind a label with an opaque background, so it matches any conversation backdrop or gradient skin.
+- The highlighted row of the slash, skill, plugin and file mention menus uses the themeable hover color (`--agent-ui-hover-color`, then `--color-surface-low`) instead of `--color-surface`, which read as a black bar on dark themes.
+
 ## 0.27.5
 
 - Built on Multi Agent SDK 0.28.2.
