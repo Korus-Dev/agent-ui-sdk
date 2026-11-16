@@ -113,7 +113,7 @@ watch(
 
 .chat-composer-plugin-menu__item:hover,
 .chat-composer-plugin-menu__item--active {
-  background: var(--color-surface);
+  background: var(--agent-ui-hover-color, var(--color-surface-low));
 }
 
 .chat-composer-plugin-menu__icon {

@@ -121,7 +121,7 @@ watch(
 
 .chat-composer-file-menu__item:hover,
 .chat-composer-file-menu__item--active {
-  background: var(--color-surface);
+  background: var(--agent-ui-hover-color, var(--color-surface-low));
 }
 
 .chat-composer-file-menu__icon {

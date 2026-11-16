@@ -144,7 +144,7 @@ watch(
 
 .chat-composer-slash-menu__item:hover,
 .chat-composer-slash-menu__item--active {
-  background: var(--color-surface);
+  background: var(--agent-ui-hover-color, var(--color-surface-low));
 }
 
 .chat-composer-slash-menu__icon {
