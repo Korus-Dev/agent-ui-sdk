@@ -243,6 +243,16 @@ describe('Message', () => {
     expect(wrapper.find('.chat-message__thinking').exists()).toBe(false);
   });
 
+  it('flanks the compaction title with a line on each side and keeps the title text', () => {
+    const wrapper = mountMessage({
+      message: { role: 'assistant', content: '', compactionStatus: 'completed', type: 'compaction' },
+    });
+    const parts = [...wrapper.get('.chat-message--compaction').element.children].map(element => element.className);
+
+    expect(parts).toEqual(['chat-message__compaction-line', 'chat-message__compaction-title', 'chat-message__compaction-line']);
+    expect(wrapper.get('.chat-message__compaction-title').text()).toBe('Context compacted');
+  });
+
   it('renders thinking for empty streaming assistant messages', () => {
     const wrapper = mountMessage({
       message: { role: 'assistant', content: '', streaming: true, toolCalls: [] },

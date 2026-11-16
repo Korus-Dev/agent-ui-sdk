@@ -12,6 +12,7 @@
         {{ title }}
       </span>
     </span>
+    <div class="chat-message__compaction-line" />
   </div>
 </template>
 
@@ -36,9 +37,8 @@ const title = computed(() => running.value ? props.runningTitle : props.complete
 }
 
 .chat-message--compaction {
-  position: relative;
   align-items: center;
-  justify-content: center;
+  gap: var(--space-6);
   min-height: 28px;
 }
 
@@ -46,19 +46,16 @@ const title = computed(() => running.value ? props.runningTitle : props.complete
   opacity: 0.64;
 }
 
+/* A line on each side of the title: no label background, so any conversation backdrop shows through. */
 .chat-message__compaction-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
+  flex: 1 1 0;
+  min-width: 0;
   border-top: 1px solid var(--color-border);
 }
 
 .chat-message__compaction-title {
-  z-index: 1;
+  flex: 0 1 auto;
   display: inline-block;
-  padding: 0 var(--space-6);
-  background: var(--color-surface-lowest);
 }
 
 .chat-message__compaction-label {
