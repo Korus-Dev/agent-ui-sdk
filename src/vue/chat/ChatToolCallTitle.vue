@@ -190,6 +190,10 @@ function onTitleClick(event: MouseEvent) {
   padding: 0;
   border-radius: 0;
   background: transparent;
+  /* The icon, and its copy and check glyphs, always read in the title's own text color. */
+  --agent-ui-state-rest-foreground: currentColor;
+  --agent-ui-state-hover-foreground: currentColor;
+  --agent-ui-state-selected-foreground: currentColor;
 }
 .chat-tool-call__title .chat-tool-call__copy-icon:hover,
 .chat-tool-call__title .chat-tool-call__copy-icon:focus-visible { background: transparent; }

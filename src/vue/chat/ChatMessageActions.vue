@@ -145,8 +145,26 @@ async function copyMessage() {
   justify-content: flex-start;
 }
 
+/* Message actions rest in the same muted color as tool calls. */
+.chat-message-actions :deep(.chat-icon-button) {
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+}
+
+.chat-message-actions {
+  /* The space between an icon and its button edge: the label gets the same, so icon-to-icon and icon-to-label gaps match. */
+  --chat-message-actions-inset: calc((var(--chat-message-action-control-size, var(--space-12)) - var(--icon-sm)) / 2);
+}
+
+.chat-message-actions--assistant .chat-message-actions__sent-at {
+  margin-inline-start: var(--chat-message-actions-inset);
+}
+
+.chat-message-actions--user .chat-message-actions__sent-at {
+  margin-inline-end: var(--chat-message-actions-inset);
+}
+
 .chat-message-actions__sent-at {
-  color: var(--color-outline);
+  color: var(--color-text-muted);
   font-size: var(--font-size-12);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-16);
