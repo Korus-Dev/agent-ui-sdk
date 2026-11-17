@@ -28,7 +28,7 @@
         :tool-presentation="toolPresentation"
         @open-link="emit('open-link', $event)"
       />
-      <button v-if="expandable === true" class="chat-tool-call__details-toggle" type="button" :aria-label="titleParts.title" :aria-expanded="detailsExpanded" @click.stop="emit('toggle-details')">
+      <button v-if="expandable === true" class="chat-tool-call__details-toggle agent-ui-interactive" data-appearance="text" type="button" :aria-label="titleParts.title" :aria-expanded="detailsExpanded" @click.stop="emit('toggle-details')">
         <component :is="detailsExpanded ? ChevronUp : ChevronDown" class="chat-tool-group__chevron" :size="15" />
       </button>
     </div>
@@ -65,7 +65,7 @@
         :tool-presentation="toolPresentation"
         @open-link="emit('open-link', $event)"
       />
-      <button class="chat-tool-call__details-toggle" type="button" :aria-label="titleParts.title" :aria-expanded="isOpen" @click.stop="toggleOpen">
+      <button class="chat-tool-call__details-toggle agent-ui-interactive" data-appearance="text" type="button" :aria-label="titleParts.title" :aria-expanded="isOpen" @click.stop="toggleOpen">
         <component :is="isOpen ? ChevronUp : ChevronDown" class="chat-tool-call__chevron" :size="15" />
       </button>
     </div>
@@ -267,7 +267,7 @@ function formatValue(value: unknown) {
   color: var(--color-text-muted);
 }
 
-.chat-tool-call__details-toggle { display: inline-flex; flex: 0 0 auto; align-items: center; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.chat-tool-call__details-toggle { display: inline-flex; flex: 0 0 auto; align-items: center; padding: 0; border: 0; --agent-ui-state-rest-foreground: currentColor; }
 
 .chat-tool-call__body {
   display: flex;

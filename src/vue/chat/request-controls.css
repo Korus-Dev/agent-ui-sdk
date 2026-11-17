@@ -64,38 +64,16 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0 var(--space-6);
-  background: transparent;
-  color: var(--color-primary);
+  --agent-ui-state-rest-foreground: var(--color-primary);
+  --agent-ui-state-primary-hover: var(--color-primary-container);
+  --agent-ui-state-primary-solid-hover: var(--color-secondary);
+  --agent-ui-state-disabled-opacity: 0.52;
   font: inherit;
   font-size: var(--font-size-13);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
-.agent-ui-request-button:hover:not(:disabled) {
+.agent-ui-request-button--primary {
   border-color: var(--color-primary);
-  background: var(--color-primary-container);
-}
-
-.agent-ui-request-button:disabled {
-  background: var(--color-surface-base);
-  color: var(--color-text);
-  cursor: not-allowed;
-  opacity: 0.52;
-}
-
-.agent-ui-request-button--primary:not(:disabled) {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.agent-ui-request-button--primary:hover:not(:disabled) {
-  border-color: var(--color-secondary);
-  background: var(--color-secondary);
-}
-
-.agent-ui-request-button:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: var(--space-1);
 }

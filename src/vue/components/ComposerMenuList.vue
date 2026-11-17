@@ -61,13 +61,10 @@ function forwardSelection(item: ComposerMenuSelectableItem<unknown>): void {
   padding: var(--space-2) var(--space-4);
   border: 0;
   border-radius: var(--agent-ui-composer-menu-item-radius, 12px);
-  color: inherit;
-  background: transparent;
   font-family: inherit;
   font-size: var(--agent-ui-composer-menu-item-font-size, var(--chat-menu-font-size, 13.5px));
   line-height: var(--chat-menu-line-height, 20px);
   text-align: left;
-  cursor: pointer;
 }
 
 .agent-ui-composer-menu-list--pinned {
@@ -88,20 +85,8 @@ function forwardSelection(item: ComposerMenuSelectableItem<unknown>): void {
   overscroll-behavior: contain;
 }
 
-.agent-ui-composer-menu-list__item:hover:not(:disabled),
-.agent-ui-composer-menu-list__item:focus-visible {
-  background: var(--agent-ui-hover-color, var(--color-surface-low, #f4f4f4));
-  outline: none;
-}
-
-.agent-ui-composer-menu-list__item:disabled {
-  color: var(--agent-ui-muted-text-color, var(--color-text-muted, #666));
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
 .agent-ui-composer-menu-list__item--danger {
-  color: var(--agent-ui-danger-color, var(--color-error, #d5351f));
+  --agent-ui-state-rest-foreground: var(--agent-ui-danger-color, var(--color-error, #d5351f));
 }
 
 .agent-ui-composer-menu-list__item--switch {
@@ -240,21 +225,6 @@ function forwardSelection(item: ComposerMenuSelectableItem<unknown>): void {
   padding: 0;
   border: 0;
   border-radius: 6px;
-  color: inherit;
-  background: transparent;
-  cursor: pointer;
-}
-
-.agent-ui-composer-menu-list__heading-action:hover:not(:disabled),
-.agent-ui-composer-menu-list__heading-action:focus-visible {
-  color: var(--agent-ui-text-color, var(--color-text, #0d0d0d));
-  background: var(--agent-ui-hover-color, var(--color-surface-low, #f4f4f4));
-  outline: none;
-}
-
-.agent-ui-composer-menu-list__heading-action:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
 }
 
 .agent-ui-composer-menu-list__heading-action > svg {

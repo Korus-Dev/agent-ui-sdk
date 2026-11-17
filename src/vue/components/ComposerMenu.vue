@@ -2,7 +2,8 @@
   <div ref="root" class="agent-ui-theme agent-ui-composer-menu" @keydown.escape.prevent.stop="close(true)">
     <slot name="trigger" :open="menuOpen" :toggle="toggle">
       <button
-        class="agent-ui-composer-menu__trigger"
+        class="agent-ui-composer-menu__trigger agent-ui-interactive"
+        data-focus="fill"
         type="button"
         :aria-label="buttonLabel"
         aria-haspopup="menu"
@@ -132,21 +133,7 @@ defineExpose({ close, open: () => setOpen(true), toggle });
   padding: 0;
   border: 0;
   border-radius: 999px;
-  color: var(--agent-ui-muted-text-color, var(--color-text-muted, #777b82));
-  background: transparent;
-  cursor: pointer;
-}
-
-.agent-ui-composer-menu__trigger:hover:not(:disabled),
-.agent-ui-composer-menu__trigger:focus-visible {
-  color: var(--agent-ui-text-color, var(--color-text, #202124));
-  background: var(--agent-ui-hover-color, var(--color-surface-low, rgb(0 0 0 / 6%)));
-  outline: none;
-}
-
-.agent-ui-composer-menu__trigger:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+  --agent-ui-state-rest-foreground: var(--agent-ui-muted-text-color, var(--color-text-muted, #777b82));
 }
 
 .agent-ui-composer-menu__list {

@@ -18,7 +18,9 @@
       <button
         v-for="action in actions"
         :key="action.id"
-        class="agent-ui-request-button chat-tool-confirmation__button"
+        class="agent-ui-request-button chat-tool-confirmation__button agent-ui-interactive"
+        data-variant="primary"
+        :data-appearance="action.primary ? 'solid' : undefined"
         :class="{ 'agent-ui-request-button--primary': action.primary, 'chat-tool-confirmation__button--primary': action.primary }"
         type="button"
         :disabled="disabled"

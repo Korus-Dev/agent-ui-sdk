@@ -7,7 +7,7 @@
     </div>
     <div class="chat-goal__actions">
       <button
-        class="chat-goal__action"
+        class="chat-goal__action agent-ui-interactive"
         type="button"
         aria-label="Edit goal"
         title="Edit goal"
@@ -17,7 +17,7 @@
         <span>Edit</span>
       </button>
       <button
-        class="chat-goal__action"
+        class="chat-goal__action agent-ui-interactive"
         type="button"
         aria-label="Clear goal"
         title="Clear goal"
@@ -105,16 +105,9 @@ const emit = defineEmits<{
   justify-content: center;
   border: none;
   border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text-muted);
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
   font-size: var(--font-size-12);
   gap: var(--space-2);
-  cursor: pointer;
-}
-
-.chat-goal__action:hover {
-  background: var(--color-surface-low);
-  color: var(--color-text);
 }
 
 .chat-goal__action svg {

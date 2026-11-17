@@ -40,7 +40,9 @@
       @toggle="voiceController.toggle"
     />
     <button
-      class="annotation-popup__submit"
+      class="annotation-popup__submit agent-ui-interactive"
+      data-variant="primary"
+      data-appearance="solid"
       type="submit"
       :aria-label="submitLabel"
       :disabled="submitDisabled"
@@ -282,16 +284,9 @@ async function submit(eventName: 'command-submit' | 'submit' = 'submit'): Promis
   padding: 0;
   border: 0;
   border-radius: 7px;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  --agent-ui-state-disabled-opacity: 0.42;
   font: inherit;
   font-size: var(--font-size-16);
   line-height: 1;
-  cursor: pointer;
-}
-
-.annotation-popup__submit:disabled {
-  opacity: 0.42;
-  cursor: default;
 }
 </style>

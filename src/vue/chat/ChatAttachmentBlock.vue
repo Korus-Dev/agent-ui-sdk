@@ -34,7 +34,7 @@
   </figure>
   <button
     v-else-if="managedPreview && attachment.kind === 'image'"
-    class="agent-ui-theme chat-attachment-block chat-attachment-block--chip"
+    class="agent-ui-theme chat-attachment-block chat-attachment-block--chip agent-ui-interactive"
     type="button"
     :aria-label="`Load ${attachment.name}`"
     @click="reloadPreview"
@@ -46,6 +46,7 @@
     :is="chipHref ? 'a' : 'span'"
     v-else
     class="agent-ui-theme chat-attachment-block chat-attachment-block--chip"
+    :class="{ 'agent-ui-interactive': chipHref }"
     :href="chipHref"
     :title="attachment.path || attachment.url || attachment.name"
   >
@@ -215,14 +216,13 @@ function safeFileHref(value: string | undefined): string | undefined {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-lowest);
+  --agent-ui-state-rest: var(--color-surface-lowest);
   color: var(--color-text);
   text-decoration: none;
 }
 
-a.chat-attachment-block--chip:hover {
-  border-color: var(--color-border-strong, var(--color-text-muted));
-  background: var(--color-surface-low);
+.chat-attachment-block--chip:not(.agent-ui-interactive) {
+  background: var(--color-surface-lowest);
 }
 
 .chat-attachment-block svg {

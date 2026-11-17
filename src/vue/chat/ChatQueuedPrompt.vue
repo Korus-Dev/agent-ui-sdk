@@ -7,7 +7,7 @@
     <template #actions>
       <div class="chat-queued-prompt__actions">
         <button
-          class="chat-queued-prompt__action"
+          class="chat-queued-prompt__action agent-ui-interactive"
           type="button"
           aria-label="Steer queued prompt now"
           title="Steer now"
@@ -18,7 +18,7 @@
           <span>Steer</span>
         </button>
         <button
-          class="chat-queued-prompt__action"
+          class="chat-queued-prompt__action agent-ui-interactive"
           type="button"
           aria-label="Edit queued prompt"
           title="Edit"
@@ -28,7 +28,7 @@
           <PencilIcon aria-hidden="true" />
         </button>
         <button
-          class="chat-queued-prompt__action"
+          class="chat-queued-prompt__action agent-ui-interactive"
           type="button"
           aria-label="Delete queued prompt"
           title="Delete"
@@ -91,22 +91,12 @@ const preview = computed(() => {
   justify-content: center;
   border: none;
   border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text-muted);
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-disabled-opacity: 0.4;
   font-size: var(--font-size-12);
   gap: var(--space-2);
-  cursor: pointer;
 }
 
-.chat-queued-prompt__action:hover:not(:disabled) {
-  background: var(--color-surface-low);
-  color: var(--color-text);
-}
-
-.chat-queued-prompt__action:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
 
 .chat-queued-prompt__action svg {
   width: var(--icon-sm);

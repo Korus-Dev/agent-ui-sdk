@@ -1,6 +1,8 @@
 <template>
   <button
-    class="agent-ui-theme chat-composer__voice"
+    class="agent-ui-theme chat-composer__voice agent-ui-interactive"
+    :data-variant="recording ? 'primary' : undefined"
+    :data-appearance="recording ? 'solid' : undefined"
     :class="{ 'chat-composer__voice--recording': recording }"
     type="button"
     :disabled="disabled"
@@ -45,25 +47,9 @@ watch(() => props.recording, () => { hovered.value = false })
   height: var(--chat-composer-compact-control-size, var(--chat-composer-button-size-small, 28px));
   border: 0;
   border-radius: var(--radius-full);
-  color: var(--color-text-muted);
-  background: transparent;
-  cursor: pointer;
-}
-
-.chat-composer__voice:hover:not(:disabled) {
-  color: var(--color-text);
-  background: var(--color-surface-base);
-}
-
-.chat-composer__voice--recording,
-.chat-composer__voice--recording:hover:not(:disabled) {
-  color: #fff;
-  background: var(--color-primary);
-}
-
-.chat-composer__voice:disabled {
-  cursor: default;
-  opacity: 0.42;
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-primary-solid-foreground: #fff;
+  --agent-ui-state-disabled-opacity: 0.42;
 }
 
 .chat-composer__voice svg {

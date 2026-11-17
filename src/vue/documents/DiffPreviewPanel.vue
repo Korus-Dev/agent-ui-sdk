@@ -33,7 +33,8 @@
       >
       <button
         v-if="group.kind"
-        class="git-diff-preview-panel__group-header"
+        class="git-diff-preview-panel__group-header agent-ui-interactive"
+        data-selection="none"
         type="button"
         :aria-expanded="isGroupExpanded(group.kind)"
         @click="toggleGroup(group.kind)"
@@ -61,9 +62,10 @@
         class="git-diff-preview-panel__file"
         :data-code-path="file.fullPath"
       >
-        <div class="git-diff-preview-panel__file-header-row">
+        <div class="git-diff-preview-panel__file-header-row agent-ui-interactive">
           <button
-            class="git-diff-preview-panel__file-header"
+            class="git-diff-preview-panel__file-header agent-ui-interactive"
+            data-selection="none"
             type="button"
             :aria-expanded="isFileExpanded(file.key)"
             @click="toggleFile(file.key)"
@@ -92,7 +94,7 @@
           </button>
           <button
             v-if="openFileEnabled && file.openable"
-            class="git-diff-preview-panel__open-file"
+            class="git-diff-preview-panel__open-file agent-ui-interactive"
             type="button"
             :aria-label="$t('surface.gitDiffPreviewPanel.openFileInTab', { file: file.fullPath })"
             :title="$t('surface.gitDiffPreviewPanel.openFileInTab', { file: file.fullPath })"
@@ -133,7 +135,9 @@
             >
               <button
                 v-if="annotatable && codeLine(line)"
-                class="git-diff-preview-panel__annotate"
+                class="git-diff-preview-panel__annotate agent-ui-interactive"
+                data-variant="primary"
+                data-appearance="solid"
                 type="button"
                 tabindex="-1"
                 :aria-label="$t('chat.codeAnnotations.annotateLine')"
@@ -596,18 +600,14 @@ function mapLine(line: Chunk['changes'][number]): DiffLineView {
   border: 0;
   border-bottom: 1px solid var(--color-border);
   text-align: left;
-  cursor: pointer;
-  background: var(--color-surface-low);
-  color: var(--color-text);
+  --agent-ui-state-rest: var(--color-surface-low);
+  --agent-ui-state-rest-foreground: var(--color-text);
+  --agent-ui-state-hover: var(--color-surface-high);
   font-size: var(--font-size-12);
 }
 
 .git-diff-preview-panel__group-header strong {
   font-weight: var(--font-weight-semibold);
-}
-
-.git-diff-preview-panel__group-header:hover {
-  background: var(--color-surface-high);
 }
 
 .git-diff-preview-panel__group-chevron {
@@ -643,8 +643,9 @@ function mapLine(line: Chunk['changes'][number]): DiffLineView {
   align-items: center;
   min-height: 36px;
   border-bottom: 1px solid var(--color-border);
-  color: inherit;
-  background: var(--color-surface-lowest);
+  --agent-ui-state-rest: var(--color-surface-lowest);
+  --agent-ui-state-hover: var(--color-surface-low);
+  cursor: default;
 }
 
 .git-diff-preview-panel__file-header {
@@ -656,20 +657,12 @@ function mapLine(line: Chunk['changes'][number]): DiffLineView {
   gap: var(--space-6);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-8);
   border: 0;
-  color: inherit;
-  background: transparent;
+  /* The row paints the material and the hover; the header button only adds its focus ring. */
+  --agent-ui-state-rest: transparent;
+  --agent-ui-state-hover: transparent;
+  --agent-ui-state-focus-ring-offset: -2px;
   font-family: var(--font-family-base);
   text-align: left;
-  cursor: pointer;
-}
-
-.git-diff-preview-panel__file-header-row:hover {
-  background: var(--color-surface-low);
-}
-
-.git-diff-preview-panel__file-header:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
 }
 
 .git-diff-preview-panel__open-file {
@@ -682,20 +675,9 @@ function mapLine(line: Chunk['changes'][number]): DiffLineView {
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  background: transparent;
-  cursor: pointer;
-}
-
-.git-diff-preview-panel__open-file:hover,
-.git-diff-preview-panel__open-file:focus-visible {
-  color: var(--color-text);
-  background: var(--color-surface);
-}
-
-.git-diff-preview-panel__open-file:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-hover: var(--color-surface);
+  --agent-ui-state-focus-ring-offset: -2px;
 }
 
 .git-diff-preview-panel__open-file svg {
@@ -833,11 +815,8 @@ function mapLine(line: Chunk['changes'][number]): DiffLineView {
   padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
   opacity: 0;
   transform: translateY(-50%);
-  cursor: pointer;
 }
 
 .git-diff-preview-panel__annotate :deep(svg) {

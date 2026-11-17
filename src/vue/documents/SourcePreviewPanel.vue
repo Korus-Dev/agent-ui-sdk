@@ -91,7 +91,9 @@ function numberLines(): void {
     if (existing) return;
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'source-preview-panel__annotate';
+    button.className = 'source-preview-panel__annotate agent-ui-interactive';
+    button.dataset.variant = 'primary';
+    button.dataset.appearance = 'solid';
     button.setAttribute('data-code-annotation-trigger', '');
     button.setAttribute('aria-label', translate('chat.codeAnnotations.annotateLine'));
     button.title = translate('chat.codeAnnotations.annotateLine');
@@ -221,9 +223,6 @@ function saveAnnotation({ selection, comment }: { selection: CodeSelection; comm
   padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  cursor: pointer;
 }
 
 .source-preview-panel__content :deep(.line:hover .source-preview-panel__annotate),

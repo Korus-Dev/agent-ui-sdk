@@ -1,0 +1,162 @@
+/*
+ * Shared interaction states. A control opts in with the `agent-ui-interactive` class and gets rest, hover or
+ * highlight, pressed, selected or open, focus-visible and disabled once, here, in fills and in text color,
+ * instead of in every component. Host controls (native, Element Plus) use the same class, so SDK and host
+ * controls behave alike. Callers keep geometry (size, padding, radius, border); they declare no paint at all: a control
+ * that rests in other colors sets `--agent-ui-state-rest` and `--agent-ui-state-rest-foreground` instead of `background`
+ * and `color`, because an unlayered caller declaration would beat this layer's states.
+ *
+ *   <button class="agent-ui-interactive">…</button>
+ *   <button class="agent-ui-interactive" data-variant="destructive">…</button>
+ *   <button class="agent-ui-interactive" data-variant="primary" data-appearance="solid">…</button>
+ *
+ * Selection: data-selection = none (opt out) shows no selected look at all: a disclosure that is open (aria-expanded) keeps
+ *             its rest fill and foreground and still gets hover, pressed, focus and disabled | ring (opt in) keeps the control's own fill when selected and draws an outer ring in the
+ *             focus ring color instead (swatches, identity tiles); `--agent-ui-state-selection-ring-width|offset` size it.
+ * Variants:   data-variant = neutral (default) | primary | destructive
+ * Appearance: data-appearance = ghost (default, tinted fills over a transparent rest) | text (no fills: toggles, tabs,
+ *             links; only the focus ring, cursor and disabled states apply) | solid (primary and
+ *             destructive only: a filled button that keeps its own foreground in every state)
+ * State hooks read: `:hover`, `:active`, `:focus-visible`, `:disabled`, `[aria-disabled="true"]`, `[data-disabled]`,
+ *             `[data-highlighted]` (a keyboard-highlighted row), and for selected or open `[aria-pressed]`,
+ *             `[aria-selected]`, `[aria-expanded]` set to `true`, `[aria-current]` with any value but `false`, or `[data-selected]`. A checked menu item
+ *             (`aria-checked`) is not selected: it shows its check mark.
+ *             `data-focus="fill"` makes keyboard focus highlight the row like hover instead of drawing a ring (menu rows).
+ *
+ * Public tokens, separate from the elevation surfaces (`--color-surface-*`); set them on any ancestor:
+ *   neutral:     --agent-ui-state-rest, -rest-foreground, -hover, -pressed, -selected, -hover-foreground, -selected-foreground
+ *   primary:     --agent-ui-state-primary-hover, -pressed, -selected, -foreground
+ *   destructive: --agent-ui-state-destructive-hover, -pressed, -selected, -foreground
+ *   solid:       --agent-ui-state-primary-solid, -solid-hover, -solid-pressed, -solid-foreground (and the same
+ *                with `destructive`)
+ *   shared:      --agent-ui-state-focus-ring-color, -focus-ring-width, -focus-ring-offset, -disabled-opacity
+ * `--agent-ui-hover-color` still supplies the neutral hover when `--agent-ui-state-hover` is not set.
+ *
+ * A container marked `data-agent-ui-scope` (or given the class `agent-ui-scope`) makes every `button`, `[role="button"]`, `[role="tab"]`, `[role="option"]` and
+ * `[role="menuitem"]`, `menuitemradio` or `menuitemcheckbox` inside it an interactive control (not switches, checkboxes,
+ * radios or tree items, whose field geometry is distinct), for panels and toolbars with many buttons; the same variants, tokens and attributes apply to each button.
+ *
+ * Class aliases for hosts that can only set class names (Element Plus MessageBox): `agent-ui-interactive--primary`,
+ * `--destructive`, `--solid`, `--text`, `--ring` and `--selection-none` are the same axes as the data attributes, in the same rules.
+ *
+ * Resolved, read-only values for adapters that must feed a framework's own variables (set on every control that
+ * has the class; read them, do not set them): `--agent-ui-interactive-rest`, `-hover`, `-pressed`, `-selected`,
+ * `-rest-foreground`, `-hover-foreground`, `-pressed-foreground`, `-selected-foreground`. Solid variants already
+ * resolve their rest foreground. An Element Plus host binds `--el-button-bg-color` and the like to these values
+ * and writes no state rules of its own.
+ *
+ * The rules sit in a low-priority layer, so a host's unlayered CSS for the same control wins.
+ */
+@layer agent-ui-states {
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])) {
+    --agent-ui-interactive-rest: var(--agent-ui-state-rest, transparent);
+    --agent-ui-interactive-hover: var(--agent-ui-state-hover, var(--agent-ui-hover-color, var(--color-surface-low, rgb(0 0 0 / 6%))));
+    --agent-ui-interactive-pressed: var(--agent-ui-state-pressed, color-mix(in srgb, currentColor 14%, transparent));
+    --agent-ui-interactive-selected: var(--agent-ui-state-selected, color-mix(in srgb, currentColor 10%, transparent));
+    --agent-ui-interactive-rest-foreground: var(--agent-ui-state-rest-foreground, currentColor);
+    --agent-ui-interactive-hover-foreground: var(--agent-ui-state-hover-foreground, var(--color-text, currentColor));
+    --agent-ui-interactive-pressed-foreground: var(--agent-ui-interactive-hover-foreground);
+    --agent-ui-interactive-selected-foreground: var(--agent-ui-state-selected-foreground, var(--color-text, currentColor));
+    --agent-ui-interactive-ring: var(--agent-ui-state-focus-ring-color, var(--color-primary, #1b4fb2));
+    background-color: var(--agent-ui-interactive-rest);
+    color: var(--agent-ui-interactive-rest-foreground);
+    cursor: pointer;
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is([data-variant='primary'], .agent-ui-interactive--primary) {
+    --agent-ui-interactive-hover: var(--agent-ui-state-primary-hover, color-mix(in srgb, var(--color-primary, #1b4fb2) 12%, transparent));
+    --agent-ui-interactive-pressed: var(--agent-ui-state-primary-pressed, color-mix(in srgb, var(--color-primary, #1b4fb2) 18%, transparent));
+    --agent-ui-interactive-selected: var(--agent-ui-state-primary-selected, color-mix(in srgb, var(--color-primary, #1b4fb2) 16%, transparent));
+    --agent-ui-interactive-hover-foreground: var(--agent-ui-state-primary-foreground, var(--color-primary, #1b4fb2));
+    --agent-ui-interactive-selected-foreground: var(--agent-ui-state-primary-foreground, var(--color-primary, #1b4fb2));
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is([data-variant='destructive'], .agent-ui-interactive--destructive) {
+    --agent-ui-interactive-hover: var(--agent-ui-state-destructive-hover, color-mix(in srgb, var(--color-error, #d5351f) 12%, transparent));
+    --agent-ui-interactive-pressed: var(--agent-ui-state-destructive-pressed, color-mix(in srgb, var(--color-error, #d5351f) 18%, transparent));
+    --agent-ui-interactive-selected: var(--agent-ui-state-destructive-selected, color-mix(in srgb, var(--color-error, #d5351f) 16%, transparent));
+    --agent-ui-interactive-hover-foreground: var(--agent-ui-state-destructive-foreground, var(--color-error, #d5351f));
+    --agent-ui-interactive-selected-foreground: var(--agent-ui-state-destructive-foreground, var(--color-error, #d5351f));
+    --agent-ui-interactive-ring: var(--agent-ui-state-focus-ring-color, var(--color-error, #d5351f));
+  }
+
+  /* Text: a disclosure toggle or tab: no fills, and its text color changes only through the foreground tokens. */
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is([data-appearance='text'], .agent-ui-interactive--text) {
+    --agent-ui-interactive-hover: transparent;
+    --agent-ui-interactive-pressed: transparent;
+    --agent-ui-interactive-selected: transparent;
+    --agent-ui-interactive-hover-foreground: var(--agent-ui-state-hover-foreground, var(--agent-ui-interactive-rest-foreground));
+    --agent-ui-interactive-selected-foreground: var(--agent-ui-state-selected-foreground, var(--agent-ui-interactive-rest-foreground));
+  }
+
+  /* Solid: a filled primary or destructive button keeps its fill family and its own foreground in every state. */
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is([data-appearance='solid'], .agent-ui-interactive--solid):is([data-variant='primary'], .agent-ui-interactive--primary) {
+    --agent-ui-interactive-away: var(--agent-ui-interactive-hover-foreground);
+    --agent-ui-interactive-rest: var(--agent-ui-state-primary-solid, var(--color-primary, #1b4fb2));
+    --agent-ui-interactive-hover: var(--agent-ui-state-primary-solid-hover, color-mix(in oklab, var(--agent-ui-interactive-rest) 88%, var(--agent-ui-interactive-away)));
+    --agent-ui-interactive-pressed: var(--agent-ui-state-primary-solid-pressed, color-mix(in oklab, var(--agent-ui-interactive-rest) 78%, var(--agent-ui-interactive-away)));
+    --agent-ui-interactive-selected: var(--agent-ui-interactive-hover);
+    --agent-ui-interactive-hover-foreground: var(--agent-ui-state-primary-solid-foreground, var(--color-on-primary, #fff));
+    --agent-ui-interactive-selected-foreground: var(--agent-ui-interactive-hover-foreground);
+    --agent-ui-interactive-rest-foreground: var(--agent-ui-interactive-hover-foreground);
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is([data-appearance='solid'], .agent-ui-interactive--solid):is([data-variant='destructive'], .agent-ui-interactive--destructive) {
+    --agent-ui-interactive-away: var(--agent-ui-interactive-hover-foreground);
+    --agent-ui-interactive-rest: var(--agent-ui-state-destructive-solid, var(--color-error, #d5351f));
+    --agent-ui-interactive-hover: var(--agent-ui-state-destructive-solid-hover, color-mix(in oklab, var(--agent-ui-interactive-rest) 88%, var(--agent-ui-interactive-away)));
+    --agent-ui-interactive-pressed: var(--agent-ui-state-destructive-solid-pressed, color-mix(in oklab, var(--agent-ui-interactive-rest) 78%, var(--agent-ui-interactive-away)));
+    --agent-ui-interactive-selected: var(--agent-ui-interactive-hover);
+    --agent-ui-interactive-hover-foreground: var(--agent-ui-state-destructive-solid-foreground, var(--color-on-error, var(--color-on-primary, #fff)));
+    --agent-ui-interactive-selected-foreground: var(--agent-ui-interactive-hover-foreground);
+    --agent-ui-interactive-rest-foreground: var(--agent-ui-interactive-hover-foreground);
+  }
+
+  /* Solid hover and pressed move the fill AWAY from the foreground, to pure white or black opposite it, so text contrast
+     never drops. Where relative colors are unavailable the fill mixes toward the foreground instead. */
+  @supports (color: oklch(from red calc(1 - round(l, 1)) 0 0)) {
+    :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is([data-appearance='solid'], .agent-ui-interactive--solid):is([data-variant='primary'], .agent-ui-interactive--primary, [data-variant='destructive'], .agent-ui-interactive--destructive) {
+      --agent-ui-interactive-away: oklch(from var(--agent-ui-interactive-hover-foreground) calc(1 - round(l, 1)) 0 0);
+    }
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is(:hover, [data-highlighted]):not(:is(:disabled, [aria-disabled='true'], [data-disabled])) {
+    background-color: var(--agent-ui-interactive-hover);
+    color: var(--agent-ui-interactive-hover-foreground);
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is([aria-pressed='true'], [aria-selected='true'], [aria-current]:not([aria-current='false']), [aria-expanded='true'], [data-selected]):not(:is(:disabled, [aria-disabled='true'], [data-disabled])):not(:is([data-selection='none'], .agent-ui-interactive--selection-none)) {
+    background-color: var(--agent-ui-interactive-selected);
+    color: var(--agent-ui-interactive-selected-foreground);
+  }
+
+  /* Ring selection (opt in): a selected control keeps its own fill and foreground and shows an outer ring in the
+     configured ring color, as colored swatches and identity tiles do. */
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is([data-selection='ring'], .agent-ui-interactive--ring):is([aria-pressed='true'], [aria-selected='true'], [aria-current]:not([aria-current='false']), [aria-expanded='true'], [data-selected]):not(:is(:disabled, [aria-disabled='true'], [data-disabled])) {
+    background-color: var(--agent-ui-interactive-rest);
+    color: var(--agent-ui-interactive-rest-foreground);
+    outline: var(--agent-ui-state-selection-ring-width, 2px) solid var(--agent-ui-interactive-ring);
+    outline-offset: var(--agent-ui-state-selection-ring-offset, 0px);
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):active:not(:is(:disabled, [aria-disabled='true'], [data-disabled])) {
+    background-color: var(--agent-ui-interactive-pressed);
+    color: var(--agent-ui-interactive-pressed-foreground);
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox']))[data-focus='fill']:focus-visible:not(:is(:disabled, [aria-disabled='true'], [data-disabled])) {
+    background-color: var(--agent-ui-interactive-hover);
+    color: var(--agent-ui-interactive-hover-foreground);
+    outline: none;
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):focus-visible:not([data-focus='fill']) {
+    outline: var(--agent-ui-state-focus-ring-width, 2px) solid var(--agent-ui-interactive-ring);
+    outline-offset: var(--agent-ui-state-focus-ring-offset, 2px);
+  }
+
+  :is(.agent-ui-interactive, :is([data-agent-ui-scope], .agent-ui-scope) :where(button, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'])):is(:disabled, [aria-disabled='true'], [data-disabled]) {
+    cursor: default;
+    opacity: var(--agent-ui-state-disabled-opacity, 0.45);
+  }
+}

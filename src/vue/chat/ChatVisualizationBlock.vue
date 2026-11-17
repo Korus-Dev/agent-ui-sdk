@@ -1,7 +1,7 @@
 <template>
   <button
     v-if="path"
-    class="agent-ui-theme chat-visualization-block"
+    class="agent-ui-theme chat-visualization-block agent-ui-interactive"
     type="button"
     @click="open"
   >
@@ -42,7 +42,8 @@ function open() {
   border: 0;
   border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-6);
-  background: var(--color-surface-low);
+  --agent-ui-state-rest: var(--color-surface-low);
+  --agent-ui-state-hover: var(--color-surface-high);
   color: var(--color-text);
   font: inherit;
   overflow-wrap: anywhere;
@@ -50,16 +51,10 @@ function open() {
 }
 
 button.chat-visualization-block {
-  cursor: pointer;
 }
 
-button.chat-visualization-block:hover {
-  background: var(--color-surface-high);
-}
-
-button.chat-visualization-block:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+div.chat-visualization-block {
+  background: var(--color-surface-low);
 }
 
 .chat-visualization-block__icon,

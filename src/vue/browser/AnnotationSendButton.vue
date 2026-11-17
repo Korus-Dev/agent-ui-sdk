@@ -1,6 +1,8 @@
 <template>
   <button
-    class="annotation-send-button"
+    class="annotation-send-button agent-ui-interactive"
+    data-variant="primary"
+    data-appearance="solid"
     type="button"
     :aria-label="label"
     :disabled="disabled"
@@ -36,23 +38,13 @@ const emit = defineEmits<{
   padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-md);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  --agent-ui-state-primary-solid-hover: var(--color-on-primary-container);
+  --agent-ui-state-disabled-opacity: 0.38;
   font: inherit;
   font-size: var(--font-size-13);
   font-weight: var(--font-weight-medium);
   line-height: 1;
   white-space: nowrap;
-  cursor: pointer;
-}
-
-.annotation-send-button:hover:not(:disabled) {
-  background: var(--color-on-primary-container);
-}
-
-.annotation-send-button:disabled {
-  opacity: 0.38;
-  cursor: default;
 }
 
 .annotation-send-button span {

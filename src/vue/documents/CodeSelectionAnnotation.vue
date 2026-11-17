@@ -1,7 +1,7 @@
 <template>
   <button
     v-if="selection && !commenting"
-    class="code-selection-annotation__add"
+    class="code-selection-annotation__add agent-ui-interactive"
     type="button"
     :style="actionStyle"
     @pointerdown.prevent
@@ -88,20 +88,10 @@ function saveComment(comment: string): void {
   padding: 6px 10px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface-lowest);
+  --agent-ui-state-rest: var(--color-surface-lowest);
+  --agent-ui-state-rest-foreground: var(--color-text);
   box-shadow: var(--shadow-md);
-  color: var(--color-text);
   font: 500 var(--font-size-13) / 1.2 var(--font-family-ui);
-  cursor: pointer;
-}
-
-.code-selection-annotation__add:hover {
-  background: var(--color-surface-low);
-}
-
-.code-selection-annotation__add:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
 }
 </style>
 

@@ -11,8 +11,9 @@
     <button
       v-for="(skill, index) in visibleSkills"
       :key="skill.path"
-      class="chat-composer-skill-menu__item"
+      class="chat-composer-skill-menu__item agent-ui-interactive"
       :class="{ 'chat-composer-skill-menu__item--active': index === activeIndex }"
+      :data-highlighted="index === activeIndex || undefined"
       role="option"
       type="button"
       @mousedown.prevent="$emit('select', skill)"
@@ -111,18 +112,12 @@ watch(
   padding: var(--space-2) var(--space-4);
   border: 0;
   border-radius: var(--radius-lg);
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
+  --agent-ui-state-rest-foreground: var(--color-text);
   font: inherit;
   line-height: 1.35;
   text-align: left;
 }
 
-.chat-composer-skill-menu__item:hover,
-.chat-composer-skill-menu__item--active {
-  background: var(--agent-ui-hover-color, var(--color-surface-low));
-}
 
 .chat-composer-skill-menu__icon {
   display: inline-flex;

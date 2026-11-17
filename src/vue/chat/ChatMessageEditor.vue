@@ -21,12 +21,14 @@
       @keydown.ctrl.enter.prevent="save"
     />
     <div class="chat-message__edit-actions">
-      <button type="button" class="chat-message__edit-button" @click="cancel">
+      <button type="button" class="chat-message__edit-button agent-ui-interactive" @click="cancel">
         {{ cancelLabel }}
       </button>
       <button
         type="button"
-        class="chat-message__edit-button chat-message__edit-button--primary"
+        class="chat-message__edit-button chat-message__edit-button--primary agent-ui-interactive"
+        data-variant="primary"
+        data-appearance="solid"
         @click="save"
       >
         {{ saveLabel }}
@@ -155,29 +157,16 @@ function save(): void {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-6);
-  background: var(--color-surface-lowest);
-  color: var(--color-text);
-  cursor: pointer;
+  --agent-ui-state-rest: var(--color-surface-lowest);
+  --agent-ui-state-rest-foreground: var(--color-text);
   font: inherit;
   font-size: var(--font-size-13);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-18);
 }
 
-.chat-message__edit-button:hover,
-.chat-message__edit-button:focus-visible {
-  background: var(--color-surface-low);
-}
-
 .chat-message__edit-button--primary {
   border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.chat-message__edit-button--primary:hover,
-.chat-message__edit-button--primary:focus-visible {
-  border-color: var(--color-on-primary-container);
-  background: var(--color-on-primary-container);
+  --agent-ui-state-primary-solid-hover: var(--color-on-primary-container);
 }
 </style>

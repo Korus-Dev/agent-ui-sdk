@@ -12,7 +12,8 @@
       v-if="props.toolCalls.length === 0 || headerToolCall || completedToolCalls.length > 0"
       :is="canExpand && !headerToolCall ? 'button' : 'div'"
       class="chat-tool-group__header"
-      :class="{ 'chat-tool-group__header--static': !canExpand }"
+      data-appearance="text"
+      :class="{ 'chat-tool-group__header--static': !canExpand, 'agent-ui-interactive': canExpand && !headerToolCall }"
       :type="canExpand && !headerToolCall ? 'button' : undefined"
       @click="toggleExpanded"
     >
@@ -283,19 +284,13 @@ function hasToolDetails(toolCall: MessageToolCall) {
   padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
   font: inherit;
-  cursor: pointer;
   text-align: left;
 }
 
 .chat-tool-group__header--static {
   cursor: default;
-}
-
-.chat-tool-group__header:focus-visible {
-  outline: none;
 }
 
 .chat-tool-group__icon,

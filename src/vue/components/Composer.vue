@@ -1,6 +1,7 @@
 <template>
   <form
     class="agent-ui-theme chat-composer"
+    data-agent-ui-surface="composer"
     :class="{ 'chat-composer--disabled': disabled && !isSending }"
     aria-label="Prompt composer"
     @submit.prevent="submitPrompt"
@@ -879,7 +880,6 @@ defineExpose({ focus });
   padding: var(--space-4) var(--space-6) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
-  background: var(--color-surface-lowest);
   box-shadow: var(--shadow-lg);
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
@@ -953,19 +953,22 @@ defineExpose({ focus });
   padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-full);
-  color: var(--color-text-muted);
-  background: transparent;
-}
-
-.chat-composer__meta-trailing :deep(.provider-model-selector:hover:not(:disabled)),
-.chat-composer__meta-trailing :deep(.provider-model-selector[aria-expanded="true"]) {
-  color: var(--color-text);
-  background: var(--color-surface-base);
+  --agent-ui-state-rest: transparent;
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
 }
 
 @media (max-width: 720px) {
   .chat-composer {
     border-radius: var(--radius-2xl);
+  }
+}
+</style>
+
+<style>
+/* Surface paint sits in a low-priority layer: any unlayered host CSS for a surface wins, whatever its specificity. */
+@layer agent-ui-surfaces {
+  [data-agent-ui-surface='composer'] {
+    background: var(--agent-ui-composer-background, var(--color-surface-lowest));
   }
 }
 </style>

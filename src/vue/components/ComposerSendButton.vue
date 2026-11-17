@@ -1,6 +1,8 @@
 <template>
   <button
-    class="agent-ui-theme agent-ui-composer-send-button"
+    class="agent-ui-theme agent-ui-composer-send-button agent-ui-interactive"
+    data-variant="primary"
+    data-appearance="solid"
     :class="{
       'agent-ui-composer-send-button--busy': busy || interruptArmed,
       'agent-ui-composer-send-button--interrupt-armed': interruptArmed,
@@ -87,25 +89,18 @@ function handleClick(): void {
   padding: 0;
   border: 0;
   border-radius: 999px;
-  color: var(--agent-ui-composer-button-foreground, var(--color-surface-lowest, #fff));
-  background: var(--agent-ui-composer-button-background, var(--color-text, #202124));
-  cursor: pointer;
+  /* The send button is a solid button in the host's composer colors; the shared states do the rest. */
+  --agent-ui-state-primary-solid: var(--agent-ui-composer-button-background, var(--color-text, #202124));
+  --agent-ui-state-primary-solid-foreground: var(--agent-ui-composer-button-foreground, var(--color-surface-lowest, #fff));
+  --agent-ui-state-primary-solid-hover: var(--agent-ui-composer-button-hover-background, color-mix(in srgb, var(--color-text, #202124) 86%, var(--color-background, #fff)));
+  --agent-ui-state-disabled-opacity: 0.4;
   transition: opacity 120ms ease, transform 120ms ease, background 120ms ease;
-}
-
-.agent-ui-composer-send-button:hover:not(:disabled) {
-  background: var(--agent-ui-composer-button-hover-background, color-mix(in srgb, var(--color-text, #202124) 86%, var(--color-background, #fff)));
 }
 
 .agent-ui-composer-send-button:active:not(:disabled) {
   transform: scale(0.94);
 }
 
-.agent-ui-composer-send-button:disabled,
-.agent-ui-composer-send-button--disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-}
 
 .agent-ui-composer-send-button__spinner,
 .agent-ui-composer-send-button__stop {

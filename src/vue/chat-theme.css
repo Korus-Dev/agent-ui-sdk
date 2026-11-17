@@ -22,7 +22,7 @@
   --color-surface-lowest: var(--agent-ui-surface-color, #fff);
   --color-surface: var(--agent-ui-app-surface-color, #f9f9f9);
   --color-surface-base: var(--agent-ui-surface-raised-color, #efefef);
-  --color-surface-low: var(--agent-ui-hover-color, #f4f4f4);
+  --color-surface-low: var(--agent-ui-surface-low-color, var(--agent-ui-hover-color, #f4f4f4));
   --color-surface-high: var(--agent-ui-surface-high-color, #e8e8e8);
   --color-surface-highest: var(--agent-ui-surface-highest-color, #e0e0e0);
   --color-shell-main: var(--agent-ui-shell-main-color, #fff);
@@ -126,7 +126,7 @@
   --color-surface-lowest: var(--agent-ui-surface-color, #15181d);
   --color-surface: var(--agent-ui-app-surface-color, #0d0f12);
   --color-surface-base: var(--agent-ui-surface-raised-color, #232832);
-  --color-surface-low: var(--agent-ui-hover-color, #1b1f25);
+  --color-surface-low: var(--agent-ui-surface-low-color, var(--agent-ui-hover-color, #1b1f25));
   --color-surface-high: var(--agent-ui-surface-high-color, #2b313c);
   --color-surface-highest: var(--agent-ui-surface-highest-color, #363d49);
   --color-shell-main: var(--agent-ui-shell-main-color, #15181d);
@@ -165,7 +165,7 @@
     --color-surface-lowest: var(--agent-ui-surface-color, #15181d);
     --color-surface: var(--agent-ui-app-surface-color, #0d0f12);
     --color-surface-base: var(--agent-ui-surface-raised-color, #232832);
-    --color-surface-low: var(--agent-ui-hover-color, #1b1f25);
+    --color-surface-low: var(--agent-ui-surface-low-color, var(--agent-ui-hover-color, #1b1f25));
     --color-surface-high: var(--agent-ui-surface-high-color, #2b313c);
     --color-surface-highest: var(--agent-ui-surface-highest-color, #363d49);
     --color-shell-main: var(--agent-ui-shell-main-color, #15181d);

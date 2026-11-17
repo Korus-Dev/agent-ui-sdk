@@ -1,5 +1,5 @@
 <template>
-  <div class="browser-bookmarks">
+  <div class="browser-bookmarks" data-agent-ui-scope>
     <button ref="pickerTrigger" type="button" :aria-label="$t('surface.browserPanel.bookmarks')" :title="$t('surface.browserPanel.bookmarks')" @click="showPicker">
       <IconBookmarks />
     </button>
@@ -24,8 +24,8 @@
           <span class="browser-bookmarks__copy"><strong>{{ item.label }}</strong><small>{{ item.detail }}</small></span>
         </template>
         <template #item-actions="{ item }">
-          <button type="button" class="browser-bookmarks__action" :disabled="saving" :aria-label="$t('surface.browserPanel.editNamedBookmark', { title: item.label })" :title="$t('surface.browserPanel.editBookmark')" @click="edit({ title: item.label, url: item.id })"><IconPencil aria-hidden="true" /></button>
-          <button type="button" class="browser-bookmarks__action" :disabled="saving" :aria-label="$t('surface.browserPanel.removeNamedBookmark', { title: item.label })" :title="$t('surface.browserPanel.removeBookmark')" @click="removeBookmark(item.id)"><IconTrash aria-hidden="true" /></button>
+          <button type="button" class="browser-bookmarks__action agent-ui-interactive" :disabled="saving" :aria-label="$t('surface.browserPanel.editNamedBookmark', { title: item.label })" :title="$t('surface.browserPanel.editBookmark')" @click="edit({ title: item.label, url: item.id })"><IconPencil aria-hidden="true" /></button>
+          <button type="button" class="browser-bookmarks__action agent-ui-interactive" :disabled="saving" :aria-label="$t('surface.browserPanel.removeNamedBookmark', { title: item.label })" :title="$t('surface.browserPanel.removeBookmark')" @click="removeBookmark(item.id)"><IconTrash aria-hidden="true" /></button>
         </template>
         <template #feedback>
           <p v-if="saveError" role="alert" class="browser-bookmarks__error browser-bookmarks__picker-error">{{ $t('surface.browserPanel.bookmarkSaveFailed') }}</p>
@@ -173,8 +173,6 @@ async function removeBookmark(url: string): Promise<boolean> {
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text-muted);
 }
 
 .browser-bookmarks svg,
@@ -189,20 +187,12 @@ async function removeBookmark(url: string): Promise<boolean> {
   color: var(--color-bookmark-saved);
 }
 
-.browser-bookmarks button:hover,
-.browser-bookmarks button:focus-visible,
-.browser-bookmarks__action:hover {
-  background: var(--color-surface-high);
-}
-
-.browser-bookmarks button:focus-visible,
-.browser-bookmarks__action:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
-}
-
-.browser-bookmarks button:disabled {
-  opacity: 0.38;
+.browser-bookmarks,
+.browser-bookmarks__action {
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-hover: var(--color-surface-high);
+  --agent-ui-state-focus-ring-offset: -2px;
+  --agent-ui-state-disabled-opacity: 0.38;
 }
 
 .browser-bookmarks__copy strong,

@@ -12,8 +12,9 @@
       <button
         v-for="(command, index) in visibleCommands"
         :key="command.id"
-        class="chat-composer-slash-menu__item"
+        class="chat-composer-slash-menu__item agent-ui-interactive"
         :class="{ 'chat-composer-slash-menu__item--active': index === activeIndex }"
+        :data-highlighted="index === activeIndex || undefined"
         role="option"
         type="button"
         @mousedown.prevent="$emit('selectCommand', command)"
@@ -38,8 +39,9 @@
       <button
         v-for="(skill, index) in visibleSkills"
         :key="skill.path"
-        class="chat-composer-slash-menu__item"
+        class="chat-composer-slash-menu__item agent-ui-interactive"
         :class="{ 'chat-composer-slash-menu__item--active': visibleCommands.length + index === activeIndex }"
+        :data-highlighted="visibleCommands.length + index === activeIndex || undefined"
         role="option"
         type="button"
         @mousedown.prevent="$emit('selectSkill', skill)"
@@ -134,18 +136,12 @@ watch(
   padding: var(--space-2) var(--space-4);
   border: 0;
   border-radius: var(--radius-lg);
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
+  --agent-ui-state-rest-foreground: var(--color-text);
   font: inherit;
   line-height: 1.35;
   text-align: left;
 }
 
-.chat-composer-slash-menu__item:hover,
-.chat-composer-slash-menu__item--active {
-  background: var(--agent-ui-hover-color, var(--color-surface-low));
-}
 
 .chat-composer-slash-menu__icon {
   display: inline-flex;

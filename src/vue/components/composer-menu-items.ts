@@ -114,7 +114,8 @@ function renderItem(
         ? h('span', { class: 'agent-ui-composer-menu-list__heading-actions' }, item.actions.map((action) => (
           h('button', {
             key: action.id,
-            class: 'agent-ui-composer-menu-list__heading-action',
+            class: 'agent-ui-composer-menu-list__heading-action agent-ui-interactive',
+            'data-focus': 'fill',
             type: 'button',
             role: 'menuitem',
             title: action.label,
@@ -159,7 +160,8 @@ function renderItem(
       },
     }, [
       h('button', {
-        class: 'agent-ui-composer-menu-list__item agent-ui-composer-menu-list__item--submenu',
+        class: 'agent-ui-composer-menu-list__item agent-ui-composer-menu-list__item--submenu agent-ui-interactive',
+        'data-focus': 'fill',
         type: 'button',
         role: 'menuitem',
         'aria-haspopup': 'menu',
@@ -217,7 +219,7 @@ function renderItem(
   return h('button', {
     key: item.id,
     class: [
-      'agent-ui-composer-menu-list__item',
+      'agent-ui-composer-menu-list__item agent-ui-interactive',
       item.type === 'checkbox' && item.accessory && item.accessory !== 'check'
         ? 'agent-ui-composer-menu-list__item--switch'
         : null,
@@ -227,6 +229,8 @@ function renderItem(
     ],
     type: 'button',
     role: itemRole(item),
+    'data-focus': 'fill',
+    'data-variant': (item.type === 'action' || item.type === 'custom') && item.danger ? 'destructive' : undefined,
     'aria-checked': itemChecked(item),
     disabled: item.disabled,
     tabindex: firstFocusable ? 0 : -1,

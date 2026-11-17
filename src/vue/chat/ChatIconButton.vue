@@ -1,7 +1,8 @@
 <template>
   <component
     :is="href ? 'a' : 'button'"
-    class="agent-ui-theme chat-icon-button"
+    class="agent-ui-theme chat-icon-button agent-ui-interactive"
+    :data-variant="danger ? 'destructive' : undefined"
     :class="{
       'chat-icon-button--bordered': bordered,
       'chat-icon-button--danger': danger,
@@ -48,9 +49,7 @@ defineProps<{
   border: 0;
   border-radius: var(--radius-lg);
   appearance: none;
-  background: transparent;
-  color: var(--color-outline);
-  cursor: pointer;
+  --agent-ui-state-rest-foreground: var(--color-outline);
   font: inherit;
   line-height: 1;
   text-decoration: none;
@@ -58,23 +57,7 @@ defineProps<{
 
 .chat-icon-button--bordered {
   border: 1px solid var(--color-border);
-  background: var(--color-surface-lowest);
-}
-
-.chat-icon-button:not(:disabled):not([aria-disabled='true']):hover,
-.chat-icon-button:not(:disabled):not([aria-disabled='true']):focus-visible {
-  background-color: var(--color-surface-low);
-  color: var(--color-text);
-}
-
-.chat-icon-button--danger:not(:disabled):not([aria-disabled='true']):hover,
-.chat-icon-button--danger:not(:disabled):not([aria-disabled='true']):focus-visible {
-  color: var(--color-error);
-}
-
-.chat-icon-button--disabled {
-  cursor: default;
-  opacity: 0.45;
+  --agent-ui-state-rest: var(--color-surface-lowest);
 }
 
 .chat-icon-button :deep(svg) {

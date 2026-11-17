@@ -14,7 +14,8 @@
     <button
       v-else-if="showHeader"
       type="button"
-      class="chat-work-group__header"
+      class="chat-work-group__header agent-ui-interactive"
+      data-appearance="text"
       :aria-expanded="expanded"
       :disabled="active || detailsLoading"
       :aria-busy="detailsLoading || undefined"
@@ -163,19 +164,11 @@ function toggle() {
   padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  /* The header is disabled while work runs, and keeps its full color. */
+  --agent-ui-state-disabled-opacity: 1;
   font: inherit;
   text-align: left;
-}
-
-.chat-work-group__header:focus-visible {
-  outline: none;
-}
-
-.chat-work-group__header:disabled {
-  cursor: default;
 }
 
 .chat-work-group__spinner {

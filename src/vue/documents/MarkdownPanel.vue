@@ -9,7 +9,7 @@
   >
     <button
       v-if="headings.length"
-      class="markdown-panel__outline-toggle"
+      class="markdown-panel__outline-toggle agent-ui-interactive"
       type="button"
       :aria-label="$t('surface.markdownPanel.outline')"
       :title="$t('surface.markdownPanel.outline')"
@@ -29,6 +29,7 @@
       <ol>
         <li v-for="heading in headings" :key="heading.id">
           <button
+            class="agent-ui-interactive"
             type="button"
             :aria-label="$t('surface.markdownPanel.headingLevel', { title: heading.text, level: heading.level })"
             :title="heading.text"
@@ -239,12 +240,14 @@ onBeforeUnmount(() => {
 .markdown-panel__outline button {
   border: 0;
   border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-hover: var(--color-surface-high);
+  --agent-ui-state-selected: var(--color-primary-container);
+  --agent-ui-state-selected-foreground: var(--color-on-primary-container);
+  --agent-ui-state-focus-ring-offset: -2px;
   font: inherit;
   font-size: var(--font-size-12);
   text-align: left;
-  cursor: pointer;
   user-select: none;
 }
 
@@ -259,7 +262,7 @@ onBeforeUnmount(() => {
   height: 28px;
   padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
-  background: var(--color-shell-main);
+  --agent-ui-state-rest: var(--color-shell-main);
   box-shadow: var(--shadow-sm);
 }
 
@@ -307,25 +310,8 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-semibold);
 }
 
-.markdown-panel__outline-toggle:hover,
-.markdown-panel__outline button:hover {
-  background: var(--color-surface-high);
-  color: var(--color-text);
-}
-
-.markdown-panel__outline button[aria-current] {
-  background: var(--color-primary-container);
-  color: var(--color-on-primary-container);
-}
-
 .markdown-panel__outline button[aria-current]:not(.markdown-panel__heading--top) {
   font-weight: var(--font-weight-semibold);
-}
-
-.markdown-panel__outline-toggle:focus-visible,
-.markdown-panel__outline button:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
 }
 
 .markdown-panel__empty {

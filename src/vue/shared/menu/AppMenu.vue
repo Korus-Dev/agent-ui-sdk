@@ -46,13 +46,18 @@
       <div
         v-else-if="item.type === 'submenu'"
         class="app-menu__submenu"
+        @mouseenter="setSubmenuOpen(item.id, true)"
+        @mouseleave="setSubmenuOpen(item.id, false)"
+        @focusin="setSubmenuOpen(item.id, true)"
+        @focusout="setSubmenuOpen(item.id, false)"
       >
         <button
-          class="app-menu__item app-menu__item--submenu"
+          class="app-menu__item app-menu__item--submenu agent-ui-interactive"
+          data-focus="fill"
           type="button"
           role="menuitem"
           aria-haspopup="menu"
-          :aria-expanded="!item.disabled && item.items.length > 0"
+          :aria-expanded="!item.disabled && item.items.length > 0 && openSubmenus.has(item.id)"
           :disabled="item.disabled || item.items.length === 0"
         >
           <CheckIcon
@@ -103,7 +108,9 @@
         class="app-menu__row"
       >
         <button
-          class="app-menu__item"
+          class="app-menu__item agent-ui-interactive"
+          data-focus="fill"
+          :data-variant="item.danger ? 'destructive' : undefined"
           :class="{ 'app-menu__item--danger': item.danger }"
           type="button"
           role="menuitem"
@@ -129,7 +136,8 @@
           aria-hidden="true"
         />
         <button
-          class="app-menu__secondary"
+          class="app-menu__secondary agent-ui-interactive"
+          data-focus="fill"
           type="button"
           role="menuitem"
           :aria-label="item.secondaryAction.label"
@@ -146,7 +154,9 @@
 
       <button
         v-else
-        class="app-menu__item"
+        class="app-menu__item agent-ui-interactive"
+        data-focus="fill"
+        :data-variant="item.type === 'action' && item.danger ? 'destructive' : undefined"
         :class="{
           'app-menu__item--danger': item.type === 'action' && item.danger,
           'app-menu__item--selected': isSelected(item),
@@ -213,7 +223,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, reactive } from 'vue';
 import { CheckIcon, ChevronRightIcon } from '../icons/app-icons';
 import type { AppMenuCheckboxItem, AppMenuItem, AppMenuRadioItem } from './app-menu';
 
@@ -232,6 +242,13 @@ defineProps<{
 const emit = defineEmits<{
   select: [itemId: string];
 }>();
+
+// Submenus open on hover or focus; tracking that keeps `aria-expanded` true only while one is open.
+const openSubmenus = reactive(new Set<string>());
+function setSubmenuOpen(id: string, open: boolean): void {
+  if (open) openSubmenus.add(id);
+  else openSubmenus.delete(id);
+}
 
 function selectItem(item: Exclude<AppMenuItem, { type: 'separator' | 'submenu' }>): void {
   if (!item.disabled) {
@@ -294,11 +311,9 @@ function showsCheck(item: Exclude<AppMenuItem, { type: 'separator' | 'submenu' }
   padding: var(--space-2) var(--space-4);
   border: 0;
   border-radius: var(--radius-xl);
-  color: var(--color-text);
-  background: transparent;
+  --agent-ui-state-rest-foreground: var(--color-text);
   font-size: var(--font-size-13-5);
   text-align: left;
-  cursor: pointer;
 }
 
 .app-menu__row {
@@ -329,19 +344,7 @@ function showsCheck(item: Exclude<AppMenuItem, { type: 'separator' | 'submenu' }
   padding: 0;
   border: 0;
   border-radius: var(--radius-lg);
-  color: var(--color-text);
-  background: transparent;
-  cursor: pointer;
-}
-
-.app-menu__secondary:hover:not(:disabled),
-.app-menu__secondary:focus-visible {
-  background: var(--color-surface-low);
-}
-
-.app-menu__secondary:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
+  --agent-ui-state-rest-foreground: var(--color-text);
 }
 
 .app-menu__info {
@@ -362,19 +365,8 @@ function showsCheck(item: Exclude<AppMenuItem, { type: 'separator' | 'submenu' }
   letter-spacing: 0.02em;
 }
 
-.app-menu__item:hover:not(:disabled),
-.app-menu__item:focus-visible {
-  background: var(--color-surface-low);
-}
-
-.app-menu__item:disabled {
-  color: var(--color-text-muted);
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
-.app-menu__item--danger:not(:disabled) {
-  color: var(--color-error);
+.app-menu__item--danger {
+  --agent-ui-state-rest-foreground: var(--color-error);
 }
 
 .app-menu__item:has(.el-switch) {

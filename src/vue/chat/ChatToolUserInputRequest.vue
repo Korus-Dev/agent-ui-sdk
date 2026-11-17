@@ -53,7 +53,7 @@
             {{ currentIndex + 1 }} / {{ questions.length }}
           </span>
           <button
-            class="chat-tool-user-input__dismiss"
+            class="chat-tool-user-input__dismiss agent-ui-interactive"
             type="button"
             aria-label="Cancel question"
             title="Cancel question"
@@ -81,7 +81,7 @@
           :aria-keyshortcuts="index < 9 ? String(index + 1) : undefined"
           :aria-label="option.label"
           :aria-pressed="isSelected(currentQuestion.id, option.label)"
-          class="chat-tool-user-input__option"
+          class="chat-tool-user-input__option agent-ui-interactive"
           :class="{ 'chat-tool-user-input__option--selected': isSelected(currentQuestion.id, option.label) }"
           type="button"
           @click="toggleOption(currentQuestion, option.label)"
@@ -127,7 +127,8 @@
         <div class="agent-ui-request-footer chat-tool-user-input__actions">
           <button
             v-if="currentIndex > 0"
-            class="agent-ui-request-button chat-tool-user-input__button"
+            class="agent-ui-request-button chat-tool-user-input__button agent-ui-interactive"
+            data-variant="primary"
             type="button"
             @click="back"
           >
@@ -142,7 +143,9 @@
             <template #recording><ChatAudioLevelIndicator :audio-level="audioLevel" /></template>
           </ChatComposerVoiceButton>
           <button
-            class="agent-ui-request-button agent-ui-request-button--primary chat-tool-user-input__button chat-tool-user-input__button--primary"
+            class="agent-ui-request-button agent-ui-request-button--primary chat-tool-user-input__button chat-tool-user-input__button--primary agent-ui-interactive"
+            data-variant="primary"
+            data-appearance="solid"
             :disabled="!canProceed"
             type="button"
             @click="proceed"
@@ -574,14 +577,8 @@ function normalizeQuestions(value: unknown): AskUserQuestion[] {
   border: 0;
   border-radius: var(--radius-full);
   padding: 0;
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.chat-tool-user-input__dismiss:hover {
-  background: var(--color-surface-base);
-  color: var(--color-text);
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-hover: var(--color-surface-base);
 }
 
 .chat-tool-user-input__hint {
@@ -605,8 +602,6 @@ function normalizeQuestions(value: unknown): AskUserQuestion[] {
   border: 0;
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
-  background: transparent;
-  color: inherit;
   font: inherit;
   text-align: left;
 }
@@ -624,17 +619,9 @@ function normalizeQuestions(value: unknown): AskUserQuestion[] {
 }
 
 .chat-tool-user-input__option {
-  cursor: pointer;
+  --agent-ui-state-hover: var(--color-surface-base);
+  --agent-ui-state-selected: color-mix(in srgb, var(--color-primary-container) 50%, var(--color-surface-base));
   transition: background 0.15s ease;
-}
-
-.chat-tool-user-input__option:hover {
-  background: var(--color-surface-base);
-}
-
-.chat-tool-user-input__option--selected,
-.chat-tool-user-input__option--selected:hover {
-  background: color-mix(in srgb, var(--color-primary-container) 50%, var(--color-surface-base));
 }
 
 .chat-tool-user-input__key {
@@ -744,10 +731,11 @@ function normalizeQuestions(value: unknown): AskUserQuestion[] {
   color: var(--color-text-muted);
 }
 
-.chat-tool-user-input__actions > .chat-composer__voice--recording,
-.chat-tool-user-input__actions > .chat-composer__voice--recording:hover:not(:disabled) {
-  color: var(--color-text-muted);
-  background: var(--color-surface-base);
+.chat-tool-user-input__actions > .chat-composer__voice--recording {
+  /* Dictation here reads as a quiet button, not a solid one. */
+  --agent-ui-state-primary-solid: var(--color-surface-base);
+  --agent-ui-state-primary-solid-hover: var(--color-surface-base);
+  --agent-ui-state-primary-solid-foreground: var(--color-text-muted);
 }
 
 .chat-tool-user-input__error {
@@ -788,12 +776,6 @@ function normalizeQuestions(value: unknown): AskUserQuestion[] {
   flex: 0 0 auto;
   justify-content: flex-end;
   margin-left: auto;
-}
-
-.chat-tool-user-input__option:focus-visible,
-.chat-tool-user-input__dismiss:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: var(--space-1);
 }
 
 @container (max-width: 32rem) {

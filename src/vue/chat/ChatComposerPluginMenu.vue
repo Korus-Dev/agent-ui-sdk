@@ -9,8 +9,9 @@
     <button
       v-for="(plugin, index) in visiblePlugins"
       :key="plugin.id"
-      class="chat-composer-plugin-menu__item"
+      class="chat-composer-plugin-menu__item agent-ui-interactive"
       :class="{ 'chat-composer-plugin-menu__item--active': index === activeIndex }"
+      :data-highlighted="index === activeIndex || undefined"
       role="option"
       type="button"
       @mousedown.prevent="$emit('select', plugin)"
@@ -103,18 +104,12 @@ watch(
   padding: var(--space-2) var(--space-4);
   border: 0;
   border-radius: var(--radius-lg);
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
+  --agent-ui-state-rest-foreground: var(--color-text);
   font: inherit;
   line-height: 1.35;
   text-align: left;
 }
 
-.chat-composer-plugin-menu__item:hover,
-.chat-composer-plugin-menu__item--active {
-  background: var(--agent-ui-hover-color, var(--color-surface-low));
-}
 
 .chat-composer-plugin-menu__icon {
   display: inline-flex;

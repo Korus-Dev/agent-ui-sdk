@@ -121,7 +121,7 @@ function hasSlotContent(content: unknown): boolean {
   padding: var(--space-3) var(--space-6);
   border: 0.5px solid var(--color-border);
   border-bottom: 0;
-  background: var(--color-surface-lowest);
+  background: var(--agent-ui-composer-background, var(--color-surface-lowest));
   color: var(--color-text-muted);
 }
 

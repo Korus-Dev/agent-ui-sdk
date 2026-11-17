@@ -10,7 +10,7 @@
   border-bottom: 0;
   border-top-left-radius: var(--radius-xl);
   border-top-right-radius: var(--radius-xl);
-  background: var(--color-surface-lowest);
+  background: var(--agent-ui-composer-background, var(--color-surface-lowest));
   box-shadow: var(--shadow-sm);
 }
 .chat-composer-drawer:not(:first-child) {

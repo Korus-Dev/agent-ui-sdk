@@ -3,7 +3,7 @@
     <button
       v-for="prompt in prompts"
       :key="prompt"
-      class="chat-follow-ups__chip"
+      class="chat-follow-ups__chip agent-ui-interactive"
       :disabled="disabled"
       type="button"
       @click="emit('send-follow-up', prompt)"
@@ -38,9 +38,12 @@ const emit = defineEmits<{
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-full);
   padding: var(--space-2) var(--space-6);
-  background: var(--color-surface-lowest);
-  color: var(--color-text-muted);
-  cursor: pointer;
+  --agent-ui-state-rest: var(--color-surface-lowest);
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  /* A chip inverts on hover. */
+  --agent-ui-state-hover: var(--color-text-muted);
+  --agent-ui-state-hover-foreground: var(--color-surface-lowest);
+  --agent-ui-state-disabled-opacity: 0.55;
   font-family: var(--font-family-base);
   font-size: var(--font-size-14);
   line-height: var(--line-height-20);
@@ -50,13 +53,4 @@ const emit = defineEmits<{
   white-space: nowrap;
 }
 
-.chat-follow-ups__chip:hover:not(:disabled) {
-  background: var(--color-text-muted);
-  color: var(--color-surface-lowest);
-}
-
-.chat-follow-ups__chip:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <section class="browser-panel" :aria-label="$t('surface.browserPanel.inAppBrowser')">
+  <section class="browser-panel" data-agent-ui-scope :aria-label="$t('surface.browserPanel.inAppBrowser')">
     <header class="browser-panel__toolbar" :class="{ 'browser-panel__toolbar--visualization': document }">
       <div v-if="!document" class="browser-panel__navigation" :aria-label="$t('surface.browserPanel.browserNavigation')">
         <button type="button" :aria-label="$t('surface.browserPanel.goBack')" :title="$t('surface.browserPanel.goBack')" :disabled="!state.canGoBack || loading" @click="goBack"><IconArrowLeft /></button>
@@ -730,18 +730,14 @@ function messageFor(reason: unknown): string {
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text-muted);
 }
 
-.browser-panel button:where(:not(.annotation-send-button)):hover:not(:disabled),
-.browser-panel button[aria-pressed="true"]:not(.browser-panel__bookmark-page) {
-  background: var(--color-surface-high);
-  color: var(--color-text);
-}
-
-.browser-panel button:disabled {
-  opacity: 0.38;
+.browser-panel {
+  /* Every button in the panel shares these states through the interaction scope. */
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-hover: var(--color-surface-high);
+  --agent-ui-state-selected: var(--color-surface-high);
+  --agent-ui-state-disabled-opacity: 0.38;
 }
 
 .browser-panel button :deep(svg) {
@@ -818,13 +814,9 @@ function messageFor(reason: unknown): string {
   flex: 0 0 28px;
   width: 28px;
   height: 24px;
-  background: transparent;
+  --agent-ui-state-focus-ring-offset: -2px;
   opacity: 0;
   pointer-events: none;
-}
-
-.browser-panel .browser-panel__address > button:is(:hover, :focus-visible) {
-  background: var(--color-surface-high);
 }
 
 .browser-panel__address:hover .browser-panel__bookmark-page,
@@ -839,12 +831,6 @@ function messageFor(reason: unknown): string {
 .browser-panel__star--saved {
   fill: currentColor;
   color: var(--color-bookmark-saved);
-}
-
-.browser-panel__bookmark-page:focus-visible,
-.browser-panel__external-open:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
 }
 
 .browser-panel__annotation-title {
@@ -866,9 +852,9 @@ function messageFor(reason: unknown): string {
   justify-self: end;
 }
 
-.browser-panel__annotate[aria-pressed="true"] {
-  background: var(--color-primary-container);
-  color: var(--color-on-primary-container);
+.browser-panel__annotate {
+  --agent-ui-state-selected: var(--color-primary-container);
+  --agent-ui-state-selected-foreground: var(--color-on-primary-container);
 }
 
 .browser-panel__zoom {

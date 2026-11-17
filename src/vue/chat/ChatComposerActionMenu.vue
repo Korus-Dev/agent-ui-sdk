@@ -11,7 +11,7 @@
   >
     <template #trigger="{ open, toggle }">
       <button
-        class="chat-composer-action-menu__button"
+        class="chat-composer-action-menu__button agent-ui-interactive"
         type="button"
         aria-label="Composer actions"
         aria-haspopup="menu"
@@ -189,18 +189,7 @@ function isComposerMenuAction(value: unknown): value is ComposerMenuAction {
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
-  color: var(--color-text-muted);
-  background: transparent;
-  cursor: pointer;
-}
-
-.chat-composer-action-menu__button:hover:not(:disabled) {
-  color: var(--color-text);
-  background: var(--color-surface-base);
-}
-
-.chat-composer-action-menu__button:disabled {
-  cursor: default;
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
 }
 
 .chat-composer-action-menu__button svg {

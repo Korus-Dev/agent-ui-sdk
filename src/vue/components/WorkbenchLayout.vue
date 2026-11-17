@@ -14,6 +14,7 @@
       v-if="$slots.header"
       ref="headerEl"
       class="agent-ui-workbench-layout__header"
+      data-agent-ui-surface="header"
     >
       <slot name="header" />
     </div>
@@ -22,6 +23,7 @@
       v-if="$slots.footer"
       ref="footerEl"
       class="agent-ui-workbench-layout__footer"
+      data-agent-ui-surface="footer"
     >
       <slot name="footer" />
     </div>
@@ -111,7 +113,6 @@ function measureChrome() {
   z-index: 1;
   margin-right: var(--workbench-layout-scrollbar-gutter, var(--space-8));
   padding: var(--workbench-layout-header-padding, var(--space-12) var(--space-16));
-  background: var(--workbench-layout-header-background, var(--color-surface-lowest));
 }
 
 .agent-ui-workbench-layout__footer {
@@ -119,7 +120,6 @@ function measureChrome() {
   z-index: 1;
   margin-right: var(--workbench-layout-scrollbar-gutter, var(--space-8));
   padding: var(--workbench-layout-footer-padding, var(--space-8));
-  background: var(--workbench-layout-footer-background, var(--color-surface-lowest));
 }
 
 .agent-ui-workbench-layout__body--child {
@@ -140,5 +140,18 @@ function measureChrome() {
     calc(var(--workbench-layout-header-offset) + var(--workbench-layout-body-padding-top, 0px))
     var(--workbench-layout-body-padding-inline, 0px)
     calc(var(--workbench-layout-footer-offset) + var(--workbench-layout-body-padding-bottom, 0px));
+}
+</style>
+
+<style>
+/* Surface paint sits in a low-priority layer: any unlayered host CSS for a surface wins, whatever its specificity. */
+@layer agent-ui-surfaces {
+  [data-agent-ui-surface='header'] {
+    background: var(--workbench-layout-header-background, var(--color-surface-lowest));
+  }
+
+  [data-agent-ui-surface='footer'] {
+    background: var(--workbench-layout-footer-background, var(--color-surface-lowest));
+  }
 }
 </style>

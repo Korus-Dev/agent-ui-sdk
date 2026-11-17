@@ -1,6 +1,6 @@
 <template>
   <div ref="root" class="provider-model-selector__root" @keydown.esc.stop.prevent="close(true)">
-      <button ref="trigger" class="provider-model-selector" type="button" :disabled="disabled" :aria-label="t('modelPicker.label')" aria-haspopup="dialog" :aria-expanded="open" @click.stop="toggle">
+      <button ref="trigger" class="provider-model-selector agent-ui-interactive" type="button" :disabled="disabled" :aria-label="t('modelPicker.label')" aria-haspopup="dialog" :aria-expanded="open" @click.stop="toggle">
         <ProviderIcon v-if="provider" :provider="provider" />
         <span class="provider-model-selector__label">{{ selectedModel?.displayName ?? (provider ? providerDisplayName(provider) : '') }}</span>
         <span v-if="reasoningEffort" class="provider-model-selector__effort">{{ reasoningEffort }}</span>
@@ -15,7 +15,7 @@
       <template #header>
       <div class="provider-model-selector__tabs" :role="tabs.length ? 'tablist' : undefined" :aria-label="tabs.length ? t('surface.agentDialog.codingAgent') : undefined">
         <template v-if="tabs.length">
-          <button v-for="choice in tabs" :key="choice" class="provider-model-selector__tab" :class="{ 'provider-model-selector__tab--active': choice === provider }" type="button" role="tab" :aria-selected="choice === provider" :title="providerDisplayName(choice)" :aria-label="providerDisplayName(choice)" :disabled="disabled" @click="provider = choice"><ProviderIcon :provider="choice" /></button>
+          <button v-for="choice in tabs" :key="choice" class="provider-model-selector__tab agent-ui-interactive" data-appearance="text" :class="{ 'provider-model-selector__tab--active': choice === provider }" type="button" role="tab" :aria-selected="choice === provider" :title="providerDisplayName(choice)" :aria-label="providerDisplayName(choice)" :disabled="disabled" @click="provider = choice"><ProviderIcon :provider="choice" /></button>
         </template>
         <span v-else-if="provider && harnessChoice(provider)?.icon" class="provider-model-selector__current" role="img" :title="providerDisplayName(provider)" :aria-label="providerDisplayName(provider)"><ProviderIcon :provider="provider" /></span>
       </div>
@@ -23,10 +23,10 @@
       <template #service-tier="{ items, select }">
         <span class="provider-model-selector__tier" :title="serviceTiers.length ? tierTooltip : t('modelPicker.speedUnavailable')">
           <span v-if="serviceTiers.length > 1" class="provider-model-selector__tier-menu">
-            <button class="provider-model-selector__tier-button" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" aria-haspopup="menu" :aria-expanded="tierOpen" :disabled="disabled" :aria-label="tierAccessibleName" @click.stop="tierOpen = !tierOpen"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
+            <button class="provider-model-selector__tier-button agent-ui-interactive" :data-variant="activeTier ? 'primary' : undefined" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" aria-haspopup="menu" :aria-expanded="tierOpen" :disabled="disabled" :aria-label="tierAccessibleName" @click.stop="tierOpen = !tierOpen"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
             <AppMenu v-if="tierOpen" class="app-menu--embedded provider-model-selector__tier-list" :ariaLabel="t('modelPicker.serviceTier')" :items="items" @select="id => { select(id); tierOpen = false; }" />
           </span>
-          <button v-else class="provider-model-selector__tier-button" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" :disabled="disabled || !serviceTiers.length" :aria-label="tierAccessibleName" :aria-pressed="Boolean(activeTier)" @click="select(activeTier ? '' : serviceTiers[0]!.id)"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
+          <button v-else class="provider-model-selector__tier-button agent-ui-interactive" :data-variant="activeTier ? 'primary' : undefined" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" :disabled="disabled || !serviceTiers.length" :aria-label="tierAccessibleName" :aria-pressed="Boolean(activeTier)" @click="select(activeTier ? '' : serviceTiers[0]!.id)"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
         </span>
       </template>
     </ModelPicker>
@@ -191,23 +191,12 @@ function updateModelSelection(value: ModelSelection) {
   padding: 0 var(--space-6);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  color: var(--color-text);
-  background: var(--color-surface-lowest);
+  --agent-ui-state-rest: var(--color-surface-lowest);
+  --agent-ui-state-rest-foreground: var(--color-text);
   font: inherit;
   font-size: var(--font-size-13);
   font-weight: var(--font-weight-regular);
   text-align: left;
-  cursor: pointer;
-}
-
-.provider-model-selector:hover:not(:disabled),
-.provider-model-selector:focus-visible {
-  border-color: var(--color-border-strong);
-}
-
-.provider-model-selector:disabled {
-  opacity: 0.5;
-  cursor: default;
 }
 
 .provider-model-selector__label {
@@ -378,18 +367,12 @@ function updateModelSelection(value: ModelSelection) {
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  background: transparent;
-  cursor: pointer;
-}
-
-.provider-model-selector__tier-button:disabled {
-  cursor: default;
-  opacity: 0.3;
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-disabled-opacity: 0.3;
 }
 
 .provider-model-selector__tier-button--active {
-  color: var(--color-primary);
+  --agent-ui-state-rest-foreground: var(--color-primary);
 }
 
 .provider-model-selector__tier-button--active > svg {
@@ -406,10 +389,9 @@ function updateModelSelection(value: ModelSelection) {
   /* Nudges the icon 2px below true center, which reads as centered next to the top padding. */
   padding: 0 0 var(--space-2);
   border: 0;
-  outline: none;
-  color: var(--color-text-muted);
-  background: transparent;
-  cursor: pointer;
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
+  --agent-ui-state-selected-foreground: var(--color-text);
+  --agent-ui-state-focus-ring-offset: -2px;
 }
 
 .provider-model-selector__tab::after {
@@ -422,17 +404,8 @@ function updateModelSelection(value: ModelSelection) {
   background: transparent;
 }
 
-.provider-model-selector__tab--active {
-  color: var(--color-text);
-}
-
 .provider-model-selector__tab--active::after {
   background: var(--color-primary);
-}
-
-.provider-model-selector__tab:disabled {
-  cursor: default;
-  opacity: 0.5;
 }
 
 .provider-model-selector__tab .provider-icon,

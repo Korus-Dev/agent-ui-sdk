@@ -2,6 +2,7 @@
   <section
     ref="paneElement"
     class="agent-ui-theme agent-ui-conversation-pane"
+    data-agent-ui-surface="canvas"
     :aria-busy="effectiveTranscriptBusy || effectiveHistoryLoading"
     :aria-label="ariaLabel"
     :data-agent-ui-generating="effectiveTranscriptBusy ? 'true' : undefined"
@@ -25,6 +26,7 @@
         v-if="started"
         ref="messageList"
         class="agent-ui-conversation-pane__messages"
+        data-agent-ui-surface="content"
         :actions-disabled="effectiveActionsDisabled"
         :active-turn-id="effectiveActiveTurnId"
         :answered-client-request-ids="displayAnsweredClientRequestIds"
@@ -202,7 +204,8 @@
                 class="agent-ui-conversation-pane__pending-question"
               >
                 <button
-                  class="agent-ui-conversation-pane__pending-question-cancel"
+                  class="agent-ui-conversation-pane__pending-question-cancel agent-ui-interactive"
+                  data-appearance="text"
                   type="button"
                   aria-label="Cancel pending question"
                   @click="cancelPendingQuestion(pendingQuestionRequests[0]!.id)"
@@ -211,7 +214,8 @@
                   <CircleXIcon class="agent-ui-conversation-pane__pending-question-remove" aria-hidden="true" />
                 </button>
                 <button
-                  class="agent-ui-conversation-pane__pending-question-open"
+                  class="agent-ui-conversation-pane__pending-question-open agent-ui-interactive"
+                  data-appearance="text"
                   type="button"
                   :aria-label="pendingQuestionRequests.length === 1 ? 'Pending question' : `${pendingQuestionRequests.length} pending questions`"
                   @click="openedQuestionId = pendingQuestionRequests[0]!.id"
@@ -250,7 +254,7 @@
                     />
                     <button
                       type="button"
-                      class="agent-ui-conversation-pane__attachment-remove"
+                      class="agent-ui-conversation-pane__attachment-remove agent-ui-interactive"
                       :aria-label="`Remove ${attachment.name}`"
                       :disabled="effectiveDisabled"
                       @click="removeAttachment(attachment.id)"
@@ -1746,7 +1750,6 @@ defineExpose({ focusComposer });
   height: 100%;
   overflow: hidden;
   color: var(--agent-ui-text-color, var(--color-text, #202124));
-  background: var(--agent-ui-surface-color, var(--color-shell-main, #fff));
 }
 
 .agent-ui-conversation-pane__layout {
@@ -1754,11 +1757,11 @@ defineExpose({ focusComposer });
   min-height: 0;
   overflow: hidden;
   --workbench-layout-footer-padding: var(--space-24) 0 var(--space-12);
-  --workbench-layout-footer-background: linear-gradient(
+  --workbench-layout-footer-background: var(--agent-ui-footer-background, linear-gradient(
     to bottom,
     color-mix(in srgb, var(--color-shell-main) 0%, transparent),
     var(--color-shell-main) 24%
-  );
+  ));
   --workbench-layout-scrollbar-gutter: var(--space-4);
 }
 
@@ -1767,7 +1770,6 @@ defineExpose({ focusComposer });
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-shell-main);
   --agent-ui-scroll-to-bottom-offset: calc(var(--workbench-layout-footer-offset, 0px) - var(--space-12) + 4px);
   --agent-ui-scroll-to-bottom-size: 40px;
   --message-list-content-width: var(--agent-ui-conversation-content-width);
@@ -1868,10 +1870,8 @@ defineExpose({ focusComposer });
   flex: 0 0 auto;
   border: 0;
   padding: 0;
-  background: transparent;
-  color: inherit;
+  --agent-ui-state-rest-foreground: currentColor;
   font: inherit;
-  cursor: pointer;
 }
 
 .agent-ui-conversation-pane__pending-question-open {
@@ -1897,11 +1897,6 @@ defineExpose({ focusComposer });
 .agent-ui-conversation-pane__pending-question:hover .agent-ui-conversation-pane__pending-question-remove,
 .agent-ui-conversation-pane__pending-question-cancel:focus-visible .agent-ui-conversation-pane__pending-question-remove {
   display: inline;
-}
-
-.agent-ui-conversation-pane__pending-question button:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
 }
 
 .agent-ui-conversation-pane__attachments {
@@ -1968,14 +1963,7 @@ defineExpose({ focusComposer });
   border: 0;
   border-radius: var(--radius-full);
   place-items: center;
-  color: var(--color-text-muted);
-  background: transparent;
-  cursor: pointer;
-}
-
-.agent-ui-conversation-pane__attachment-remove:hover:not(:disabled) {
-  color: var(--color-text);
-  background: var(--color-surface-low);
+  --agent-ui-state-rest-foreground: var(--color-text-muted);
 }
 
 .agent-ui-conversation-pane__attachment-remove svg {
@@ -1996,5 +1984,18 @@ defineExpose({ focusComposer });
   line-height: var(--line-height-18);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+</style>
+
+<style>
+/* Surface paint sits in a low-priority layer: any unlayered host CSS for a surface wins, whatever its specificity. */
+@layer agent-ui-surfaces {
+  [data-agent-ui-surface='canvas'] {
+    background: var(--agent-ui-canvas-background, var(--agent-ui-surface-color, var(--color-shell-main, #fff)));
+  }
+
+  [data-agent-ui-surface='content'] {
+    background: var(--agent-ui-content-background, var(--color-shell-main));
+  }
 }
 </style>
