@@ -49,6 +49,8 @@ watch(() => props.recording, () => { hovered.value = false })
   border-radius: var(--radius-full);
   --agent-ui-state-rest-foreground: var(--color-text-muted);
   --agent-ui-state-primary-solid-foreground: #fff;
+  /* Recording keeps its exact primary fill while hovered. */
+  --agent-ui-state-primary-solid-hover: var(--color-primary);
   --agent-ui-state-disabled-opacity: 0.42;
 }
 
