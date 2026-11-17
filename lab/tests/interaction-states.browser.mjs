@@ -54,12 +54,19 @@ try {
     assert.equal(await style('#disabled', 'cursor'), 'default', label('disabled cursor'));
 
     // Solid hover moves away from the foreground: contrast never drops.
-    const luminance = value => { const [r, g, b] = value.match(/\d+(?:\.\d+)?/g).slice(0, 3).map(Number).map(channel => { const v = channel / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
-    const ratio = (a, b) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05);
+    // Computed colors can come back as oklab() or color(), so read them as real sRGB pixels through a canvas.
+    const pixel = value => page.evaluate(color => {
+      const context = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d', { willReadFrequently: true });
+      context.fillStyle = color;
+      context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+    }, value);
+    const luminance = rgb => { const [r, g, b] = rgb.map(channel => { const v = channel / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const ratio = async (a, b) => { const x = luminance(await pixel(a)); const y = luminance(await pixel(b)); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
     for (const [fill, foreground] of [['rgb(30, 102, 245)', 'rgb(239, 241, 245)'], ['rgb(137, 180, 250)', 'rgb(30, 30, 46)']]) {
       await page.addStyleTag({ content: `#solid { --agent-ui-state-primary-solid: ${fill}; --agent-ui-state-primary-solid-foreground: ${foreground}; }` });
       await page.locator('#solid').hover();
-      assert(ratio(await style('#solid', 'backgroundColor'), foreground) >= ratio(fill, foreground) - 0.01, label(`solid hover keeps contrast for ${fill}`));
+      assert(await ratio(await style('#solid', 'backgroundColor'), foreground) >= await ratio(fill, foreground) - 0.01, label(`solid hover keeps contrast for ${fill}`));
     }
 
     // The rules sit in a low-priority layer: plain host CSS wins whatever its specificity.
