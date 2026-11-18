@@ -1,6 +1,6 @@
 {
   "name": "@korus-dev/agent-ui-sdk",
-  "version": "0.28.0",
+  "version": "0.28.1",
   "description": "Reusable capability-driven Vue controls and optional native host adapters for agent applications.",
   "license": "Apache-2.0",
   "author": "Nicolas Bonamy",

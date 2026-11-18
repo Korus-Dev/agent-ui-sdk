@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.28.1
 
+- Built on Multi Agent SDK 0.28.3.
 - The harness picker's speed button cycles through standard and the model's speeds on each click, whatever their number, instead of opening a menu for models with several. This also fixes the speed menu losing its background and border when the stylesheet loaded in a different order. The picker also stays open when a click re-renders the control that was clicked, which used to count as a click outside.
 
 ## 0.28.0
