@@ -73,7 +73,7 @@ Goal mode collects an objective before sending `/goal …`. Plan mode toggles pl
 
 ## Model, reasoning and speed
 
-Models, reasoning efforts and service tiers use the provider's own ids. The composer shows a model selector when `capabilities.models` is set, a reasoning submenu for models that list `supportedReasoningEfforts`, and a speed submenu for models with `serviceTiers`. Do not invent a universal model list or map one harness's permission ids onto another's.
+Models, reasoning efforts and service tiers use the provider's own ids. The composer shows a model selector when `capabilities.models` is set, a reasoning submenu for models that list `supportedReasoningEfforts`, and a speed button for models with `serviceTiers`, which cycles through standard and the model's speeds on each click. Do not invent a universal model list or map one harness's permission ids onto another's.
 
 Host-owned menu items render before Plan mode with `leadingMenuItems`. The model selector is the [harness picker](/guide/components#harnessmodelselector): harness tabs, models, reasoning and speed in one popover. Permission options come from `capabilities.permissions`; see [permissions](/guide/session-binding#permissions).
 

@@ -193,7 +193,7 @@ Emits `update:selection` and `select`.
 
 #### HarnessModelSelector
 
-A button that shows the current model and opens a popover with one tab per harness above that harness's models, with reasoning and speed choices. It is the composer's model selector, and you can use it on its own, for example for an "Agent" field in a form. It is plain Vue and CSS, with no extra peer dependencies.
+A button that shows the current model and opens a popover with one tab per harness above that harness's models, with reasoning choices and a speed button that cycles through the model's speeds. It is the composer's model selector, and you can use it on its own, for example for an "Agent" field in a form. It is plain Vue and CSS, with no extra peer dependencies.
 
 | Prop | Default | Purpose |
 | --- | --- | --- |
