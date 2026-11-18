@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, expect, it } from 'vitest';
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, nextTick } from 'vue';
 import Composer from '../../src/vue/components/Composer.vue';
 import { HarnessModelSelector } from '../../src/vue';
 
@@ -76,15 +76,27 @@ it('opens above or below the trigger as asked, and never when disabled', async (
   expect(disabled.find('[role="dialog"]').exists()).toBe(false);
 });
 
-it('offers the speed choices of the selected model in a menu and reports the tier', async () => {
+it('cycles through the speeds of the selected model on each click, keeping the picker open', async () => {
   const wrapper = await open({ selection: { model: 'fast', reasoningEffort: null, serviceTier: null } });
-  const button = wrapper.get('.provider-model-selector__tier-button');
-  expect(wrapper.find('.provider-model-selector__tier-list').exists()).toBe(false);
-  await button.trigger('click');
-  const tiers = wrapper.get('.provider-model-selector__tier-list');
-  await tiers.findAll('[role="menuitemradio"]').find(item => item.text().includes('Priority'))!.trigger('click');
-  expect(wrapper.emitted('update:selection')?.at(-1)).toEqual([{ model: 'fast', reasoningEffort: null, serviceTier: 'priority' }]);
-  expect(wrapper.find('.provider-model-selector__tier-list').exists()).toBe(false);
+  const picked: unknown[] = [];
+  for (const tier of [null, 'priority', 'flex']) {
+    await wrapper.setProps({ selection: { model: 'fast', reasoningEffort: null, serviceTier: tier } });
+    await wrapper.get('.provider-model-selector__tier-button').trigger('click');
+    picked.push((wrapper.emitted('update:selection')!.at(-1) as Array<{ serviceTier: unknown }>)[0]!.serviceTier);
+  }
+  expect(picked).toEqual(['priority', 'flex', null]);
+  expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
+});
+
+it('stays open when the clicked control re-renders its own icon', async () => {
+  const wrapper = await open({ selection: { model: 'fast', reasoningEffort: null, serviceTier: null } });
+  const button = wrapper.get('.provider-model-selector__tier-button').element;
+  const icon = button.querySelector('svg')!;
+  // The speed icon is replaced as the click is handled, so the target is gone when the page-level handler runs.
+  button.addEventListener('click', () => button.replaceChildren(), { once: true });
+  icon.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+  await nextTick();
+  expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
 });
 
 it('is the composer model selector: it opens upward and reports picks as composer events', async () => {

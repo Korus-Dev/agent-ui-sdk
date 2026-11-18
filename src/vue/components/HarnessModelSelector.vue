@@ -20,13 +20,9 @@
         <span v-else-if="provider && harnessChoice(provider)?.icon" class="provider-model-selector__current" role="img" :title="providerDisplayName(provider)" :aria-label="providerDisplayName(provider)"><ProviderIcon :provider="provider" /></span>
       </div>
       </template>
-      <template #service-tier="{ items, select }">
+      <template #service-tier="{ select }">
         <span class="provider-model-selector__tier" :title="serviceTiers.length ? tierTooltip : t('modelPicker.speedUnavailable')">
-          <span v-if="serviceTiers.length > 1" class="provider-model-selector__tier-menu">
-            <button class="provider-model-selector__tier-button agent-ui-interactive" :data-variant="activeTier ? 'primary' : undefined" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" aria-haspopup="menu" :aria-expanded="tierOpen" :disabled="disabled" :aria-label="tierAccessibleName" @click.stop="tierOpen = !tierOpen"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
-            <AppMenu v-if="tierOpen" class="app-menu--embedded provider-model-selector__tier-list" :ariaLabel="t('modelPicker.serviceTier')" :items="items" @select="id => { select(id); tierOpen = false; }" />
-          </span>
-          <button v-else class="provider-model-selector__tier-button agent-ui-interactive" :data-variant="activeTier ? 'primary' : undefined" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" :disabled="disabled || !serviceTiers.length" :aria-label="tierAccessibleName" :aria-pressed="Boolean(activeTier)" @click="select(activeTier ? '' : serviceTiers[0]!.id)"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
+          <button class="provider-model-selector__tier-button agent-ui-interactive" :data-variant="activeTier ? 'primary' : undefined" :class="{ 'provider-model-selector__tier-button--active': activeTier }" type="button" :disabled="disabled || !serviceTiers.length" :aria-label="tierAccessibleName" :aria-pressed="Boolean(activeTier)" @click="select(nextTier)"><UltrafastIcon v-if="activeTier === 'ultrafast'" :size="16" /><BoltIcon v-else aria-hidden="true" /></button>
         </span>
       </template>
     </ModelPicker>
@@ -42,7 +38,6 @@ import ModelPicker from './ModelPicker.vue';
 import UltrafastIcon from '../chat/UltrafastIcon.vue';
 import { useChatTranslate } from '../chat/chat-i18n';
 import type { ModelSelection } from '../model-selection';
-import AppMenu from '../shared/menu/AppMenu.vue';
 import { BoltIcon, ChevronDown } from '../shared/icons/app-icons';
 
 /** One harness the person can pick from. The app supplies the wording and the icon. */
@@ -86,19 +81,17 @@ const model = computed(() => props.selection.model ?? null);
 const reasoningEffort = computed(() => props.selection.reasoningEffort ?? null);
 const serviceTier = computed(() => props.selection.serviceTier ?? null);
 const open = ref(false);
-const tierOpen = ref(false);
-watch([open, provider, model], () => { tierOpen.value = false; });
 const root = ref<HTMLElement | null>(null);
 const trigger = ref<HTMLElement | null>(null);
 function toggle() { if (!props.disabled) open.value = !open.value; }
 function close(restoreFocus = false) {
-  if (!open.value && !tierOpen.value) return;
+  if (!open.value) return;
   open.value = false;
-  tierOpen.value = false;
   if (restoreFocus) void nextTick(() => trigger.value?.focus());
 }
 function closeOnOutsideClick(event: MouseEvent) {
-  if (root.value && event.target && !root.value.contains(event.target as Node)) close(false);
+  // The path is fixed when the click starts: a clicked icon that re-renders (the speed button) is no longer in the DOM by now.
+  if (root.value && !event.composedPath().includes(root.value)) close(false);
 }
 onMounted(() => document.addEventListener('click', closeOnOutsideClick));
 onBeforeUnmount(() => {
@@ -168,6 +161,13 @@ const serviceTiers = computed(() => selectedModel.value?.serviceTiers ?? []);
 const currentTierName = computed(() => serviceTiers.value.find(tier => tier.id === serviceTier.value)?.name ?? (activeTier.value ?? t('modelPicker.standardTier')));
 const tierAccessibleName = computed(() => t('modelPicker.currentServiceTier', { tier: currentTierName.value }));
 const tierTooltip = computed(() => !activeTier.value ? t('modelPicker.normalSpeed') : currentTierName.value.toLowerCase() === 'fast' ? t('modelPicker.fastMode') : currentTierName.value);
+// One click moves to the next speed: standard, then each of the model's speeds, then standard again.
+const tierCycle = computed(() => ['', ...serviceTiers.value.map(tier => tier.id).filter(id => !['normal', 'default'].includes(id))]);
+const nextTier = computed(() => {
+  const index = tierCycle.value.indexOf(activeTier.value ?? '');
+  // A speed the model does not list (an older chat) goes back to standard.
+  return index < 0 ? '' : tierCycle.value[(index + 1) % tierCycle.value.length]!;
+});
 // Lowercase like the effort next to it, so the two read as one setting.
 const tierLabel = (name: string) => name.toLowerCase();
 // Standard speed is reported as 'normal' or 'default' by some harnesses: it is not a speed to call out.
@@ -339,24 +339,6 @@ function updateModelSelection(value: ModelSelection) {
   width: 1px;
   height: 20px;
   background: var(--color-border);
-}
-
-.provider-model-selector__tier-menu {
-  position: relative;
-  display: inline-flex;
-}
-
-.provider-model-selector__tier-list {
-  position: absolute;
-  z-index: 21;
-  top: calc(100% + 6px);
-  right: 0;
-  width: 188px;
-  padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-lowest);
-  box-shadow: var(--shadow-menu);
 }
 
 .provider-model-selector__tier-button {
