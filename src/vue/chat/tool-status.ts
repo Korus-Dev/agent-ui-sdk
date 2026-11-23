@@ -83,18 +83,22 @@ export function getToolDisplayTitle(
   }
 
   if (isImageGenerationToolCall(toolCall)) {
-    return t(`chat.tool.imageGeneration.${imageGenerationPhase(toolCall)}`);
+    return t(`chat.tool.imageGeneration.${toolPhase(toolCall)}`);
   }
 
-  if (descriptor && isSemanticToolAction(descriptor.action)) {
+  if (descriptor?.action === 'mcp') return getToolFallbackTitle(toolCall, t);
+
+  if (descriptor && semanticToolActions.has(descriptor.action)) {
     const phase = commandPhase(descriptor.phase);
     if (descriptor.action === 'plan') {
       const operation = descriptor.params?.operation === 'update' ? 'update' : 'write';
       return t(`chat.tool.command.plan.${operation}.${phase}`);
     }
 
-    const target = displayFileTarget(toolCall, descriptor, commandTarget(descriptor, getMessageToolCallName(toolCall)));
-    return t(`chat.tool.command.${descriptor.action}.${phase}`, target ? { target } : undefined);
+    const fallback = descriptor.params?.target === '' ? '' : getMessageToolCallName(toolCall);
+    const target = displayFileTarget(toolCall, descriptor, commandTarget(descriptor, fallback));
+    if (descriptor.action === 'switch_mode' && !target) return toolLabel(t, `chat.tool.command.switch_mode.generic.${phase}`);
+    return toolLabel(t, `chat.tool.command.${descriptor.action}.${phase}`, { target }).trimEnd();
   }
 
   if (descriptor) {
@@ -192,7 +196,6 @@ function deferredDiffForPath(toolCall: MessageToolCall, path: string): Pick<Extr
 }
 
 export function getToolFallbackTitle(toolCall: MessageToolCall, t: Translate = defaultToolTranslate) {
-  const isRunning = !toolCall.done && toolCall.state !== 'completed';
   let name = getMessageToolCallName(toolCall);
   if (toolCall.kind !== 'command') {
     name = name
@@ -201,9 +204,12 @@ export function getToolFallbackTitle(toolCall: MessageToolCall, t: Translate = d
       .replace(/[_-]+/gu, ' ')
       .toLowerCase();
   }
-  return t(`chat.tool.fallback.${isRunning ? 'running' : 'completed'}`, {
-    name,
-  });
+  return toolLabel(t, `chat.tool.fallback.${toolPhase(toolCall)}`, { name });
+}
+
+function toolLabel(t: Translate, key: string, params?: Record<string, unknown>): string {
+  const label = t(key, params);
+  return label === key ? defaultToolTranslate(key, params) : label;
 }
 
 function commandTarget(descriptor: ToolStatusDescriptor, fallback: string) {
@@ -309,15 +315,16 @@ function commandPhase(phase: string) {
   return 'running';
 }
 
-function imageGenerationPhase(toolCall: MessageToolCall): 'running' | 'completed' | 'failed' | 'canceled' {
+function toolPhase(toolCall: MessageToolCall): 'running' | 'completed' | 'failed' | 'canceled' {
   if (toolCall.state === 'error') return 'failed';
   if (toolCall.state === 'canceled') return 'canceled';
   return !toolCall.done && toolCall.state !== 'completed' ? 'running' : 'completed';
 }
 
-function isSemanticToolAction(action: string): action is 'create' | 'delete' | 'edit' | 'explore' | 'list' | 'plan' | 'prepare' | 'read' | 'run' | 'search' {
-  return action === 'create' || action === 'delete' || action === 'edit' || action === 'explore' || action === 'list' || action === 'plan' || action === 'prepare' || action === 'read' || action === 'run' || action === 'search';
-}
+const semanticToolActions = new Set([
+  'create', 'delete', 'edit', 'explore', 'fetch', 'list', 'manage_agents', 'message',
+  'move', 'plan', 'prepare', 'read', 'run', 'search', 'switch_mode', 'think',
+]);
 
 export function defaultToolTranslate(key: string, params?: Record<string, unknown>) {
   const values = params ?? {};
@@ -334,9 +341,21 @@ export function defaultToolTranslate(key: string, params?: Record<string, unknow
     'chat.tool.command.explore.completed': 'Explored {target}',
     'chat.tool.command.explore.failed': 'Failed exploring {target}',
     'chat.tool.command.explore.running': 'Exploring {target}',
+    'chat.tool.command.fetch.completed': 'Fetched {target}',
+    'chat.tool.command.fetch.failed': 'Failed fetching {target}',
+    'chat.tool.command.fetch.running': 'Fetching {target}',
     'chat.tool.command.list.completed': 'Listed {target}',
     'chat.tool.command.list.failed': 'Failed listing {target}',
     'chat.tool.command.list.running': 'Listing {target}',
+    'chat.tool.command.manage_agents.completed': 'Managed subagents',
+    'chat.tool.command.manage_agents.failed': 'Failed managing subagents',
+    'chat.tool.command.manage_agents.running': 'Managing subagents',
+    'chat.tool.command.message.completed': 'Sent message',
+    'chat.tool.command.message.failed': 'Failed sending message',
+    'chat.tool.command.message.running': 'Sending message',
+    'chat.tool.command.move.completed': 'Moved {target}',
+    'chat.tool.command.move.failed': 'Failed moving {target}',
+    'chat.tool.command.move.running': 'Moving {target}',
     'chat.tool.command.plan.update.completed': 'Updated plan',
     'chat.tool.command.plan.update.failed': 'Failed updating plan',
     'chat.tool.command.plan.update.running': 'Updating plan',
@@ -355,7 +374,18 @@ export function defaultToolTranslate(key: string, params?: Record<string, unknow
     'chat.tool.command.search.completed': 'Searched {target}',
     'chat.tool.command.search.failed': 'Failed searching {target}',
     'chat.tool.command.search.running': 'Searching {target}',
+    'chat.tool.command.switch_mode.completed': 'Switched to {target}',
+    'chat.tool.command.switch_mode.failed': 'Failed switching to {target}',
+    'chat.tool.command.switch_mode.running': 'Switching to {target}',
+    'chat.tool.command.switch_mode.generic.completed': 'Switched mode',
+    'chat.tool.command.switch_mode.generic.failed': 'Failed switching mode',
+    'chat.tool.command.switch_mode.generic.running': 'Switching mode',
+    'chat.tool.command.think.completed': 'Finished thinking',
+    'chat.tool.command.think.failed': 'Could not finish thinking',
+    'chat.tool.command.think.running': 'Thinking',
+    'chat.tool.fallback.canceled': 'Canceled {name}',
     'chat.tool.fallback.completed': 'Ran {name}',
+    'chat.tool.fallback.failed': 'Failed running {name}',
     'chat.tool.fallback.running': 'Running {name}',
     'chat.tool.imageGeneration.canceled': 'Stopped generating image',
     'chat.tool.imageGeneration.completed': 'Generated image',

@@ -62,6 +62,8 @@ type ToolPresentationResolver = (context: {
 
 Return `undefined` to retain defaults, `{ icon: null }` to suppress the icon, or a title and icon override. Grouping, streaming behavior and the rest of the row stay SDK-owned.
 
+The default presentation uses semantic tool actions for verbs and icons and reports failed and canceled outcomes even when no action descriptor is available.
+
 ```ts
 provideToolPresentation(({ toolCall, kind }) => {
   if (kind === 'imageGeneration') return { icon: PaletteIcon };

@@ -169,7 +169,7 @@ const titleParts = computed(() => {
     return { title: toolPresentation.value.title }
   }
   const descriptor = statusDescriptor.value
-  if (props.toolCall.status && !['running', 'completed', 'failed'].includes(props.toolCall.status)) {
+  if (props.toolCall.status && !['running', 'completed', 'failed', 'canceled'].includes(props.toolCall.status)) {
     return descriptor ? getToolDisplayTitleParts(props.toolCall, descriptor, t) : { title: props.toolCall.status }
   }
   return getToolDisplayTitleParts(props.toolCall, descriptor, t)

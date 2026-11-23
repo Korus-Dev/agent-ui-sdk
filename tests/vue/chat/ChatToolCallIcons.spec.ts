@@ -13,14 +13,27 @@ const actions = [
   ['delete', 'trash'],
   ['edit', 'pencil'],
   ['explore', 'folder'],
+  ['fetch', 'world'],
   ['list', 'folder'],
+  ['move', 'file-arrow-right'],
+  ['message', 'message'],
+  ['manage_agents', 'users'],
+  ['mcp', 'plug-connected'],
   ['plan', 'list-details'],
   ['read', 'file-text'],
   ['run', 'terminal-2'],
   ['search', 'search'],
+  ['switch_mode', 'switch-horizontal'],
+  ['think', 'brain'],
 ] as const;
 
 describe('ChatToolCall action icons', () => {
+  it('uses the generic subagent icon across providers', () => {
+    const wrapper = mount(ChatToolIcon, { props: { toolCall: {
+      args: undefined, done: true, function: 'operation', id: 'operation', kind: 'subagent', result: undefined, state: 'completed',
+    } } });
+    expect(wrapper.get('svg').classes()).toContain('tabler-icon-users');
+  });
   it('directly renders the generic fallback icon', () => {
     const wrapper = mount(ChatToolIcon, {
       props: {

@@ -94,7 +94,7 @@ describe('tool status helpers', () => {
     expect(getToolGroupLineDiff([tool('removed-only', undefined, 5)])).toStrictEqual({ addedLines: 0, removedLines: 5 });
   });
 
-  it('formats fallback titles by running state', () => {
+  it('formats fallback titles by execution outcome', () => {
     const tool: MessageToolCall = {
       args: undefined,
       function: 'npm test',
@@ -107,6 +107,10 @@ describe('tool status helpers', () => {
     expect(getToolFallbackTitle({ ...tool, done: true, state: 'completed' })).toBe('Ran npm test');
     expect(getToolFallbackTitle({ ...tool, done: true, state: 'running' })).toBe('Ran npm test');
     expect(getToolFallbackTitle({ ...tool, done: false, state: 'completed' })).toBe('Ran npm test');
+    const mcpTool = { ...tool, function: 'catalog.lookup', kind: 'mcp', done: true };
+    expect(getToolFallbackTitle({ ...mcpTool, state: 'error' })).toBe('Failed running lookup');
+    expect(getToolFallbackTitle({ ...mcpTool, state: 'canceled' })).toBe('Canceled lookup');
+    expect(getToolFallbackTitle({ ...mcpTool, state: 'error' }, key => key)).toBe('Failed running lookup');
   });
 
   it('formats image-generation activity without exposing its protocol name', () => {
@@ -169,10 +173,16 @@ describe('tool status helpers', () => {
       delete: ['Deleting target', 'Deleted target', 'Failed deleting target'],
       edit: ['Editing target', 'Edited target', 'Failed editing target'],
       explore: ['Exploring target', 'Explored target', 'Failed exploring target'],
+      fetch: ['Fetching target', 'Fetched target', 'Failed fetching target'],
       list: ['Listing target', 'Listed target', 'Failed listing target'],
+      manage_agents: ['Managing subagents', 'Managed subagents', 'Failed managing subagents'],
+      message: ['Sending message', 'Sent message', 'Failed sending message'],
+      move: ['Moving target', 'Moved target', 'Failed moving target'],
       read: ['Reading target', 'Read target', 'Failed reading target'],
       run: ['Running target', 'Ran target', 'Failed running target'],
       search: ['Searching target', 'Searched target', 'Failed searching target'],
+      switch_mode: ['Switching to target', 'Switched to target', 'Failed switching to target'],
+      think: ['Thinking', 'Finished thinking', 'Could not finish thinking'],
     } as const;
 
     for (const [action, titles] of Object.entries(expected)) {

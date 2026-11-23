@@ -10,15 +10,22 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
 import {
+  BrainIcon,
+  FileArrowRightIcon,
   FileTextIcon,
   FolderIcon,
   ListDetailsIcon,
+  MessageIcon,
   PencilIcon,
   PhotoIcon,
+  PlugIcon,
   SearchIcon,
+  SwitchHorizontalIcon,
   Terminal2Icon,
   ToolIcon,
   Trash2Icon,
+  UsersIcon,
+  WorldIcon,
   WorldSearchIcon,
 } from '../shared/icons/app-icons'
 import type { ToolPresentation } from './tool-presentation'
@@ -38,6 +45,7 @@ const resolvedIcon = computed<Component | undefined>(() => {
 
   if (isImageGenerationToolCall(props.toolCall)) return PhotoIcon
   if (props.toolCall.kind === 'webSearch') return WorldSearchIcon
+  if (props.toolCall.kind === 'subagent') return UsersIcon
 
   const descriptor = parseToolStatusDescriptor(props.toolCall.status)
   if (descriptor) {
@@ -47,10 +55,17 @@ const resolvedIcon = computed<Component | undefined>(() => {
       case 'edit': return PencilIcon
       case 'explore':
       case 'list': return FolderIcon
+      case 'fetch': return WorldIcon
+      case 'manage_agents': return UsersIcon
+      case 'mcp': return PlugIcon
+      case 'message': return MessageIcon
+      case 'move': return FileArrowRightIcon
       case 'plan': return ListDetailsIcon
       case 'read': return FileTextIcon
       case 'run': return Terminal2Icon
       case 'search': return SearchIcon
+      case 'switch_mode': return SwitchHorizontalIcon
+      case 'think': return BrainIcon
     }
   }
 
