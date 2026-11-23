@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A turn with a Working header shows a single Working label while waiting for the next assistant update.
+
 ## 0.28.1
 
 - Built on Multi Agent SDK 0.28.3.

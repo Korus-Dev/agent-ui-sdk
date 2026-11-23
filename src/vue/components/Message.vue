@@ -419,13 +419,14 @@ const showThinkingIndicator = computed(() => (
   chatMessage.value.role === 'assistant' &&
   chatMessage.value.streaming === true &&
   isLatestStreamingAssistantSegment.value &&
-  !hasVisibleAssistantActivity.value
+  !hasVisibleAssistantActivity.value &&
+  workActive.value !== true
 ))
 const showStreamingDot = computed(() => (
   chatMessage.value.role === 'assistant' &&
   chatMessage.value.streaming === true &&
   isLatestStreamingAssistantSegment.value &&
-  hasVisibleAssistantActivity.value
+  (hasVisibleAssistantActivity.value || workActive.value === true)
 ))
 function startEdit() {
   if (chatMessage.value.role !== 'user' || !canEdit.value) {

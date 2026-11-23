@@ -509,7 +509,19 @@ describe('MessageList', () => {
     expect(wrapper.findAll('.chat-work-group__title').map((title) => title.text()))
       .toStrictEqual(['Working']);
     expect(wrapper.findAll('.chat-message--steer-below')).toHaveLength(1);
-    expect(wrapper.findAll('.chat-message__thinking')).toHaveLength(1);
+    expect(wrapper.findAll('.chat-message__thinking')).toHaveLength(0);
+    expect(wrapper.findAll('.chat-message__stream-dot')).toHaveLength(1);
+  });
+
+  it('shows a single Working label for an active replay with finished tool rows', () => {
+    const messages: ConversationMessageInput[] = [{ id: 'child-replay', role: 'assistant', turnId: 'child-turn', status: 'complete', parts: [
+      { type: 'tool', id: 'read', kind: 'read', title: 'Read README', status: 'completed' },
+      { type: 'tool', id: 'search', kind: 'search', title: 'Find tests', status: 'completed' },
+    ] }];
+    const wrapper = mount(MessageList, { props: { messages, busy: true, activeTurnId: 'child-turn' } });
+    try {
+      expect(wrapper.findAll('.chat-work-group__title, .chat-message__thinking').map(title => title.text())).toEqual(['Working']);
+    } finally { wrapper.unmount(); }
   });
 
   it('uses the explicit active turn instead of inferring lifecycle from global busy state', () => {
