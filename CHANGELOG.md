@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.29.0
 
+- Breaking: `@korus-dev/multi-agent-sdk` is now a peer dependency at `^0.29.0` only; Multi Agent SDK 0.27 and 0.28 are no longer supported. Built on Multi Agent SDK 0.29.0.
+- The default tool presentation uses semantic tool actions for verbs and icons (fetch, manage agents, MCP, message, move, switch mode, think, and subagents) and titles failed and canceled outcomes even when no action descriptor is available.
 - A turn with a Working header shows a single Working label while waiting for the next assistant update.
 
 ## 0.28.1
