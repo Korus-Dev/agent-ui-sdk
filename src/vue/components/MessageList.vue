@@ -282,7 +282,9 @@ let observedFirstMessage = messageIdentityAt(props.messages, 0)
 let observedLastMessage = messageIdentityAt(props.messages, props.messages.length - 1)
 const loadingOlderMessages = ref(false)
 let olderMessagesRequestPending = false
-const presentedMessages = computed(() => withoutSupersededFinalAnswers(props.messages))
+const presentedMessages = computed(() => withoutSupersededFinalAnswers(props.messages, message => (
+  message.turnId ? isTerminalTurn(message.turnId) : !message.streaming
+)))
 provide(imageGalleryKey, computed(() => conversationImages(presentedMessages.value.map(renderedChatMessage))))
 const visibleMessages = computed(() => effectiveRenderStrategy.value === 'lazy'
   ? presentedMessages.value.slice(renderStartIndex.value)

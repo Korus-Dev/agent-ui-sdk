@@ -4,19 +4,33 @@ import { findInlineHtmlBlocks } from './inline-html'
 import { renderedChatMessage, type ChatMessageInput } from './renderer-message-adapter'
 import { promptContentText } from '@korus-dev/multi-agent-sdk/prompt';
 
-/** A later model work item supersedes earlier final text in the same turn. */
-export function withoutSupersededFinalAnswers(messages: readonly ChatMessageInput[]): ChatMessageInput[] {
+/**
+ * A later model work item supersedes earlier final text in the same turn. Once a turn has settled, its last final
+ * answer stays even when work follows it, such as a closing bookkeeping tool call: the answer must never vanish.
+ */
+export function withoutSupersededFinalAnswers(
+  messages: readonly ChatMessageInput[],
+  isSettled: (message: ChatMessage) => boolean = () => false,
+): ChatMessageInput[] {
   const resumedTurns = new Set<string>()
+  const answeredTurns = new Set<string>()
   return [...messages].reverse().map((input) => {
     const message = renderedChatMessage(input)
     if (message.role !== 'assistant' || !message.parts) return input
     let resumed = message.turnId ? resumedTurns.has(message.turnId) : false
+    // Whether a later final answer of this turn has been seen, walking from the end.
+    let answered = message.turnId ? answeredTurns.has(message.turnId) : false
+    const settled = isSettled(message)
     const parts = [...message.parts].reverse().filter((part) => {
       if (part.type === 'tool' || part.type === 'reasoning'
         || (part.type === 'text' && (part.phase === 'commentary' || part.phase === 'partial_answer'))) resumed = true
-      return !(resumed && part.type === 'text' && part.phase === 'final_answer')
+      if (part.type !== 'text' || part.phase !== 'final_answer') return true
+      const superseded = resumed && (answered || !settled)
+      if (part.content.trim()) answered = true
+      return !superseded
     }).reverse()
     if (resumed && message.turnId) resumedTurns.add(message.turnId)
+    if (answered && message.turnId) answeredTurns.add(message.turnId)
     return parts.length === message.parts.length ? input : {
       ...message, parts, content: parts.flatMap(part => part.type === 'text' ? [part.content] : []).join('\n\n'),
     }

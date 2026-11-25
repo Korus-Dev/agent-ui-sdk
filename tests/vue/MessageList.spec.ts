@@ -834,6 +834,41 @@ describe('MessageList', () => {
     expect(wrapper.text()).toContain('All done.');
   });
 
+  it.each([
+    ['states phases', true, { phase: 'commentary' as const }, { phase: 'final_answer' as const }],
+    ['states no phases', false, {}, {}],
+  ])('keeps the answer outside the work details, hidden or shown, when a tool call follows it and the harness %s', async (_label, workPhases, work, final) => {
+    const wrapper = mount(MessageList, {
+      props: {
+        workPhases,
+        messages: [{
+          id: 'assistant-answer-then-tool', role: 'assistant', status: 'complete', turnId: 'turn-trailing',
+          parts: [
+            { type: 'text', text: 'Looking into it.', ...work },
+            { type: 'tool', kind: 'generic', id: 'tool-release', title: 'release', status: 'completed' },
+            { type: 'text', text: 'The release is queued.', ...final },
+            { type: 'tool', kind: 'generic', id: 'tool-finish', title: 'finish_turn', status: 'completed' },
+          ],
+        }],
+        turns: [{ ...turnLifecycle('turn-trailing', 'completed'), itemsView: 'full' as const }],
+      },
+    });
+
+    const header = () => wrapper.get('button.chat-work-group__header');
+    const expectAnswerOutsideDetails = () => {
+      const answers = wrapper.findAll('.chat-message-block--text').filter(block => block.text().includes('The release is queued.'));
+      expect(answers).toHaveLength(1);
+      expect(answers[0]!.element.closest('.chat-work-group')).toBeNull();
+    };
+    expect(header().attributes('aria-expanded')).toBe('false');
+    expectAnswerOutsideDetails();
+    await header().trigger('click');
+    expect(header().attributes('aria-expanded')).toBe('true');
+    expectAnswerOutsideDetails();
+    await header().trigger('click');
+    expectAnswerOutsideDetails();
+  });
+
   it('uses visible commentary as the turn disclosure when tool blocks are hidden', () => {
     const wrapper = mount(MessageList, {
       props: {

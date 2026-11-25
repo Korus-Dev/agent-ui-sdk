@@ -285,6 +285,8 @@ function hasToolDetails(toolCall: MessageToolCall) {
   border: 0;
   border-radius: var(--radius-sm);
   --agent-ui-state-rest-foreground: var(--color-text-muted);
+  /* No outline around the summary line. */
+  --agent-ui-state-focus-ring-width: 0px;
   font: inherit;
   text-align: left;
 }

@@ -167,6 +167,8 @@ function toggle() {
   --agent-ui-state-rest-foreground: var(--color-text-muted);
   /* The header is disabled while work runs, and keeps its full color. */
   --agent-ui-state-disabled-opacity: 1;
+  /* No outline around the summary line. */
+  --agent-ui-state-focus-ring-width: 0px;
   font: inherit;
   text-align: left;
 }

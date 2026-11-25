@@ -78,6 +78,10 @@ const derivedPhases = computed<Map<string, MessagePhase> | undefined>((previous)
     if (!item.work) phases.set(`${item.entry}:${item.part}`, position > lastWork ? 'final_answer' : 'commentary')
   })
   for (const key of narration) phases.set(key, 'commentary')
+  // A finished turn that ends on a tool call still has an answer: its last text, which stays outside the work details.
+  const running = props.active ?? messages.value.some(({ message }) => message.role === 'assistant' && message.streaming === true)
+  const lastText = sequence.filter(item => !item.work).at(-1)
+  if (!running && lastText) phases.set(`${lastText.entry}:${lastText.part}`, 'final_answer')
   return previous && previous.size === phases.size && [...phases].every(([key, phase]) => previous.get(key) === phase) ? previous : phases
 })
 const phased = computed(() => statesPhases.value
