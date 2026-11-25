@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.29.1
+
+- Built on Multi Agent SDK 0.29.0.
+- The work and tool group summary lines no longer draw a focus outline.
+- A finished turn's answer stays visible when its work details are shown or hidden, even when a tool call (such as a closing bookkeeping call) follows it. Before, opening and closing "View details" could make the answer disappear.
+
 ## 0.29.0
 
 - Breaking: `@korus-dev/multi-agent-sdk` is now a peer dependency at `^0.29.0` only; Multi Agent SDK 0.27 and 0.28 are no longer supported. Built on Multi Agent SDK 0.29.0.
